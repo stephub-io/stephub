@@ -68,9 +68,9 @@ feature "shopping-cart"
             Given I'm logged-in as "admin" using password "secret"
             When I make a GET request "cart" to "/cart"
             Then the response for "cart" equals:
-            | ${login.status} | 200 |        
-            | jsonPath(${login.body}, '$.positions.length())'  | 2 |        
-            | jsonPath(${login.body}, '$.positions[0].title))' | 'Rocky - The film' |        
+            | ${login.status}                                  | 200      |        
+            | jsonPath(${login.body}, '$.positions.length())'  | 2        |        
+            | jsonPath(${login.body}, '$.positions[0].title))' | 'Rocky'  |        
             | jsonPath(${login.body}, '$.positions[1].title))' | 'Wall-E' |        
     EOF
 }
