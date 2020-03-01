@@ -60,6 +60,7 @@ feature "login-using-high-level-steps" {
 
 ### Using functions
 
+```
 feature "shopping-cart"
         Feature: Shopping cart verification
         
