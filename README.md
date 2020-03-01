@@ -10,7 +10,7 @@ frees from writing code usually required for translating the BDD expressions
 to instructions and assertions.
 
 The concept of using variables and functions in declarations enables flexibility
-in instrumenting and asserting the behaviour of your application.
+and variety in instrumenting and asserting the behaviour of your application.
 
 ## Proposal
 
