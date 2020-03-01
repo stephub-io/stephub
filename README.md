@@ -61,7 +61,8 @@ feature "login-using-high-level-steps" {
 ### Using functions
 
 ```
-feature "shopping-cart"
+feature "shopping-cart" {
+    steps = <<EOF
         Feature: Shopping cart verification
         
         Scenario: Cart should contain two items
