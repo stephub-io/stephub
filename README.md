@@ -29,7 +29,7 @@ feature "login" {
         Scenario: Positive login
             Given I make a GET request "login" to "/login?user=${var.username}&password=${var.password}"
             Then the response for "login" matches:
-            | ${login.status} == 200 | Expected status OK |
+            | ${login.status} == 200                 | Expected status OK |
             | ${login.headers['x-session-id']} != '' | Expected session id in the response header |
               
         Scenario: Bad login
@@ -69,7 +69,7 @@ feature "shopping-cart"
             When I make a GET request "cart" to "/cart"
             Then the response for "cart" equals:
             | ${login.status} | 200 |        
-            | jsonPath(${login.body}, '$.positions.length())' | 2 |        
+            | jsonPath(${login.body}, '$.positions.length())'  | 2 |        
             | jsonPath(${login.body}, '$.positions[0].title))' | 'Rocky - The film' |        
             | jsonPath(${login.body}, '$.positions[1].title))' | 'Wall-E' |        
     EOF
