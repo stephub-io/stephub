@@ -1,4 +1,18 @@
-# A descriptive solution for Cucumber tests
+# A declarative solution for BDD tests
+
+The idea of this solution is to compose BDD tests in Gherkin/Cucumber
+of pre-built steps which encapsulate the logic for testing typical application
+types like browser apps, RESTful interfaces etc.
+
+The
+declarative expression of tests and encapsulation in custom high-level steps
+frees from writing code usually required for translating the BDD expressions
+to instructions and assertions.
+
+The concept of using variables and functions in declarations enables flexibility
+in instrumenting and asserting the behaviour of your application.
+
+## Proposal
 
 ### Definition of variables
 ```
