@@ -81,10 +81,10 @@ feature "shopping-cart" {
             Given I'm logged-in as "admin" using password "secret"
             When I make a GET request "cart" to "/cart"
             Then the response for "cart" equals:
-            | ${login.status}                                  | 200      |        
-            | jsonPath(${login.body}, '$.positions.length()')  | 2        |        
-            | jsonPath(${login.body}, '$.positions[0].title')  | 'Rocky'  |        
-            | jsonPath(${login.body}, '$.positions[1].title')  | 'Wall-E' |        
+            | ${cart.status}                                  | 200      |        
+            | jsonPath(${cart.body}, '$.positions.length()')  | 2        |        
+            | jsonPath(${cart.body}, '$.positions[0].title')  | 'Rocky'  |        
+            | jsonPath(${cart.body}, '$.positions[1].title')  | 'Wall-E' |        
     EOF
 }
 
@@ -97,7 +97,7 @@ after "delete-cart-items" {
     steps = <<EOF
         Given I make a GET request "cart" to "/cart"
         And I store the values from response "cart" to:
-        | positions | jsonPath(${login.body}, '$.positions') |
+        | positions | jsonPath(${cart.body}, '$.positions') |
         And I start iteration for "position" in "${positions}"
             And I make a DELETE request to "/cart/${position.id}"
         Then I end iteration for "position"
