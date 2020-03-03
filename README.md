@@ -1,16 +1,14 @@
 # A declarative solution for BDD tests
 
 The idea of this solution is to compose BDD tests in Gherkin/Cucumber
-of pre-built steps which encapsulate the logic for testing typical application
-types like browser apps, RESTful interfaces etc.
+of pre-built steps for instrumenting and asserting typical application
+types like browser apps, RESTful services etc.
 
 The
-declarative expression of tests and encapsulation in custom high-level steps
+declarative expression using control flow steps, variables, functions
+and the encapsulation of tests in custom high-level steps
 frees from writing code usually required for translating the BDD expressions
 to instructions and assertions.
-
-The concept of using variables and functions in declarations enables flexibility
-and variety in instrumenting and asserting the behaviour of your application.
 
 ## Proposal
 
@@ -87,6 +85,22 @@ feature "shopping-cart" {
             | jsonPath(${login.body}, '$.positions.length())'  | 2        |        
             | jsonPath(${login.body}, '$.positions[0].title))' | 'Rocky'  |        
             | jsonPath(${login.body}, '$.positions[1].title))' | 'Wall-E' |        
+    EOF
+}
+
+```
+
+### Control flow: Iteration
+
+```
+after "delete-cart-items" {
+    steps = <<EOF
+        Given I make a GET request "cart" to "/cart"
+        And I store the values from response "cart" to:
+        | positions | jsonPath(${login.body}, '$.positions' |
+        And I start iteration for "position" in "${positions}"
+            And I make a DELETE request to "/cart/${position.id}"
+        Then I end iteration for "position"
     EOF
 }
 
