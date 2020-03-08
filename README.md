@@ -105,3 +105,23 @@ after "delete-cart-items" {
 }
 
 ```
+
+### Control flow: Conditions
+
+```
+after "delete-cart-items" {
+    steps = <<EOF
+        Given I make a GET request "cart" to "/cart"
+        For "position" in "jsonPath(${cart.body}, '$.positions')"
+            If "${position.type} == 'DVD'"
+                Then I make a DELETE request to "/cart/dvd/${position.id}"
+            ElseIf "${position.type} == 'CD'"
+                Then I make a DELETE request to "/cart/cd/${position.id}"
+            Else
+                Then I make a DELETE request to "/cart/cd/${position.id}"
+            End
+        End
+    EOF
+}
+
+```
