@@ -118,7 +118,7 @@ after "delete-cart-items" {
             ElseIf "${position.type} == 'CD'"
                 Then I make a DELETE request to "/cart/cd/${position.id}"
             Else
-                Then I make a DELETE request to "/cart/cd/${position.id}"
+                Then I make a DELETE request to "/cart/sku/${position.id}"
             End
         End
     EOF
