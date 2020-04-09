@@ -41,10 +41,47 @@ arr
 value
    : STRING
    | NUMBER
+   | INT_NUMBER
    | obj
    | arr
    | BOOLEAN
    | NULL
+   | reference
+   | function
+   | value OPERATOR value
+   ;
+
+reference
+   : '${' path '}'
+   ;
+
+path
+   : ID ('.' path)?
+   | ID ('[' index ']')+ ('.' path)?
+   ;
+
+
+index
+   : INT_NUMBER
+   | STRING
+   | path
+   | function
+   | index OPERATOR index
+   ;
+
+
+function
+   : ID '(' ')'
+   | ID '(' value (',' value)* ')'
+   ;
+
+
+OPERATOR
+   : '+'
+   | '-'
+   | '*'
+   | '%'
+   | '/'
    ;
 
 NULL
@@ -58,9 +95,11 @@ BOOLEAN
 
 STRING
    : '"' (ESC | SAFECODEPOINT)* '"'
-   {setText(getText().substring(1, getText().length()-1));}
    ;
 
+ID
+   : [a-zA-Z_][a-zA-Z0-9_]*
+   ;
 
 fragment ESC
    : '\\' (["\\/bfnrt] | UNICODE)
@@ -75,6 +114,10 @@ fragment SAFECODEPOINT
    : ~ ["\\\u0000-\u001F]
    ;
 
+
+INT_NUMBER
+   : INT
+   ;
 
 NUMBER
    : '-'? INT ('.' [0-9] +)? EXP?
@@ -96,3 +139,4 @@ fragment EXP
 WS
    : [ \t\n\r] + -> skip
    ;
+

@@ -6,11 +6,11 @@ import org.mbok.cucumberform.json.Json;
 import org.mbok.cucumberform.json.JsonBoolean;
 
 @AllArgsConstructor
-public class JsonBooleanNode extends JsonValueNode {
+public class JsonBooleanNode extends JsonValueNode<JsonBoolean> {
     private boolean value;
 
     @Override
-    public Json evaluate(EvaluationContext ec) {
+    public JsonBoolean evaluate(EvaluationContext ec) {
         return new JsonBoolean(value);
     }
 }

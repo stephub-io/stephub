@@ -9,11 +9,11 @@ import org.mbok.cucumberform.json.JsonString;
 
 @AllArgsConstructor
 @Getter
-public class JsonStringNode extends JsonValueNode {
+public class JsonStringNode extends JsonValueNode<JsonString> {
     private String text;
 
     @Override
-    public Json evaluate(EvaluationContext ec) {
+    public JsonString evaluate(EvaluationContext ec) {
         return new JsonString(text.replaceAll("\\\\\"", "\""));
     }
 }

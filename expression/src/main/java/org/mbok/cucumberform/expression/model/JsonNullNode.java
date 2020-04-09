@@ -4,9 +4,9 @@ import org.mbok.cucumberform.expression.EvaluationContext;
 import org.mbok.cucumberform.json.Json;
 import org.mbok.cucumberform.json.JsonNull;
 
-public class JsonNullNode extends JsonValueNode {
+public class JsonNullNode extends JsonValueNode<JsonNull> {
     @Override
-    public Json evaluate(EvaluationContext ec) {
+    public JsonNull evaluate(EvaluationContext ec) {
         return new JsonNull();
     }
 }

@@ -41,13 +41,13 @@ feature "login" {
         Scenario: Positive login
             Given I make a GET request "login" to "/login?user=${var.username}&password=${var.password}"
             Then the response for "login" matches:
-            | ${login.status} == 200                 | Expected status OK |
-            | ${login.headers['x-session-id']} != '' | Expected session id in the response header |
+            | ${ login.status == 200 }                 | Expected status OK |
+            | ${ login.headers['x-session-id'] != '' } | Expected session id in the response header |
               
         Scenario: Bad login
             Given I make a GET request "login" to "/login?user=unknown&password=invalid"
             Then the response for "login" matches:
-            | ${login.status} == 401 | Expected status unauthorized error |
+            | ${ login.status == 401 } | Expected status unauthorized error |
     EOF
 }
 ```
@@ -59,7 +59,7 @@ step "simple-login" {
     definition = <<EOF
         Given I make a GET request "login" to "/login?user=${arg.username}&password=${arg.password}"
         Then the response for "login" matches:
-        | ${login.status} == 200 | Expected status OK |        
+        | ${login.status == 200} | Expected status OK |        
     EOF
 }
 
@@ -81,10 +81,10 @@ feature "shopping-cart" {
             Given I'm logged-in as "admin" using password "secret"
             When I make a GET request "cart" to "/cart"
             Then the response for "cart" equals:
-            | ${cart.status}                                  | 200      |        
-            | jsonPath(${cart.body}, '$.positions.length()')  | 2        |        
-            | jsonPath(${cart.body}, '$.positions[0].title')  | 'Rocky'  |        
-            | jsonPath(${cart.body}, '$.positions[1].title')  | 'Wall-E' |        
+            | ${ cart.status }                                  | 200      |        
+            | ${ jsonPath(cart.body, "$.positions.length()") } | 2        |        
+            | ${ jsonPath(cart.body, "$.positions[0].title") } | "Rocky"  |        
+            | ${ jsonPath(cart.body, "$.positions[1].title") } | "Wall-E" |        
     EOF
 }
 
@@ -113,9 +113,9 @@ after "delete-cart-items" {
     steps = <<EOF
         Given I make a GET request "cart" to "/cart"
         For "position" in "jsonPath(${cart.body}, '$.positions')"
-            If "${position.type} == 'DVD'"
+            If "${position.type == "DVD"}"
                 Then I make a DELETE request to "/cart/dvd/${position.id}"
-            ElseIf "${position.type} == 'CD'"
+            ElseIf "${position.type == "CD" }"
                 Then I make a DELETE request to "/cart/cd/${position.id}"
             Else
                 Then I make a DELETE request to "/cart/sku/${position.id}"

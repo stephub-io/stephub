@@ -11,7 +11,12 @@ public class JsonBoolean extends Json {
     private boolean value;
 
     @Override
-    public String asString() {
+    public String asJsonString(boolean pretty) {
         return Boolean.toString(value);
+    }
+
+    @Override
+    public JsonType getType() {
+        return JsonType.BOOLEAN;
     }
 }

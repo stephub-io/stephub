@@ -3,6 +3,12 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/cucumberform.iml" filepath="$PROJECT_DIR$/cucumberform.iml" />
+      <module fileurl="file://$PROJECT_DIR$/expression/expression.iml" filepath="$PROJECT_DIR$/expression/expression.iml" />
+      <module fileurl="file://$PROJECT_DIR$/json/json.iml" filepath="$PROJECT_DIR$/json/json.iml" />
+      <module fileurl="file://$PROJECT_DIR$/provider/provider.iml" filepath="$PROJECT_DIR$/provider/provider.iml" />
+      <module fileurl="file://$PROJECT_DIR$/providers/providers.iml" filepath="$PROJECT_DIR$/providers/providers.iml" />
+      <module fileurl="file://$PROJECT_DIR$/providers/util/providers.util.iml" filepath="$PROJECT_DIR$/providers/util/providers.util.iml" />
+      <module fileurl="file://$PROJECT_DIR$/providers/wiremock/providers.wiremock.iml" filepath="$PROJECT_DIR$/providers/wiremock/providers.wiremock.iml" />
     </modules>
   </component>
 </project>

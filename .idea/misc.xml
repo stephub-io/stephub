@@ -4,6 +4,12 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/pom.xml" />
+        <option value="$PROJECT_DIR$/json/pom.xml" />
+        <option value="$PROJECT_DIR$/expression/pom.xml" />
+        <option value="$PROJECT_DIR$/provider/pom.xml" />
+        <option value="$PROJECT_DIR$/providers/wiremock/pom.xml" />
+        <option value="$PROJECT_DIR$/providers/util/pom.xml" />
+        <option value="$PROJECT_DIR$/providers/pom.xml" />
       </list>
     </option>
   </component>
