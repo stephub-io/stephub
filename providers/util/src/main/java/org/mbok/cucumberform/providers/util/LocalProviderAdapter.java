@@ -30,6 +30,7 @@ public abstract class LocalProviderAdapter<S extends LocalProviderAdapter.Sessio
                 log.info("Session expired: {}", sessionId);
                 this.stopState((String) sessionId, (S) state);
             })
+            .variableExpiration()
             .build();
 
     @Data

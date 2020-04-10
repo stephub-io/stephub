@@ -5,6 +5,7 @@ import lombok.*;
 import java.util.HashMap;
 import java.util.Map;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter

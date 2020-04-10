@@ -29,7 +29,6 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
         this.configurableBeanFactory = beanFactory;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
@@ -49,7 +48,7 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
     private static void scanForStepMethods(final SpringBeanProvider<SessionState> provider, final String beanName) {
         final Class<?> managedBeanClass = provider.getClass();
         ReflectionUtils.doWithMethods(managedBeanClass, method -> {
-            provider.stepInvokers.put("step-" + provider.stepInvokers.size(), buildInvoker(provider, method));
+            provider.stepInvokers.put(method.getName(), buildInvoker(provider, method));
         }, method -> method.isAnnotationPresent(StepMethod.class));
     }
 
@@ -74,6 +73,7 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                     throw new ProviderException("Unsatisfiable step method parameter [" + i + "] with name=" + parameter.getName());
                 }
             }
+            parameterAccessors[i] = accessor;
         }
         return (((sessionId, state, request) -> {
             final Object[] args = new Object[parameterAccessors.length];

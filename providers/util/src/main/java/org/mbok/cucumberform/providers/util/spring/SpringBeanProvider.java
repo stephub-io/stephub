@@ -4,10 +4,11 @@ import org.mbok.cucumberform.provider.StepRequest;
 import org.mbok.cucumberform.provider.StepResponse;
 import org.mbok.cucumberform.providers.util.LocalProviderAdapter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public abstract class SpringBeanProvider<S extends LocalProviderAdapter.SessionState> extends LocalProviderAdapter<S> {
-    Map<String, StepInvoker> stepInvokers;
+    Map<String, StepInvoker> stepInvokers = new HashMap<>();
 
     public interface StepInvoker {
         StepResponse invoke(String sessionId, SessionState state, StepRequest request);
