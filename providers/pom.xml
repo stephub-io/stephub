@@ -13,6 +13,7 @@
 
     <modules>
         <module>util</module>
+        <module>base</module>
         <module>wiremock</module>
     </modules>
 

@@ -28,7 +28,7 @@ public abstract class LocalProviderAdapter<S extends LocalProviderAdapter.Sessio
     private final ExpiringMap<String, S> sessionStore = ExpiringMap.builder()
             .expirationListener((sessionId, state) -> {
                 log.info("Session expired: {}", sessionId);
-                this.stopState((String) sessionId, (S) state);
+                this.stopState((S) state);
             })
             .variableExpiration()
             .build();
@@ -36,13 +36,16 @@ public abstract class LocalProviderAdapter<S extends LocalProviderAdapter.Sessio
     @Data
     @SuperBuilder
     public static class SessionState {
-        private Provider providerOptions;
+        private String sessionId;
+        private ProviderOptions providerOptions;
     }
 
     @Override
     public final String createSession(final ProviderOptions options) {
         final String sessionId = UUID.randomUUID().toString();
         final S state = this.startState(sessionId, options);
+        state.setSessionId(sessionId);
+        state.setProviderOptions(options);
         this.sessionStore.put(sessionId, state, ExpirationPolicy.ACCESSED, options.getSessionTimeout().getSeconds(), TimeUnit.SECONDS);
         log.debug("Created session {} with options: {}", sessionId, options);
         return sessionId;
@@ -50,7 +53,7 @@ public abstract class LocalProviderAdapter<S extends LocalProviderAdapter.Sessio
 
     protected abstract S startState(String sessionId, ProviderOptions options);
 
-    protected abstract void stopState(String sessionId, S state);
+    protected abstract void stopState(S state);
 
     protected abstract StepResponse executeWithinState(String sessionId, S state, StepRequest request);
 
@@ -61,7 +64,7 @@ public abstract class LocalProviderAdapter<S extends LocalProviderAdapter.Sessio
 
     @Override
     public final void destroySession(final String sessionId) {
-        this.stopState(sessionId, this.getStateSafe(sessionId));
+        this.stopState(this.getStateSafe(sessionId));
         this.sessionStore.remove(sessionId);
         log.debug("Destroyed session: {}", sessionId);
     }

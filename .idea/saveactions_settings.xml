@@ -8,7 +8,6 @@
         <option value="reformat" />
         <option value="fieldCanBeFinal" />
         <option value="localCanBeFinal" />
-        <option value="methodMayBeStatic" />
         <option value="unqualifiedFieldAccess" />
         <option value="unqualifiedMethodAccess" />
         <option value="customUnqualifiedStaticMemberAccess" />

@@ -16,6 +16,7 @@
         <!-- Dependency versions -->
         <spring.version>5.2.5.RELEASE</spring.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
+        <expiringmap.version>0.5.9</expiringmap.version>
     </properties>
 
     <modules>
@@ -23,6 +24,7 @@
         <module>expression</module>
         <module>provider</module>
         <module>providers</module>
+        <module>runtime</module>
     </modules>
 
 

@@ -10,6 +10,8 @@
         <option value="$PROJECT_DIR$/providers/wiremock/pom.xml" />
         <option value="$PROJECT_DIR$/providers/util/pom.xml" />
         <option value="$PROJECT_DIR$/providers/pom.xml" />
+        <option value="$PROJECT_DIR$/runtime/pom.xml" />
+        <option value="$PROJECT_DIR$/providers/base/pom.xml" />
       </list>
     </option>
   </component>

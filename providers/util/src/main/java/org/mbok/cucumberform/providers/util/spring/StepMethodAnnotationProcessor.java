@@ -1,7 +1,11 @@
 package org.mbok.cucumberform.providers.util.spring;
 
+import org.mbok.cucumberform.json.Json.JsonType;
 import org.mbok.cucumberform.provider.StepRequest;
 import org.mbok.cucumberform.provider.StepResponse;
+import org.mbok.cucumberform.provider.spec.ArgumentSpec;
+import org.mbok.cucumberform.provider.spec.PatternType;
+import org.mbok.cucumberform.provider.spec.StepSpec;
 import org.mbok.cucumberform.providers.util.LocalProviderAdapter.ProviderException;
 import org.mbok.cucumberform.providers.util.LocalProviderAdapter.SessionState;
 import org.springframework.beans.BeansException;
@@ -32,9 +36,7 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(final Object bean, final String beanName)
             throws BeansException {
-        if (bean instanceof SpringBeanProvider) {
-            StepMethodAnnotationProcessor.scanForStepMethods(SpringBeanProvider.class.cast(bean), beanName);
-        }
+        this.scanForStepMethods(bean, beanName);
         return bean;
     }
 
@@ -45,14 +47,27 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
     }
 
 
-    private static void scanForStepMethods(final SpringBeanProvider<SessionState> provider, final String beanName) {
-        final Class<?> managedBeanClass = provider.getClass();
+    private void scanForStepMethods(final Object bean, final String beanName) {
+        final Class<?> managedBeanClass = bean.getClass();
         ReflectionUtils.doWithMethods(managedBeanClass, method -> {
-            provider.stepInvokers.put(method.getName(), buildInvoker(provider, method));
+            final StepMethod stepMethodAno = method.getAnnotation(StepMethod.class);
+            final Class<? extends SpringBeanProvider> providerClass = stepMethodAno.provider();
+            final SpringBeanProvider<SessionState> provider;
+            if (!providerClass.equals(SpringBeanProvider.class)) {
+                provider = this.configurableBeanFactory.getBean(providerClass);
+            } else if (bean instanceof SpringBeanProvider) {
+                provider = (SpringBeanProvider<SessionState>) bean;
+            } else {
+                throw new ProviderException("Invalid usage of step method annotation or target provider isn't resolvable: " + method.toString());
+            }
+            final StepSpec.StepSpecBuilder specBuilder = StepSpec.builder();
+            specBuilder.pattern(stepMethodAno.pattern()).patternType(stepMethodAno.patternType());
+            provider.stepInvokers.put(method.getName(), buildInvoker(bean, method, specBuilder));
+            provider.stepSpecs.add(specBuilder.build());
         }, method -> method.isAnnotationPresent(StepMethod.class));
     }
 
-    private static SpringBeanProvider.StepInvoker buildInvoker(final SpringBeanProvider<SessionState> provider, final Method stepMethod) {
+    private static SpringBeanProvider.StepInvoker buildInvoker(final Object bean, final Method stepMethod, final StepSpec.StepSpecBuilder specBuilder) {
         final Parameter[] parameters = stepMethod.getParameters();
         final ParameterAccessor[] parameterAccessors = new ParameterAccessor[parameters.length];
         for (int i = 0; i < parameters.length; i++) {
@@ -69,6 +84,11 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                                     findFirst().orElseThrow(() -> new ProviderException("Missing argument with name=" + expectedArgument.name()))
                                     .getValue()
                     ));
+                    specBuilder.argument(
+                            ArgumentSpec.builder().name(expectedArgument.name()).
+                                    type(JsonType.valueOf(parameter.getType())).
+                                    build()
+                    );
                 } else {
                     throw new ProviderException("Unsatisfiable step method parameter [" + i + "] with name=" + parameter.getName());
                 }
@@ -81,7 +101,7 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                 args[i] = parameterAccessors[i].getParameter(sessionId, state, request);
             }
             try {
-                return (StepResponse) stepMethod.invoke(provider, args);
+                return (StepResponse) stepMethod.invoke(bean, args);
             } catch (final IllegalAccessException | InvocationTargetException e) {
                 throw new ProviderException("Failed to invoke step method=" + stepMethod.getName(), e);
             }
@@ -92,10 +112,15 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
         Object getParameter(String sessionId, SessionState state, StepRequest request);
     }
 
+
     @Retention(RetentionPolicy.RUNTIME)
     @Target({ElementType.METHOD})
     public @interface StepMethod {
         String pattern();
+
+        Class<? extends SpringBeanProvider> provider() default SpringBeanProvider.class;
+
+        PatternType patternType() default PatternType.REGEX;
     }
 
     @Retention(RetentionPolicy.RUNTIME)

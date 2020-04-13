@@ -2,7 +2,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>providers.util</artifactId>
+    <artifactId>providers.base</artifactId>
     <packaging>jar</packaging>
     <parent>
         <groupId>org.mbok.cucumberform</groupId>
@@ -13,14 +13,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>net.jodah</groupId>
-            <artifactId>expiringmap</artifactId>
-            <version>${expiringmap.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-context-support</artifactId>
-            <version>${spring.version}</version>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>providers.util</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
 </project>

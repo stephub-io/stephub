@@ -2,13 +2,14 @@ package org.mbok.cucumberform.providers.util.spring;
 
 import org.mbok.cucumberform.provider.StepRequest;
 import org.mbok.cucumberform.provider.StepResponse;
+import org.mbok.cucumberform.provider.spec.StepSpec;
 import org.mbok.cucumberform.providers.util.LocalProviderAdapter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public abstract class SpringBeanProvider<S extends LocalProviderAdapter.SessionState> extends LocalProviderAdapter<S> {
     Map<String, StepInvoker> stepInvokers = new HashMap<>();
+    List<StepSpec> stepSpecs = new ArrayList<>();
 
     public interface StepInvoker {
         StepResponse invoke(String sessionId, SessionState state, StepRequest request);
@@ -24,5 +25,8 @@ public abstract class SpringBeanProvider<S extends LocalProviderAdapter.SessionS
         }
     }
 
-
+    @Override
+    public List<StepSpec> getSteps() {
+        return stepSpecs;
+    }
 }

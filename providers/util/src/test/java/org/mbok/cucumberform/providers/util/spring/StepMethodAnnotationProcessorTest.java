@@ -11,7 +11,9 @@ import org.mbok.cucumberform.provider.StepResponse;
 import org.mbok.cucumberform.providers.util.LocalProviderAdapter.SessionState;
 import org.mbok.cucumberform.providers.util.spring.StepMethodAnnotationProcessor.StepArgument;
 import org.mbok.cucumberform.providers.util.spring.StepMethodAnnotationProcessor.StepMethod;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
+import org.springframework.stereotype.Component;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -20,7 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {StepMethodAnnotationProcessor.class})
+@ContextConfiguration(classes = {StepMethodAnnotationProcessor.class, StepMethodAnnotationProcessorTest.SomeBean.class})
 class StepMethodAnnotationProcessorTest {
 
     public static class TestProvider extends SpringBeanProvider<SessionState> {
@@ -50,10 +52,28 @@ class StepMethodAnnotationProcessorTest {
         protected void stopState(final SessionState state) {
 
         }
+
+        @Override
+        public String getName() {
+            return "test";
+        }
+    }
+
+    @Component
+    public static class SomeBean {
+        private SomeBean mock = mock(SomeBean.class);
+
+        @StepMethod(pattern = "Bla bla blub", provider = TestProvider.class)
+        public StepResponse testStepExternalNoArgs() {
+            return this.mock.testStepExternalNoArgs();
+        }
     }
 
     @SpyBean
     private TestProvider testProvider;
+
+    @Autowired
+    private SomeBean externalBean;
 
     @Test
     public void testStepNoArgs() {
@@ -75,6 +95,13 @@ class StepMethodAnnotationProcessorTest {
                 new JsonBoolean(true),
                 new JsonObject()
         );
+    }
+
+    @Test
+    public void testExternalStepNoArgs() {
+        final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
+        this.testProvider.execute(sid, StepRequest.builder().id("testStepExternalNoArgs").build());
+        verify(this.externalBean.mock).testStepExternalNoArgs();
     }
 
 }
