@@ -2,6 +2,8 @@ package org.mbok.cucumberform.runtime.service.support;
 
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
+import org.mbok.cucumberform.expression.AttributesContext;
+import org.mbok.cucumberform.json.Json;
 import org.mbok.cucumberform.provider.StepResponse;
 import org.mbok.cucumberform.runtime.model.Context;
 import org.mbok.cucumberform.runtime.model.RuntimeSession;
@@ -86,6 +88,11 @@ public class MemorySessionService implements SessionService {
             @Override
             public void setProviderSession(final String providerName, final String providerSession) {
                 session.getProviderSessions().put(providerName, providerSession);
+            }
+        }, new AttributesContext() {
+            @Override
+            public Json get(final String key) {
+                return session.getGlobals().get(key);
             }
         });
     }

@@ -32,8 +32,10 @@ public class RuntimeSession {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private SessionStatus status;
 
+    @Builder.Default
     private Map<String, Json> globals = new HashMap<>();
 
     @JsonIgnore
+    @Builder.Default
     private Map<String, String> providerSessions = new HashMap<>();
 }

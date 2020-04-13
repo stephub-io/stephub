@@ -7,6 +7,7 @@ import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@NoArgsConstructor
 @AllArgsConstructor
 @Data
 @Builder
@@ -41,5 +42,6 @@ public class StepResponse {
     @Singular
     private List<Argument> outputs;
     private String errorMessage;
+    @Singular
     private List<StepLog> logs;
 }

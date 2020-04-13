@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
+import java.time.Duration;
 
 @Component
 public class StepMethodAnnotationProcessor implements BeanPostProcessor {
@@ -61,7 +62,10 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                 throw new ProviderException("Invalid usage of step method annotation or target provider isn't resolvable: " + method.toString());
             }
             final StepSpec.StepSpecBuilder specBuilder = StepSpec.builder();
-            specBuilder.pattern(stepMethodAno.pattern()).patternType(stepMethodAno.patternType());
+            specBuilder.
+                    id(method.getName()).
+                    pattern(stepMethodAno.pattern()).
+                    patternType(stepMethodAno.patternType());
             provider.stepInvokers.put(method.getName(), buildInvoker(bean, method, specBuilder));
             provider.stepSpecs.add(specBuilder.build());
         }, method -> method.isAnnotationPresent(StepMethod.class));
@@ -101,7 +105,12 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                 args[i] = parameterAccessors[i].getParameter(sessionId, state, request);
             }
             try {
-                return (StepResponse) stepMethod.invoke(bean, args);
+                final long start = System.currentTimeMillis();
+                final StepResponse response = (StepResponse) stepMethod.invoke(bean, args);
+                if (response.getDuration() == null) {
+                    response.setDuration(Duration.ofMillis(System.currentTimeMillis() - start));
+                }
+                return response;
             } catch (final IllegalAccessException | InvocationTargetException e) {
                 throw new ProviderException("Failed to invoke step method=" + stepMethod.getName(), e);
             }

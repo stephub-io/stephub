@@ -11,8 +11,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="provider" />
+    <orderEntry type="module" module-name="expression" />
     <orderEntry type="module" module-name="json" />
+    <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.7" level="project" />
+    <orderEntry type="module" module-name="provider" />
     <orderEntry type="module" module-name="providers.base" />
     <orderEntry type="module" module-name="providers.util" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context-support:5.2.5.RELEASE" level="project" />

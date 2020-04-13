@@ -11,6 +11,7 @@ import java.util.List;
 @EqualsAndHashCode
 @ToString
 public class StepSpec {
+    private String id;
     private String pattern;
     private PatternType patternType;
     @Singular

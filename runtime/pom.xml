@@ -36,6 +36,11 @@
     <dependencies>
         <dependency>
             <groupId>org.mbok.cucumberform</groupId>
+            <artifactId>expression</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mbok.cucumberform</groupId>
             <artifactId>provider</artifactId>
             <version>${project.version}</version>
         </dependency>

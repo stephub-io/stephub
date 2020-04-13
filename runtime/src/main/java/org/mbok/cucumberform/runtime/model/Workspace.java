@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -18,5 +19,5 @@ public class Workspace {
     private String name;
     @Valid
     @Singular
-    private List<ProviderSpec> providers;
+    private List<ProviderSpec> providers = new ArrayList<>();
 }

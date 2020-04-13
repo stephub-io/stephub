@@ -1,5 +1,7 @@
 package org.mbok.cucumberform.providers.util.spring;
 
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mbok.cucumberform.json.JsonBoolean;
@@ -18,8 +20,10 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static java.time.Duration.ofMinutes;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.greaterThan;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {StepMethodAnnotationProcessor.class, StepMethodAnnotationProcessorTest.SomeBean.class})
@@ -27,11 +31,19 @@ class StepMethodAnnotationProcessorTest {
 
     public static class TestProvider extends SpringBeanProvider<SessionState> {
         private final TestProvider mock = mock(TestProvider.class);
+        {
+            try {
+                when(mock.testStepNoArgs()).thenReturn(new StepResponse());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
 
         private SessionState state;
 
         @StepMethod(pattern = "Bla bla")
-        public StepResponse testStepNoArgs() {
+        public StepResponse testStepNoArgs() throws InterruptedException {
+            Thread.sleep(1000);
             return this.mock.testStepNoArgs();
         }
 
@@ -76,10 +88,11 @@ class StepMethodAnnotationProcessorTest {
     private SomeBean externalBean;
 
     @Test
-    public void testStepNoArgs() {
+    public void testStepNoArgs() throws InterruptedException {
         final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
-        this.testProvider.execute(sid, StepRequest.builder().id("testStepNoArgs").build());
+        StepResponse response = this.testProvider.execute(sid, StepRequest.builder().id("testStepNoArgs").build());
         verify(this.testProvider.mock).testStepNoArgs();
+        assertThat(response.getDuration().getSeconds(), greaterThanOrEqualTo(1l));
     }
 
     @Test

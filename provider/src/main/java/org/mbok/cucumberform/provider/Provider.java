@@ -1,9 +1,7 @@
 package org.mbok.cucumberform.provider;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.mbok.cucumberform.json.JsonObject;
 import org.mbok.cucumberform.provider.spec.StepSpec;
 
@@ -21,11 +19,13 @@ public interface Provider {
 
     String getName();
 
+    @NoArgsConstructor
     @AllArgsConstructor
     @Data
-    @Builder
+    @SuperBuilder
     @EqualsAndHashCode
     class ProviderOptions {
+        @Builder.Default
         private Duration sessionTimeout = Duration.ofMinutes(5);
         private JsonObject options;
     }
