@@ -8,6 +8,8 @@
     <file url="file://$PROJECT_DIR$/provider/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/provider/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/providers/base/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/providers/remote/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/providers/remote/src/main/resources" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/providers/util/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/providers/wiremock/src/main/java" charset="UTF-8" />
     <file url="file://$PROJECT_DIR$/runtime/src/main/java" charset="UTF-8" />
