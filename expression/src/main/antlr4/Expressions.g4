@@ -1,7 +1,7 @@
 grammar Expressions;
 
 // applies only to the parser:
-@header {package org.mbok.cucumberform.expression.generated;}
+@header {package io.stephub.expression.generated;}
 
 
 @members {

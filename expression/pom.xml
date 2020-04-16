@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>org.mbok.cucumberform</groupId>
+        <groupId>io.stephub</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../</relativePath>
@@ -34,7 +34,7 @@
     
     <dependencies>
         <dependency>
-            <groupId>org.mbok.cucumberform</groupId>
+            <groupId>io.stephub</groupId>
             <artifactId>json</artifactId>
             <version>${project.version}</version>
         </dependency>

@@ -5,7 +5,7 @@
     <artifactId>providers.base</artifactId>
     <packaging>jar</packaging>
     <parent>
-        <groupId>org.mbok.cucumberform</groupId>
+        <groupId>io.stephub</groupId>
         <artifactId>providers</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../</relativePath>

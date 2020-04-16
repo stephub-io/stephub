@@ -6,7 +6,7 @@
     <packaging>jar</packaging>
 
     <parent>
-        <groupId>org.mbok.cucumberform</groupId>
+        <groupId>io.stephub</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../</relativePath>
@@ -35,22 +35,22 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.mbok.cucumberform</groupId>
+            <groupId>io.stephub</groupId>
             <artifactId>expression</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.mbok.cucumberform</groupId>
+            <groupId>io.stephub</groupId>
             <artifactId>provider</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.mbok.cucumberform</groupId>
+            <groupId>io.stephub</groupId>
             <artifactId>providers.base</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.mbok.cucumberform</groupId>
+            <groupId>io.stephub</groupId>
             <artifactId>providers.wiremock</artifactId>
             <version>${project.version}</version>
         </dependency>

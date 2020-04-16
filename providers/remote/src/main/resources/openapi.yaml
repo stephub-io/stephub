@@ -1,0 +1,174 @@
+openapi: "3.0.3"
+info:
+  version: 0.0.1
+  title: Provider REST API
+  license:
+    name: Apache License 2.0
+servers:
+  - url: https://myprovider.io/v1
+paths:
+  /:
+    get:
+      summary: Provider's base information
+      operationId: listPets
+      responses:
+        '200':
+          description: Provider's base information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Provider"
+  /sessions:
+    post:
+      summary: Starts a new session
+      operationId: startSession
+      tags:
+        - session
+      responses:
+        '200':
+          description: Session information
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+      requestBody:
+        description: Session options
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionOptions"
+  /sessions/{sessionId}/execute:
+    post:
+      summary: Execute step within provider's session
+      operationId: executeStep
+      tags:
+        - session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: The id of the session
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Expected response to a valid request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StepResponse"
+      requestBody:
+        description: Step request to execute
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StepRequest"
+components:
+  schemas:
+    Provider:
+      type: object
+      required:
+        - name
+        - version
+      properties:
+        name:
+          type: string
+        version:
+          type: string
+    SessionOptions:
+      type: object
+      properties:
+        sessionTimeout:
+          description: Timeout of the session
+          type: string
+          format: duration
+          default: "PT5M"
+        options:
+          description: Additional provider options applied to the lifetime of the session
+          type: object
+    Session:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+    StepRequest:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          description: Step ID
+          type: string
+        arguments:
+          description: Step arguments
+          type: array
+          items:
+            $ref: "#/components/schemas/Argument"
+    Argument:
+      type: object
+      required:
+        - name
+        - value
+      properties:
+        name:
+          description: Argument name
+          type: string
+        value:
+          description: Argument value
+          example: "Any valid JSON type value"
+    StepResponse:
+      type: object
+      required:
+        - status
+        - duration
+      properties:
+        status:
+          description: Status of step execution
+          type: string
+          enum:
+            - passed
+            - failed
+        duration:
+          description: Duration of step execution
+          type: string
+          format: duration
+        outputs:
+          type: array
+          items:
+            $ref: "#/components/schemas/Argument"
+        errorMessage:
+          description: Detail error message
+          type: string
+        logs:
+          description: Logs to attach
+          type: array
+          items:
+            $ref: "#/components/schemas/StepLog"
+    StepLog:
+      type: object
+      properties:
+        message:
+          description: Log message
+          type: string
+        attachment:
+          description: File attachment
+          $ref: "#/components/schemas/LogAttachment"
+        details:
+          description: Structured log details in arbitrary format
+          type: object
+    LogAttachment:
+      type: object
+      required:
+        - contentType
+        - content
+      properties:
+        contentType:
+          description: MIME type of the content
+          type: string
+          example: image/png
+        content:
+          description: base64 encoded binary content of the file
+          type: string
+          format: byte

@@ -12,6 +12,7 @@
         <option value="$PROJECT_DIR$/providers/pom.xml" />
         <option value="$PROJECT_DIR$/runtime/pom.xml" />
         <option value="$PROJECT_DIR$/providers/base/pom.xml" />
+        <option value="$PROJECT_DIR$/providers/remote/pom.xml" />
       </list>
     </option>
   </component>

@@ -14,15 +14,18 @@
         <module name="expression" />
         <module name="json" />
         <module name="providers.wiremock" />
+        <module name="providers.remote" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="cucumberform" target="10" />
       <module name="expression" target="10" />
       <module name="json" target="10" />
+      <module name="parent" target="10" />
       <module name="provider" target="10" />
       <module name="providers" target="10" />
       <module name="providers.base" target="10" />
+      <module name="providers.remote" target="10" />
       <module name="providers.util" target="10" />
       <module name="providers.wiremock" target="10" />
       <module name="runtime" target="10" />

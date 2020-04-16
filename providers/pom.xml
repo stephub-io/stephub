@@ -5,7 +5,7 @@
     <artifactId>providers</artifactId>
     <packaging>pom</packaging>
     <parent>
-        <groupId>org.mbok.cucumberform</groupId>
+        <groupId>io.stephub</groupId>
         <artifactId>parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../</relativePath>
@@ -14,6 +14,7 @@
     <modules>
         <module>util</module>
         <module>base</module>
+        <module>remote</module>
         <module>wiremock</module>
     </modules>
 
