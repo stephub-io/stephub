@@ -1,17 +1,21 @@
 package io.stephub.expression.grammar;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
 import io.stephub.expression.ParseException;
 import io.stephub.expression.generated.ExpressionsBaseVisitor;
 import io.stephub.expression.generated.ExpressionsParser;
 import io.stephub.expression.model.*;
+import io.stephub.json.Json;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.text.NumberFormat;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
+    private StringInterpolator stringInterpolater = new StringInterpolator();
+
     @Override
     public JsonValueNode<?> visitJson(final ExpressionsParser.JsonContext ctx) {
         return ctx.value().accept(this);
@@ -19,7 +23,7 @@ public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
 
     @Override
     public JsonObjectNode visitObj(final ExpressionsParser.ObjContext ctx) {
-        final Map<JsonStringNode, JsonValueNode<?>> fields = new HashMap<>();
+        final Map<JsonValueNode<? extends Json>, JsonValueNode<? extends Json>> fields = new HashMap<>();
         for (final ExpressionsParser.PairContext pair : ctx.pair()) {
             final JsonValueNode<?> value = pair.value().accept(new JsonVisitor());
             fields.put(
@@ -86,29 +90,30 @@ public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
 
     @Override
     public JsonValueNode<?> visitFunction(final ExpressionsParser.FunctionContext ctx) {
-        return new FunctionNode(ctx.ID().getText(), ctx.value().stream().
-                map(a -> a.accept(this)).collect(Collectors.toList()));
+        return new FunctionNode(ctx.ID().getText(),
+                ctx.arguments() != null ? ctx.arguments().value().stream().
+                        map(a -> a.accept(this)).collect(Collectors.toList()) :
+                        Collections.emptyList());
     }
 
-    private static JsonBooleanNode mapBoolean(final TerminalNode tn) {
+    private  JsonBooleanNode mapBoolean(final TerminalNode tn) {
         return new JsonBooleanNode("true".equals(tn.getText()));
     }
 
-    private static JsonStringNode mapString(final TerminalNode tn) {
+    private JsonValueNode<? extends Json> mapString(final TerminalNode tn) {
         final String textIncludingQuotes = tn.getText();
-        return new JsonStringNode(textIncludingQuotes.substring(1, textIncludingQuotes.length() - 1));
+        return stringInterpolater.interpolate(textIncludingQuotes.substring(1, textIncludingQuotes.length() - 1));
     }
 
-    private static JsonNullNode mapNull(final TerminalNode tn) {
+    private  JsonNullNode mapNull(final TerminalNode tn) {
         return new JsonNullNode();
     }
 
-    private static JsonNumberNode mapNumber(final TerminalNode tn) {
+    private  JsonNumberNode mapNumber(final TerminalNode tn) {
         try {
             return new JsonNumberNode(NumberFormat.getInstance().parse(tn.getText()));
         } catch (final java.text.ParseException e) {
             throw new ParseException(e.getMessage());
         }
     }
-
 }

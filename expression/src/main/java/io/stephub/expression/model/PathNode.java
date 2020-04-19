@@ -1,9 +1,9 @@
 package io.stephub.expression.model;
 
-import lombok.AllArgsConstructor;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.EvaluationException;
 import io.stephub.json.*;
+import lombok.AllArgsConstructor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +61,7 @@ public class PathNode extends JsonValueNode<Json> {
         return projection;
     }
 
-    private static EvaluationException createInvalidIndexException(final String indexType, final Json projection, final List<String> pathTrace) {
+    protected EvaluationException createInvalidIndexException(final String indexType, final Json projection, final List<String> pathTrace) {
         return new EvaluationException("Invalid index " + (indexType != null ? ("'" + indexType + "' ") : "") + "in reference '" + pathTrace.stream().collect(Collectors.joining()) + "' to evaluate in JSON of type '" + projection.getType() + "'");
     }
 

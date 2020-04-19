@@ -39,7 +39,7 @@ public abstract class Json {
 
     @Override
     public String toString() {
-        return asJsonString();
+        return asJsonString(false);
     }
 
     protected final String encodeString(String text) {

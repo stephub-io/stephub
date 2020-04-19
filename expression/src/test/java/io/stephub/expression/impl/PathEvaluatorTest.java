@@ -1,10 +1,10 @@
 package io.stephub.expression.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
 import io.stephub.expression.EvaluationException;
 import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.json.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -18,6 +18,13 @@ public class PathEvaluatorTest {
         final Json result = el.evaluate("${abc}",
                 SimpleEvaluationContext.builder().attribute("abc", new JsonBoolean(true)).build());
         assertEquals(new JsonBoolean(true), result);
+    }
+
+    @Test
+    public void testConvenientRefConcatenationInString() {
+        final Json result = el.evaluate("\"text ${abc}\"",
+                SimpleEvaluationContext.builder().attribute("abc", new JsonString("plus")).build());
+        assertEquals(new JsonString("text plus"), result);
     }
 
     @Test

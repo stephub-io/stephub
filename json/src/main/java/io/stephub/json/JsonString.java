@@ -11,12 +11,17 @@ public class JsonString extends Json {
     private final String value;
 
     @Override
-    public String asJsonString(boolean pretty) {
-        return "\"" + encodeString(value) + "\"";
+    public String asJsonString(final boolean pretty) {
+        return "\"" + this.encodeString(this.value) + "\"";
     }
 
     @Override
     public JsonType getType() {
         return JsonType.STRING;
+    }
+
+    @Override
+    public String toString() {
+        return this.value;
     }
 }

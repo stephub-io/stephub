@@ -41,13 +41,13 @@ feature "login" {
         Scenario: Positive login
             Given I make a GET request "login" to "/login?user=${var.username}&password=${var.password}"
             Then the response for "login" matches:
-            | ${ login.status == 200 }                 | Expected status OK |
-            | ${ login.headers['x-session-id'] != '' } | Expected session id in the response header |
+            | ${login.status} == 200                 | Expected status OK |
+            | ${login.headers['x-session-id']} != '' | Expected session id in the response header |
               
         Scenario: Bad login
             Given I make a GET request "login" to "/login?user=unknown&password=invalid"
             Then the response for "login" matches:
-            | ${ login.status == 401 } | Expected status unauthorized error |
+            | ${login.status} == 401 | Expected status unauthorized error |
     EOF
 }
 ```
@@ -58,8 +58,8 @@ step "simple-login" {
     expression = "I'm logged-in as {string:username} using password {string:password}"
     definition = <<EOF
         Given I make a GET request "login" to "/login?user=${arg.username}&password=${arg.password}"
-        Then the response for "login" matches:
-        | ${login.status == 200} | Expected status OK |        
+        Then assert for trueness:
+        | ${login.status} == 200 | "Expected status OK" |        
     EOF
 }
 

@@ -1,7 +1,5 @@
 package io.stephub.providers.util.spring;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
 import io.stephub.provider.Argument;
@@ -11,6 +9,8 @@ import io.stephub.provider.StepResponse;
 import io.stephub.providers.util.LocalProviderAdapter.SessionState;
 import io.stephub.providers.util.spring.StepMethodAnnotationProcessor.StepArgument;
 import io.stephub.providers.util.spring.StepMethodAnnotationProcessor.StepMethod;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -49,6 +49,11 @@ class StepMethodAnnotationProcessorTest {
         @Override
         protected void stopState(final SessionState state) {
 
+        }
+
+        @Override
+        public String getName() {
+            return "test";
         }
     }
 

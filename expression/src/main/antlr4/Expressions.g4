@@ -71,10 +71,12 @@ index
 
 
 function
-   : ID '(' ')'
-   | ID '(' value (',' value)* ')'
+   : ID '(' arguments? ')'
    ;
 
+arguments
+   : value ( ',' value )*
+   ;
 
 OPERATOR
    : '+'
@@ -139,4 +141,3 @@ fragment EXP
 WS
    : [ \t\n\r] + -> skip
    ;
-

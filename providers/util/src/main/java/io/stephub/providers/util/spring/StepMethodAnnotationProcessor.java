@@ -107,7 +107,7 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
             try {
                 final long start = System.currentTimeMillis();
                 final StepResponse response = (StepResponse) stepMethod.invoke(bean, args);
-                if (response.getDuration() == null) {
+                if (response != null && response.getDuration() == null) {
                     response.setDuration(Duration.ofMillis(System.currentTimeMillis() - start));
                 }
                 return response;
