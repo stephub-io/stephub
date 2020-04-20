@@ -1,5 +1,7 @@
 package io.stephub.runtime.controller;
 
+import io.stephub.expression.EvaluationException;
+import io.stephub.expression.ParseException;
 import io.stephub.runtime.service.ExecutionException;
 import io.stephub.runtime.service.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -22,5 +24,17 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
     public void handleExecutionError(
             final ExecutionException ex, final HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.CONFLICT.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(ParseException.class)
+    public void handleParseException(
+            final ParseException ex, final HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(EvaluationException.class)
+    public void handleEvaluationException(
+            final EvaluationException ex, final HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }
 }

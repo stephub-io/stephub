@@ -2,16 +2,18 @@ package io.stephub.json;
 
 import lombok.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
 @Builder
 public class JsonArray extends Json {
     @Singular
-    private List<Json> values;
+    private List<Json> values = new ArrayList<>();
 
     @Override
     public String asJsonString(final boolean pretty) {

@@ -49,7 +49,6 @@ public class StepRequestEvaluator {
 
     private Json evaluateArgument(final EvaluationContext ec, final GherkinPatternMatcher.ArgumentMatch argumentMatch) {
         final Json evaluatedValue = this.evaluator.evaluate(argumentMatch.getValue(), ec);
-        // TODO Validate result type vs. desired type
-        return evaluatedValue;
+        return argumentMatch.getDesiredType().convertFrom(evaluatedValue);
     }
 }

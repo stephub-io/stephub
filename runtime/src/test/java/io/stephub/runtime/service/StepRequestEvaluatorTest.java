@@ -5,6 +5,7 @@ import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
 import io.stephub.json.JsonString;
 import io.stephub.provider.StepRequest;
+import io.stephub.runtime.service.GherkinPatternMatcher.ArgumentMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static io.stephub.json.Json.JsonType.BOOLEAN;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -64,6 +66,24 @@ class StepRequestEvaluatorTest {
         final StepRequest step = stepBuilder.build();
         assertThat(step.getDocString(), equalTo(
                 JsonObject.builder().field("abc", new JsonBoolean(true)).build()
+        ));
+    }
+
+    @Test
+    public void testArgEvaluationWithDesiredTypeMapping() {
+        final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
+        this.evaluator.populateRequest(
+                StepMatch.builder().argument(
+                        ArgumentMatch.builder().
+                                desiredType(BOOLEAN).name("abc").value("{ \"some\": null }")
+                                .build()
+                ).build(),
+                stepBuilder,
+                SimpleEvaluationContext.builder().build()
+        );
+        final StepRequest step = stepBuilder.build();
+        assertThat(step.getArguments().get("abc"), equalTo(
+                new JsonBoolean(true)
         ));
     }
 }
