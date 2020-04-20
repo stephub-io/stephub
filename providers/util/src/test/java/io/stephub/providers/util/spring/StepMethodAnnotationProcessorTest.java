@@ -1,16 +1,15 @@
 package io.stephub.providers.util.spring;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
-import io.stephub.provider.Argument;
 import io.stephub.provider.Provider;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
 import io.stephub.providers.util.LocalProviderAdapter.SessionState;
 import io.stephub.providers.util.spring.StepMethodAnnotationProcessor.StepArgument;
 import io.stephub.providers.util.spring.StepMethodAnnotationProcessor.StepMethod;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.stereotype.Component;
@@ -28,10 +27,11 @@ class StepMethodAnnotationProcessorTest {
 
     public static class TestProvider extends SpringBeanProvider<SessionState> {
         private final TestProvider mock = mock(TestProvider.class);
+
         {
             try {
-                when(mock.testStepNoArgs()).thenReturn(new StepResponse());
-            } catch (InterruptedException e) {
+                when(this.mock.testStepNoArgs()).thenReturn(new StepResponse());
+            } catch (final InterruptedException e) {
                 e.printStackTrace();
             }
         }
@@ -70,7 +70,7 @@ class StepMethodAnnotationProcessorTest {
 
     @Component
     public static class SomeBean {
-        private SomeBean mock = mock(SomeBean.class);
+        private final SomeBean mock = mock(SomeBean.class);
 
         @StepMethod(pattern = "Bla bla blub", provider = TestProvider.class)
         public StepResponse testStepExternalNoArgs() {
@@ -87,7 +87,7 @@ class StepMethodAnnotationProcessorTest {
     @Test
     public void testStepNoArgs() throws InterruptedException {
         final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
-        StepResponse response = this.testProvider.execute(sid, StepRequest.builder().id("testStepNoArgs").build());
+        final StepResponse response = this.testProvider.execute(sid, StepRequest.builder().id("testStepNoArgs").build());
         verify(this.testProvider.mock).testStepNoArgs();
         assertThat(response.getDuration().getSeconds(), greaterThanOrEqualTo(1l));
     }
@@ -97,8 +97,8 @@ class StepMethodAnnotationProcessorTest {
         final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
         this.testProvider.execute(sid, StepRequest.builder().
                 id("testStepMultipleArgs").
-                argument(Argument.builder().name("data").value(new JsonObject()).build()).
-                argument(Argument.builder().name("enabled").value(new JsonBoolean(true)).build()).
+                argument("data", new JsonObject()).
+                argument("enabled", new JsonBoolean(true)).
                 build());
         verify(this.testProvider.mock).testStepMultipleArgs(
                 this.testProvider.state,

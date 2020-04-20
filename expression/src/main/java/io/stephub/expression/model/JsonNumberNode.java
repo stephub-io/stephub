@@ -1,12 +1,16 @@
 package io.stephub.expression.model;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.json.JsonNumber;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
 @AllArgsConstructor
 @Getter
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class JsonNumberNode extends JsonValueNode<JsonNumber> {
     private Number value;
 

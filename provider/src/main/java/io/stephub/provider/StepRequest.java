@@ -1,8 +1,9 @@
 package io.stephub.provider;
 
+import io.stephub.json.Json;
 import lombok.*;
 
-import java.util.List;
+import java.util.Map;
 
 @AllArgsConstructor
 @Data
@@ -11,5 +12,7 @@ import java.util.List;
 public class StepRequest {
     private String id;
     @Singular
-    private List<Argument> arguments;
+    private Map<String, Json> arguments;
+    private Json docString;
+    private DataTable dataTable;
 }

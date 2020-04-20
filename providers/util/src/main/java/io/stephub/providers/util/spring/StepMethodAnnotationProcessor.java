@@ -1,5 +1,6 @@
 package io.stephub.providers.util.spring;
 
+import io.stephub.json.Json;
 import io.stephub.json.Json.JsonType;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
@@ -83,11 +84,13 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                 final StepArgument expectedArgument = parameter.getAnnotation(StepArgument.class);
                 if (expectedArgument != null) {
                     accessor = (((sessionId, state, request) ->
-                            request.getArguments().stream().filter(argument ->
-                                    argument.getName().equals(expectedArgument.name())).
-                                    findFirst().orElseThrow(() -> new ProviderException("Missing argument with name=" + expectedArgument.name()))
-                                    .getValue()
-                    ));
+                    {
+                        final Json value = request.getArguments().get(expectedArgument.name());
+                        if (value == null) {
+                            throw new ProviderException("Missing argument with name=" + expectedArgument.name());
+                        }
+                        return value;
+                    }));
                     specBuilder.argument(
                             ArgumentSpec.builder().name(expectedArgument.name()).
                                     type(JsonType.valueOf(parameter.getType())).

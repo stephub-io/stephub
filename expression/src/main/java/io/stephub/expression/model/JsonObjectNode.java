@@ -7,11 +7,15 @@ import io.stephub.json.JsonNumber;
 import io.stephub.json.JsonObject;
 import io.stephub.json.JsonString;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class JsonObjectNode extends JsonValueNode<JsonObject> {
     private final Map<JsonValueNode<? extends Json>, JsonValueNode<? extends Json>> fields;
 

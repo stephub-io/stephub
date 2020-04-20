@@ -1,14 +1,18 @@
 package io.stephub.expression.model;
 
-import lombok.AllArgsConstructor;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.json.Json;
 import io.stephub.json.JsonNull;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class FunctionNode extends JsonValueNode<Json> {
     private final String name;
     private final List<JsonValueNode<? extends Json>> arguments;

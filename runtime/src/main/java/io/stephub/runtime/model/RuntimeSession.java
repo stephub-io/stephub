@@ -2,9 +2,8 @@ package io.stephub.runtime.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
-import lombok.*;
 import io.stephub.json.Json;
+import lombok.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +14,11 @@ import java.util.Map;
 @EqualsAndHashCode(of = {"id", "workspace"})
 @Builder
 public class RuntimeSession {
-    public static enum SessionStatus {
+    public enum SessionStatus {
         ACTIVE, INACTIVE;
 
-        @JsonValue
-        public String forJackson() {
+        @Override
+        public String toString() {
             return this.name().toLowerCase();
         }
     }

@@ -4,12 +4,16 @@ import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.EvaluationException;
 import io.stephub.json.*;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class PathNode extends JsonValueNode<Json> {
     private final String id;
     private final List<PathIndexNode> indexes;

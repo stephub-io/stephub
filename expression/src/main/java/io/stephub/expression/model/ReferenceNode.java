@@ -1,10 +1,14 @@
 package io.stephub.expression.model;
 
-import lombok.AllArgsConstructor;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.json.Json;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @AllArgsConstructor
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class ReferenceNode extends JsonValueNode<Json> {
     private PathNode pathNode;
 

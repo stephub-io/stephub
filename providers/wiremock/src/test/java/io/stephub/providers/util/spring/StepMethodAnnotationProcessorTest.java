@@ -2,7 +2,6 @@ package io.stephub.providers.util.spring;
 
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
-import io.stephub.provider.Argument;
 import io.stephub.provider.Provider;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
@@ -72,8 +71,8 @@ class StepMethodAnnotationProcessorTest {
         final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
         this.testProvider.execute(sid, StepRequest.builder().
                 id("testStepMultipleArgs").
-                argument(Argument.builder().name("data").value(new JsonObject()).build()).
-                argument(Argument.builder().name("enabled").value(new JsonBoolean(true)).build()).
+                argument("data", new JsonObject()).
+                argument("enabled", new JsonBoolean(true)).
                 build());
         verify(this.testProvider.mock).testStepMultipleArgs(
                 this.testProvider.state,

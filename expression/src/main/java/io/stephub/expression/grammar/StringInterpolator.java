@@ -14,6 +14,8 @@ import org.antlr.v4.runtime.Token;
 import static io.stephub.expression.model.OpNode.Operator.PLUS;
 
 public class StringInterpolator {
+    private static final SyntaxErrorListener ERROR_LISTENER = new SyntaxErrorListener();
+
     private final Parser referenceParser;
 
     public StringInterpolator() {
@@ -26,6 +28,8 @@ public class StringInterpolator {
 
     public JsonValueNode<? extends Json> interpolate(final String input) {
         final StringInterpolation lexer = new StringInterpolation(CharStreams.fromString(input));
+        lexer.removeErrorListeners();
+        lexer.addErrorListener(ERROR_LISTENER);
         final CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         tokenStream.fill();
         JsonValueNode<? extends Json> node = null;

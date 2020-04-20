@@ -5,9 +5,11 @@ import io.stephub.json.Json;
 import io.stephub.json.JsonString;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
 @AllArgsConstructor
-@EqualsAndHashCode
+@EqualsAndHashCode(callSuper = false)
+@ToString
 public class OpNode extends JsonValueNode<Json> {
     private interface OpFunction {
         Json apply(Json left, Json right);

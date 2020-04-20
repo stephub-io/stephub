@@ -1,10 +1,12 @@
 package io.stephub.provider;
 
-import lombok.*;
+import io.stephub.json.Json;
 import io.stephub.json.JsonObject;
+import lombok.*;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -38,7 +40,7 @@ public class StepResponse {
     private StepStatus status;
     private Duration duration;
     @Singular
-    private List<Argument> outputs;
+    private Map<String, Json> outputs;
     private String errorMessage;
     @Singular
     private List<StepLog> logs;
