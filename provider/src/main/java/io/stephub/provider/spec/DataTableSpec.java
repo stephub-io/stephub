@@ -3,7 +3,6 @@ package io.stephub.provider.spec;
 import io.stephub.json.Json.JsonType;
 import lombok.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @AllArgsConstructor
@@ -23,7 +22,7 @@ public class DataTableSpec {
         private JsonType type;
     }
 
-    private final boolean hasHeader = false;
+    private final boolean hasHeader;
     @Singular
-    private final List<ColumnSpec> columns = new ArrayList<>();
+    private final List<ColumnSpec> columns;
 }

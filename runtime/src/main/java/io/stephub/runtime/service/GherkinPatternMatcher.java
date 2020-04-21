@@ -9,6 +9,7 @@ import lombok.Singular;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,6 +26,7 @@ public class GherkinPatternMatcher {
         @Singular
         private final List<ArgumentMatch> arguments;
         private final String docString;
+        private final List<Map<String, String>> dataTable;
     }
 
     @Getter
