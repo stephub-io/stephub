@@ -26,4 +26,5 @@ public class StepSpec {
     private List<ArgumentSpec> arguments;
     @Builder.Default
     private PayloadType payload = PayloadType.NONE;
+    private DataTableSpec dataTable;
 }

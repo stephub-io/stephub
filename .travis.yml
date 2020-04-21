@@ -1,0 +1,17 @@
+sudo: required
+
+services:
+  - docker
+
+env:
+  global:
+    - COMMIT=${TRAVIS_COMMIT::8}
+
+script:
+#  - docker login -u $DOCKER_USER -p $DOCKER_PASS $DOCKER_REGISTRY
+  - export REPO=stephub/stephub
+#  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+  - docker build -f Dockerfile -t $REPO:$COMMIT .
+#  - docker tag $REPO:$COMMIT $DOCKER_REGISTRY/$REPO:$TAG
+#  - docker tag $REPO:$COMMIT $DOCKER_REGISTRY/$REPO:travis-$TRAVIS_BUILD_NUMBER
+#  - docker push $DOCKER_REGISTRY/$REPO
