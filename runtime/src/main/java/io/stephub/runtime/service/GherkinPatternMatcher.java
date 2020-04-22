@@ -4,9 +4,7 @@ import io.stephub.expression.ParseException;
 import io.stephub.json.Json;
 import io.stephub.provider.spec.DataTableSpec.ColumnSpec;
 import io.stephub.provider.spec.StepSpec;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Singular;
+import lombok.*;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,36 +21,51 @@ import static io.stephub.provider.spec.StepSpec.PayloadType.DOC_STRING;
 @Service
 public class GherkinPatternMatcher {
     private static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
+    private static final Pattern SKIP_LINES_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
 
     @Getter
     @Builder
+    @EqualsAndHashCode
+    @ToString
     public static class StepMatch {
         @Singular
-        private final List<ArgumentMatch> arguments;
-        private final String docString;
-        private final List<Map<String, String>> dataTable;
+        private final Map<String, ValueMatch> arguments;
+        private final ValueMatch docString;
+        private final List<Map<String, ValueMatch>> dataTable;
     }
 
     @Getter
     @Builder
-    public static class ArgumentMatch {
-        private final String name;
+    @EqualsAndHashCode
+    @ToString
+    public static class ValueMatch {
         private final String value;
         private final Json.JsonType desiredType;
     }
 
     public StepMatch matches(final StepSpec stepSpec, final String instruction) {
         if (stepSpec.getPatternType() == REGEX) {
+            final String[] linesRaw = instruction.split("\r?\n");
+            final List<String> effectiveLines = new ArrayList<>();
+            for (final String line : linesRaw) {
+                if (!SKIP_LINES_PATTERN.matcher(line).matches()) {
+                    effectiveLines.add(line);
+                }
+            }
+            final String[] lines = effectiveLines.toArray(new String[effectiveLines.size()]);
+            if (lines.length == 0) {
+                throw new ParseException("Passed instruction doesn't contain any step: " + instruction);
+            }
             final Pattern pattern = Pattern.compile(stepSpec.getPattern());
-            final String[] lines = instruction.split("\n");
-            final Matcher matcher = pattern.matcher(lines[0]);
+            final Matcher matcher = pattern.matcher(lines[0].trim());
             if (matcher.matches()) {
                 final StepMatch.StepMatchBuilder stepMatchBuilder = StepMatch.builder();
                 stepSpec.getArguments().forEach(a -> stepMatchBuilder.argument(
-                        ArgumentMatch.builder().
-                                name(a.getName()).
+                        a.getName(),
+                        ValueMatch.builder().
                                 value(matcher.group(a.getName())).
-                                desiredType(a.getType()).build()
+                                desiredType(a.getType()).
+                                build()
                 ));
                 this.checkAndExtractPayload(stepSpec, instruction, lines, stepMatchBuilder);
                 return stepMatchBuilder.build();
@@ -65,28 +78,40 @@ public class GherkinPatternMatcher {
 
     private void checkAndExtractPayload(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
         if (stepSpec.getPayload() == DOC_STRING) {
-            this.checkAndExtractDocString(instruction, lines, stepMatchBuilder);
+            this.checkAndExtractDocString(stepSpec, instruction, lines, stepMatchBuilder);
         } else if (stepSpec.getPayload() == DATA_TABLE) {
             this.checkAndExtractDataTable(stepSpec, instruction, lines, stepMatchBuilder);
         }
     }
 
     private void checkAndExtractDataTable(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
-        final List<Map<String, String>> rows = new ArrayList<>();
+        final List<Map<String, ValueMatch>> rows = new ArrayList<>();
         final int cols = stepSpec.getDataTable().getColumns().size();
         final StringBuilder rowPatternStr = new StringBuilder();
+        rowPatternStr.append("\\s*\\|\\s*");
         for (int i = 0; i < cols; i++) {
-            rowPatternStr.append("\\|\\s*");
-            rowPatternStr.append("((?:\\\\||[^|])*)\\s*\\|");
+            rowPatternStr.append("((?:\\\\||[^|])*)\\s*\\|\\s*");
         }
         final Pattern rowPattern = Pattern.compile(rowPatternStr.toString());
+        boolean ignoreHeader = stepSpec.getDataTable().isHeader();
         for (int i = 1; i < lines.length; i++) {
+            if (lines[i].trim().length() == 0) {
+                continue;
+            }
             final Matcher matcher = rowPattern.matcher(lines[i]);
             if (matcher.matches()) {
-                final Map<String, String> cells = new HashMap<>();
+                if (ignoreHeader) {
+                    ignoreHeader = false;
+                    continue;
+                }
+                final Map<String, ValueMatch> cells = new HashMap<>();
                 for (int j = 0; j < cols; j++) {
                     final ColumnSpec colSpec = stepSpec.getDataTable().getColumns().get(j);
-                    cells.put(colSpec.getName(), matcher.group(1 + j * 2).trim());
+                    cells.put(colSpec.getName(),
+                            ValueMatch.builder().
+                                    value(matcher.group(1 + j).trim()).
+                                    desiredType(colSpec.getType()).build()
+                    );
                 }
                 rows.add(cells);
             } else {
@@ -96,7 +121,7 @@ public class GherkinPatternMatcher {
         stepMatchBuilder.dataTable(rows);
     }
 
-    private void checkAndExtractDocString(final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
+    private void checkAndExtractDocString(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
         // Check syntax
         if (lines.length < 2) {
             throw new ParseException("DocString expected, but missed in: " + instruction);
@@ -124,7 +149,10 @@ public class GherkinPatternMatcher {
                 extraction.append("\n");
             }
         }
-        stepMatchBuilder.docString(extraction.toString());
+        stepMatchBuilder.docString(
+                ValueMatch.builder().value(extraction.toString()).
+                        desiredType(stepSpec.getDocString().getType()).
+                        build());
     }
 
     private String extractSpaceOffset(final String str, int maxOffset) {

@@ -6,6 +6,7 @@ import lombok.*;
 import java.util.List;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Builder
 @Getter
 @ToString
@@ -22,7 +23,7 @@ public class DataTableSpec {
         private JsonType type;
     }
 
-    private final boolean hasHeader;
+    private boolean header;
     @Singular
-    private final List<ColumnSpec> columns;
+    private List<ColumnSpec> columns;
 }

@@ -19,6 +19,7 @@ public class StepSpec {
             return this.name().toLowerCase();
         }
     }
+
     private String id;
     private String pattern;
     private PatternType patternType;
@@ -27,4 +28,5 @@ public class StepSpec {
     @Builder.Default
     private PayloadType payload = PayloadType.NONE;
     private DataTableSpec dataTable;
+    private DocStringSpec docString;
 }

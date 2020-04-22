@@ -7,8 +7,16 @@ import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.provider.StepRequest;
+import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import org.springframework.expression.ExpressionException;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import static io.stephub.json.Json.JsonType.STRING;
 
 @Service
 public class StepRequestEvaluator {
@@ -27,27 +35,46 @@ public class StepRequestEvaluator {
                 return null;
             }
         };
-        stepMatch.getArguments().forEach(ma -> stepRequestBuilder.argument(ma.getName(), this.evaluateArgument(ec, ma)));
+        stepMatch.getArguments().forEach((key, value) -> stepRequestBuilder.argument(key, this.evaluateArgument(ec, value)));
         if (stepMatch.getDocString() != null) {
             stepRequestBuilder.docString(
-                    this.evaluateDocString(ec, stepMatch.getDocString()));
+                    this.evaluateWithFallback(ec, stepMatch.getDocString()));
+        }
+        if (stepMatch.getDataTable() != null) {
+            stepRequestBuilder.dataTable(
+                    this.evaluateDataTable(ec, stepMatch.getDataTable()));
         }
     }
 
-    private Json evaluateDocString(final EvaluationContext ec, final String docString) {
-        // Try to match as JSON
-        try {
-            return this.evaluator.evaluate(docString, ec);
-        } catch (final ExpressionException | ParseException e) {
-            return this.evaluator.evaluate(
-                    "\"" +
-                            docString.replaceAll("\"", "\\\"") +
-                            "\"",
-                    ec);
+    private List<Map<String, Json>> evaluateDataTable(final EvaluationContext ec, final List<Map<String, ValueMatch>> dataTable) {
+        return dataTable.stream().map(matchDataTable -> {
+                    Map<String, Json> row = new HashMap<>();
+                    matchDataTable.forEach((key, cellMatch) ->
+                            row.put(key, this.evaluateWithFallback(ec, cellMatch))
+                    );
+                    return row;
+                }
+        ).collect(Collectors.toList());
+    }
+
+
+    private Json evaluateWithFallback(final EvaluationContext ec, final ValueMatch valueMatch) {
+        if (valueMatch.getDesiredType() == STRING) {
+            try {
+                return valueMatch.getDesiredType().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
+            } catch (final ExpressionException | ParseException e) {
+                return this.evaluator.evaluate(
+                        "\"" +
+                                valueMatch.getValue().replaceAll("\"", "\\\"") +
+                                "\"",
+                        ec);
+            }
+        } else {
+            return valueMatch.getDesiredType().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
         }
     }
 
-    private Json evaluateArgument(final EvaluationContext ec, final GherkinPatternMatcher.ArgumentMatch argumentMatch) {
+    private Json evaluateArgument(final EvaluationContext ec, final ValueMatch argumentMatch) {
         final Json evaluatedValue = this.evaluator.evaluate(argumentMatch.getValue(), ec);
         return argumentMatch.getDesiredType().convertFrom(evaluatedValue);
     }

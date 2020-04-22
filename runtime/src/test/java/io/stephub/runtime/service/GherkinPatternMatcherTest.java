@@ -2,9 +2,11 @@ package io.stephub.runtime.service;
 
 import io.stephub.expression.ParseException;
 import io.stephub.provider.spec.DataTableSpec;
+import io.stephub.provider.spec.DocStringSpec;
 import io.stephub.provider.spec.PatternType;
 import io.stephub.provider.spec.StepSpec;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
+import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -12,7 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import static io.stephub.json.Json.JsonType.BOOLEAN;
+import static io.stephub.json.Json.JsonType.STRING;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -32,6 +34,7 @@ public class GherkinPatternMatcherTest {
         final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
+                docString(DocStringSpec.builder().type(STRING).build()).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -41,8 +44,9 @@ public class GherkinPatternMatcherTest {
                         "  \"\"\"");
         assertThat(match, notNullValue());
         assertThat(match.getDocString(), equalTo(
-                "My doc string line 1\n" +
-                        "My doc string line 2"));
+                ValueMatch.builder().desiredType(STRING).value(
+                        "My doc string line 1\n" +
+                                "My doc string line 2").build()));
     }
 
     @Test
@@ -50,6 +54,7 @@ public class GherkinPatternMatcherTest {
         final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
+                docString(DocStringSpec.builder().type(STRING).build()).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -59,8 +64,9 @@ public class GherkinPatternMatcherTest {
                         "\"\"\"");
         assertThat(match, notNullValue());
         assertThat(match.getDocString(), equalTo(
-                "My doc string line 1\n" +
-                        "My doc string line 2"));
+                ValueMatch.builder().desiredType(STRING).value(
+                        "My doc string line 1\n" +
+                                "My doc string line 2").build()));
     }
 
     @Test
@@ -105,17 +111,16 @@ public class GherkinPatternMatcherTest {
     }
 
     @Test
-    public void testDataTable() {
+    public void testDataTableSingleCol() {
         final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
                 dataTable(
                         DataTableSpec.builder().
-                                hasHeader(false).
+                                header(false).
                                 column(
                                         DataTableSpec.ColumnSpec.builder().
                                                 name("condition").
-                                                type(BOOLEAN).
                                                 build()
                                 ).
                                 build()
@@ -126,6 +131,136 @@ public class GherkinPatternMatcherTest {
         assertThat(match, notNullValue());
         assertThat(match.getDataTable(), hasSize(1));
         assertThat(match.getDataTable().get(0), aMapWithSize(1));
-        assertThat(match.getDataTable().get(0), hasEntry("condition", "true"));
+        assertThat(match.getDataTable().get(0), hasEntry("condition",
+                ValueMatch.builder().value("true").build()));
     }
+
+
+    @Test
+    public void testDataTableSingleColWithCommentAndEmptyLines() {
+        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+                patternType(PatternType.REGEX).
+                payload(StepSpec.PayloadType.DATA_TABLE).
+                dataTable(
+                        DataTableSpec.builder().
+                                header(false).
+                                column(
+                                        DataTableSpec.ColumnSpec.builder().
+                                                name("condition").
+                                                build()
+                                ).
+                                build()
+                ).build();
+        final StepMatch match = this.patternMatcher.matches(stepSpec,
+                "  \n " +
+                        "# Step with data table \n \n " +
+                        " Do with DocString payload\n" +
+                        "   # Some comment\n" +
+                        "| true |\n" +
+                        " | false | \n\n");
+        assertThat(match, notNullValue());
+        assertThat(match.getDataTable(), hasSize(2));
+        assertThat(match.getDataTable().get(0), aMapWithSize(1));
+        assertThat(match.getDataTable().get(0), hasEntry("condition",
+                ValueMatch.builder().value("true").build()));
+        assertThat(match.getDataTable().get(1), aMapWithSize(1));
+        assertThat(match.getDataTable().get(1), hasEntry("condition",
+                ValueMatch.builder().value("false").build()));
+    }
+
+    @Test
+    public void testDataTableMultipleCols() {
+        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+                patternType(PatternType.REGEX).
+                payload(StepSpec.PayloadType.DATA_TABLE).
+                dataTable(
+                        DataTableSpec.builder().
+                                header(false).
+                                column(
+                                        DataTableSpec.ColumnSpec.builder().
+                                                name("condition").
+                                                build()
+                                ).
+                                column(
+                                        DataTableSpec.ColumnSpec.builder().
+                                                name("text").
+                                                build()
+                                ).
+                                build()
+                ).build();
+        final StepMatch match = this.patternMatcher.matches(stepSpec,
+                "Do with DocString payload\n" +
+                        "   | true  | my text   | \n" +
+                        "| false | next text | \n");
+        assertThat(match, notNullValue());
+        assertThat(match.getDataTable(), hasSize(2));
+        assertThat(match.getDataTable().get(0), aMapWithSize(2));
+        assertThat(match.getDataTable().get(0), hasEntry("condition",
+                ValueMatch.builder().value("true").build()));
+        assertThat(match.getDataTable().get(0), hasEntry("text",
+                ValueMatch.builder().value("my text").build()));
+        assertThat(match.getDataTable().get(1), aMapWithSize(2));
+        assertThat(match.getDataTable().get(1), hasEntry("condition",
+                ValueMatch.builder().value("false").build()));
+        assertThat(match.getDataTable().get(1), hasEntry("text",
+                ValueMatch.builder().value("next text").build()));
+    }
+
+    @Test
+    public void testDataTableInvalidCols() {
+        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+                patternType(PatternType.REGEX).
+                payload(StepSpec.PayloadType.DATA_TABLE).
+                dataTable(
+                        DataTableSpec.builder().
+                                header(false).
+                                column(
+                                        DataTableSpec.ColumnSpec.builder().
+                                                name("condition").
+                                                build()
+                                ).
+                                column(
+                                        DataTableSpec.ColumnSpec.builder().
+                                                name("text").
+                                                build()
+                                ).
+                                build()
+                ).build();
+        final ParseException e = assertThrows(ParseException.class, () -> {
+            final StepMatch match = this.patternMatcher.matches(stepSpec,
+                    "Do with DocString payload\n" +
+                            "   | true  | my text   | \n" +
+                            "| false | \n" +
+                            " | false | abc |");
+        });
+        log.debug("Exception output", e);
+    }
+
+
+    @Test
+    public void testDataTableSingleColWithHeader() {
+        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+                patternType(PatternType.REGEX).
+                payload(StepSpec.PayloadType.DATA_TABLE).
+                dataTable(
+                        DataTableSpec.builder().
+                                header(true).
+                                column(
+                                        DataTableSpec.ColumnSpec.builder().
+                                                name("condition").
+                                                build()
+                                ).
+                                build()
+                ).build();
+        final StepMatch match = this.patternMatcher.matches(stepSpec,
+                "Do with DocString payload\n" +
+                        " | Condition header | \n" +
+                        " | true |");
+        assertThat(match, notNullValue());
+        assertThat(match.getDataTable(), hasSize(1));
+        assertThat(match.getDataTable().get(0), aMapWithSize(1));
+        assertThat(match.getDataTable().get(0), hasEntry("condition",
+                ValueMatch.builder().value("true").build()));
+    }
+
 }
