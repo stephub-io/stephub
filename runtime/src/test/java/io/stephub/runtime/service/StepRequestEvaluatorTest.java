@@ -1,6 +1,7 @@
 package io.stephub.runtime.service;
 
 import io.stephub.expression.impl.SimpleEvaluationContext;
+import io.stephub.json.Json;
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
 import io.stephub.json.JsonString;
@@ -103,15 +104,29 @@ class StepRequestEvaluatorTest {
     }
 
     @Test
-    public void testDataTableAsStringFallback() {
+    public void testDataTableStringColAsStringFallback() {
+        this.verifyDataTableColumn(STRING, "Hello", new JsonString("Hello"));
+    }
+
+    @Test
+    public void testDataTableStringColAsString() {
+        this.verifyDataTableColumn(STRING, " \"Hello\" ", new JsonString("Hello"));
+    }
+
+    @Test
+    public void testDataTableJsonColAsStringFallback() {
+        this.verifyDataTableColumn(JSON, "Hello", new JsonString("Hello"));
+    }
+
+    private void verifyDataTableColumn(final Json.JsonType givenDesiredType, final String givenColumnValue, final Json expected) {
         final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().
                         dataTable(singletonList(
                                 singletonMap("col1",
                                         ValueMatch.builder().
-                                                desiredType(STRING).
-                                                value("Hello").build()
+                                                desiredType(givenDesiredType).
+                                                value(givenColumnValue).build()
                                 )
                         )).build(),
                 stepBuilder,
@@ -121,7 +136,7 @@ class StepRequestEvaluatorTest {
         assertThat(step.getDataTable(), hasSize(1));
         assertThat(step.getDataTable().get(0), aMapWithSize(1));
         assertThat(step.getDataTable().get(0), hasEntry("col1",
-                new JsonString("Hello")
+                expected
         ));
     }
 }

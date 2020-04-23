@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.stephub.json.Json.JsonType.JSON;
 import static io.stephub.json.Json.JsonType.STRING;
 
 @Service
@@ -59,8 +60,9 @@ public class StepRequestEvaluator {
 
 
     private Json evaluateWithFallback(final EvaluationContext ec, final ValueMatch valueMatch) {
-        if (valueMatch.getDesiredType() == STRING) {
+        if (valueMatch.getDesiredType() == STRING || valueMatch.getDesiredType() == JSON) {
             try {
+                // Try to evaluate as native none JSON string
                 return valueMatch.getDesiredType().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
             } catch (final ExpressionException | ParseException e) {
                 return this.evaluator.evaluate(
