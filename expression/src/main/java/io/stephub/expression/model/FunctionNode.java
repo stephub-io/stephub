@@ -25,7 +25,7 @@ public class FunctionNode extends JsonValueNode<Json> {
         if (result != null) {
             return result;
         } else {
-            return new JsonNull();
+            return JsonNull.INSTANCE;
         }
     }
 }

@@ -17,8 +17,4 @@ public class JsonBoolean extends Json {
         return Boolean.toString(this.value);
     }
 
-    @Override
-    public JsonType getType() {
-        return JsonType.BOOLEAN;
-    }
 }

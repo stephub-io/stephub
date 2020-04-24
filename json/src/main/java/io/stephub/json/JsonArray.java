@@ -1,6 +1,7 @@
 package io.stephub.json;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +11,7 @@ import java.util.List;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
-@Builder
+@SuperBuilder
 public class JsonArray extends Json {
     @Singular
     private List<Json> values = new ArrayList<>();
@@ -42,13 +43,9 @@ public class JsonArray extends Json {
         return s.toString();
     }
 
-    @Override
-    public JsonType getType() {
-        return JsonType.ARRAY;
-    }
 
     public Json getOpt(final int index) {
         final Json v = this.values.get(index);
-        return v != null ? v : new JsonNull();
+        return v != null ? v : JsonNull.INSTANCE;
     }
 }

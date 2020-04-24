@@ -2,6 +2,7 @@ package io.stephub.providers.util.spring;
 
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.Provider;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
@@ -65,6 +66,11 @@ class StepMethodAnnotationProcessorTest {
         @Override
         public String getName() {
             return "test";
+        }
+
+        @Override
+        public JsonSchema getOptionsSchema() {
+            return null;
         }
     }
 

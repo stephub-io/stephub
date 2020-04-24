@@ -15,6 +15,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static io.stephub.json.Json.JsonType.STRING;
+import static io.stephub.json.schema.JsonSchema.ofType;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -34,7 +35,7 @@ public class GherkinPatternMatcherTest {
         final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
-                docString(DocStringSpec.builder().type(STRING).build()).
+                docString(DocStringSpec.builder().schema(ofType(STRING)).build()).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -44,7 +45,7 @@ public class GherkinPatternMatcherTest {
                         "  \"\"\"");
         assertThat(match, notNullValue());
         assertThat(match.getDocString(), equalTo(
-                ValueMatch.builder().desiredType(STRING).value(
+                ValueMatch.builder().desiredSchema(ofType(STRING)).value(
                         "My doc string line 1\n" +
                                 "My doc string line 2").build()));
     }
@@ -54,7 +55,7 @@ public class GherkinPatternMatcherTest {
         final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
-                docString(DocStringSpec.builder().type(STRING).build()).
+                docString(DocStringSpec.builder().schema(ofType(STRING)).build()).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -64,7 +65,7 @@ public class GherkinPatternMatcherTest {
                         "\"\"\"");
         assertThat(match, notNullValue());
         assertThat(match.getDocString(), equalTo(
-                ValueMatch.builder().desiredType(STRING).value(
+                ValueMatch.builder().desiredSchema(ofType(STRING)).value(
                         "My doc string line 1\n" +
                                 "My doc string line 2").build()));
     }

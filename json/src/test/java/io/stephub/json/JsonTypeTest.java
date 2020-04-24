@@ -23,7 +23,7 @@ public class JsonTypeTest {
                 equalTo(FALSE)
         );
         assertThat(
-                BOOLEAN.convertFrom(new JsonNull()),
+                BOOLEAN.convertFrom(JsonNull.INSTANCE),
                 equalTo(FALSE)
         );
         assertThat(
@@ -64,37 +64,37 @@ public class JsonTypeTest {
 
     @Test
     public void testToObjectMapping() {
-        JsonObject obj = new JsonObject();
+        final JsonObject obj = new JsonObject();
         assertThat(
                 OBJECT.convertFrom(obj),
                 equalTo(obj)
         );
 
-        verifyMappingException(OBJECT, new JsonNull());
-        verifyMappingException(OBJECT, TRUE);
-        verifyMappingException(OBJECT, new JsonArray());
-        verifyMappingException(OBJECT, new JsonString(""));
-        verifyMappingException(OBJECT, new JsonNumber(1));
+        this.verifyMappingException(OBJECT, JsonNull.INSTANCE);
+        this.verifyMappingException(OBJECT, TRUE);
+        this.verifyMappingException(OBJECT, new JsonArray());
+        this.verifyMappingException(OBJECT, new JsonString(""));
+        this.verifyMappingException(OBJECT, new JsonNumber(1));
     }
 
     @Test
     public void testToArrayMapping() {
-        JsonArray arr = new JsonArray();
+        final JsonArray arr = new JsonArray();
         assertThat(
                 ARRAY.convertFrom(arr),
                 equalTo(arr)
         );
 
-        verifyMappingException(ARRAY, new JsonNull());
-        verifyMappingException(ARRAY, TRUE);
-        verifyMappingException(ARRAY, new JsonObject());
-        verifyMappingException(ARRAY, new JsonString(""));
-        verifyMappingException(ARRAY, new JsonNumber(1));
+        this.verifyMappingException(ARRAY, JsonNull.INSTANCE);
+        this.verifyMappingException(ARRAY, TRUE);
+        this.verifyMappingException(ARRAY, new JsonObject());
+        this.verifyMappingException(ARRAY, new JsonString(""));
+        this.verifyMappingException(ARRAY, new JsonNumber(1));
     }
 
-    private void verifyMappingException(Json.JsonType targetType, Json input) {
-        final JsonMappingException e = assertThrows(JsonMappingException.class, () -> {
-           targetType.convertFrom(input);
+    private void verifyMappingException(final Json.JsonType targetType, final Json input) {
+        final JsonException e = assertThrows(JsonException.class, () -> {
+            targetType.convertFrom(input);
         });
         log.debug("Exception output", e);
     }

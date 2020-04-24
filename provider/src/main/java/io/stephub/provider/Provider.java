@@ -1,9 +1,10 @@
 package io.stephub.provider;
 
+import io.stephub.json.JsonObject;
+import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.spec.StepSpec;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.stephub.json.JsonObject;
-import io.stephub.provider.spec.StepSpec;
 
 import java.time.Duration;
 import java.util.List;
@@ -18,6 +19,8 @@ public interface Provider {
     List<StepSpec> getSteps();
 
     String getName();
+
+    JsonSchema getOptionsSchema();
 
     @NoArgsConstructor
     @AllArgsConstructor

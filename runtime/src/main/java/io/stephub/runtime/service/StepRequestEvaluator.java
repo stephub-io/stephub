@@ -60,10 +60,11 @@ public class StepRequestEvaluator {
 
 
     private Json evaluateWithFallback(final EvaluationContext ec, final ValueMatch valueMatch) {
-        if (valueMatch.getDesiredType() == STRING || valueMatch.getDesiredType() == JSON) {
+        final Json.JsonType desiredType = valueMatch.getDesiredSchema().getType();
+        if (desiredType == STRING || desiredType == JSON) {
             try {
                 // Try to evaluate as native none JSON string
-                return valueMatch.getDesiredType().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
+                return desiredType.convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
             } catch (final ExpressionException | ParseException e) {
                 return this.evaluator.evaluate(
                         "\"" +
@@ -72,12 +73,12 @@ public class StepRequestEvaluator {
                         ec);
             }
         } else {
-            return valueMatch.getDesiredType().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
+            return desiredType.convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
         }
     }
 
     private Json evaluateArgument(final EvaluationContext ec, final ValueMatch argumentMatch) {
         final Json evaluatedValue = this.evaluator.evaluate(argumentMatch.getValue(), ec);
-        return argumentMatch.getDesiredType().convertFrom(evaluatedValue);
+        return argumentMatch.getDesiredSchema().getType().convertFrom(evaluatedValue);
     }
 }

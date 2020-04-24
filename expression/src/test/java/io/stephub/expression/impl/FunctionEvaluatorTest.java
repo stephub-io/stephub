@@ -1,13 +1,12 @@
 package io.stephub.expression.impl;
 
-import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.Test;
 import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.expression.FunctionFactory.Function;
 import io.stephub.json.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @Slf4j
@@ -46,7 +45,7 @@ public class FunctionEvaluatorTest {
                         .build());
 
         // Expected
-        assertEquals(new JsonNull(), result);
+        assertEquals(JsonNull.INSTANCE, result);
         verify(func, times(1)).invoke(arg1, arg2);
     }
 }

@@ -10,6 +10,7 @@
       <module fileurl="file://$PROJECT_DIR$/providers/providers.iml" filepath="$PROJECT_DIR$/providers/providers.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/base/providers.base.iml" filepath="$PROJECT_DIR$/providers/base/providers.base.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/remote/providers.remote.iml" filepath="$PROJECT_DIR$/providers/remote/providers.remote.iml" />
+      <module fileurl="file://$PROJECT_DIR$/providers/remote/target/generated-sources/openapi/providers.remote-client.iml" filepath="$PROJECT_DIR$/providers/remote/target/generated-sources/openapi/providers.remote-client.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/util/providers.util.iml" filepath="$PROJECT_DIR$/providers/util/providers.util.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/wiremock/providers.wiremock.iml" filepath="$PROJECT_DIR$/providers/wiremock/providers.wiremock.iml" />
       <module fileurl="file://$PROJECT_DIR$/runtime/runtime.iml" filepath="$PROJECT_DIR$/runtime/runtime.iml" />

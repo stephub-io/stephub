@@ -31,7 +31,7 @@ public class PathEvaluatorTest {
     public void testValidRefPathNull() {
         final Json result = el.evaluate("${abc}",
                 SimpleEvaluationContext.builder().build());
-        assertEquals(new JsonNull(), result);
+        assertEquals(JsonNull.INSTANCE, result);
     }
 
     @Test
@@ -108,7 +108,7 @@ public class PathEvaluatorTest {
                         JsonObject.builder().field("def",
                                 JsonObject.builder().build()).build()
                 ).build());
-        assertEquals(new JsonNull(), result);
+        assertEquals(JsonNull.INSTANCE, result);
     }
 
     @Test

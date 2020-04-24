@@ -1,7 +1,12 @@
 package io.stephub.json;
 
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
 import java.text.NumberFormat;
 
+@SuperBuilder
+@NoArgsConstructor
 public abstract class Json {
     public enum JsonType {
         OBJECT(JsonObject.class),
@@ -10,7 +15,7 @@ public abstract class Json {
         STRING(JsonString.class),
         NUMBER(JsonNumber.class),
         NULL(JsonNull.class),
-        JSON(Json.class);
+        JSON(null);
 
         private final Class<? extends Json> desiredClass;
 
@@ -20,15 +25,19 @@ public abstract class Json {
 
         public static JsonType valueOf(final Class<?> type) {
             for (final JsonType jt : values()) {
-                if (jt.desiredClass.equals(type)) {
+                if (jt.desiredClass != null && type.isAssignableFrom(jt.desiredClass)) {
                     return jt;
                 }
             }
             throw new IllegalArgumentException("No JSON representation found for class=" + type.getName());
         }
 
+        public static JsonType valueOf(final Json json) {
+            return valueOf(json.getClass());
+        }
+
         public Json convertFrom(final Json input) {
-            final JsonType sourceType = input.getType();
+            final JsonType sourceType = valueOf(input);
             if (sourceType == this) {
                 return input;
             }
@@ -38,16 +47,13 @@ public abstract class Json {
                 case ARRAY:
                     break;
                 case STRING:
-                    if (sourceType == BOOLEAN || sourceType == NUMBER) {
-                        return new JsonString(input.toString());
-                    }
-                    break;
+                    return new JsonString(input.toString());
                 case NUMBER:
                     if (sourceType == STRING) {
                         try {
                             return new JsonNumber(NumberFormat.getInstance().parse(((JsonString) input).getValue()));
                         } catch (final java.text.ParseException e) {
-                            throw new JsonMappingException("Can't parse JSON string value '" + input + "' as JSON number");
+                            throw new JsonException("Can't parse JSON string value '" + input + "' as JSON number");
                         }
                     }
                     break;
@@ -75,9 +81,9 @@ public abstract class Json {
             return this.name().toLowerCase();
         }
 
-        private JsonMappingException getMappingException(final Json input) {
-            final JsonType sourceType = input.getType();
-            return new JsonMappingException("Can't map JSON of type '" + sourceType + "' to type '" + this + "'");
+        private JsonException getMappingException(final Json input) {
+            final JsonType sourceType = JsonType.valueOf(input);
+            return new JsonException("Can't map JSON of type '" + sourceType + "' to type '" + this + "'");
         }
     }
 
@@ -96,5 +102,4 @@ public abstract class Json {
         return text.replaceAll("\"", "\\\"");
     }
 
-    public abstract JsonType getType();
 }

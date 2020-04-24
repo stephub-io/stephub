@@ -2,6 +2,7 @@ package io.stephub.providers.util.spring;
 
 import io.stephub.json.Json;
 import io.stephub.json.Json.JsonType;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
 import io.stephub.provider.spec.ArgumentSpec;
@@ -93,7 +94,7 @@ public class StepMethodAnnotationProcessor implements BeanPostProcessor {
                     }));
                     specBuilder.argument(
                             ArgumentSpec.builder().name(expectedArgument.name()).
-                                    type(JsonType.valueOf(parameter.getType())).
+                                    schema(JsonSchema.ofType(JsonType.valueOf(parameter.getType()))).
                                     build()
                     );
                 } else {

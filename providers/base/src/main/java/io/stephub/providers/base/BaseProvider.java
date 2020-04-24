@@ -1,8 +1,9 @@
 package io.stephub.providers.base;
 
-import lombok.extern.slf4j.Slf4j;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.providers.util.LocalProviderAdapter;
 import io.stephub.providers.util.spring.SpringBeanProvider;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -22,5 +23,10 @@ public class BaseProvider extends SpringBeanProvider<LocalProviderAdapter.Sessio
     @Override
     public String getName() {
         return PROVIDER_NAME;
+    }
+
+    @Override
+    public JsonSchema getOptionsSchema() {
+        return JsonSchema.builder().build();
     }
 }

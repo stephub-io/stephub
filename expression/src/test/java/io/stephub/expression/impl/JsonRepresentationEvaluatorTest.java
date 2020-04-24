@@ -39,7 +39,7 @@ public class JsonRepresentationEvaluatorTest {
     @Test
     public void testJsonNull() {
         final Json result = this.el.evaluate("null", null);
-        assertEquals(new JsonNull(), result);
+        assertEquals(JsonNull.INSTANCE, result);
     }
 
     @Test

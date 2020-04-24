@@ -16,6 +16,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import static io.stephub.json.Json.JsonType.*;
+import static io.stephub.json.schema.JsonSchema.ofType;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -36,7 +37,7 @@ class StepRequestEvaluatorTest {
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.builder().
-                                desiredType(STRING).
+                                desiredSchema(ofType(STRING)).
                                 value("Hello").build()).build(),
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
@@ -53,7 +54,7 @@ class StepRequestEvaluatorTest {
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.builder().
-                                desiredType(STRING).
+                                desiredSchema(ofType(STRING)).
                                 value("\"Hel\\\"lo\"").build()
                 ).build(),
                 stepBuilder,
@@ -70,7 +71,7 @@ class StepRequestEvaluatorTest {
         final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
-                        ValueMatch.builder().desiredType(OBJECT).
+                        ValueMatch.builder().desiredSchema(ofType(OBJECT)).
                                 value(
                                         "{\n" +
                                                 "\"abc\": true \n}").
@@ -91,7 +92,7 @@ class StepRequestEvaluatorTest {
                 StepMatch.builder().argument(
                         "abc",
                         ValueMatch.builder().
-                                desiredType(BOOLEAN).value("{ \"some\": null }")
+                                desiredSchema(ofType(BOOLEAN)).value("{ \"some\": null }")
                                 .build()
                 ).build(),
                 stepBuilder,
@@ -118,6 +119,16 @@ class StepRequestEvaluatorTest {
         this.verifyDataTableColumn(JSON, "Hello", new JsonString("Hello"));
     }
 
+    @Test
+    public void testDataTableJsonCol() {
+        this.verifyDataTableColumn(OBJECT, "{}", new JsonObject());
+    }
+
+    @Test
+    public void testDataTableJsonColDesiredAsString() {
+        this.verifyDataTableColumn(STRING, "{}", STRING.convertFrom(new JsonObject()));
+    }
+
     private void verifyDataTableColumn(final Json.JsonType givenDesiredType, final String givenColumnValue, final Json expected) {
         final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
@@ -125,7 +136,7 @@ class StepRequestEvaluatorTest {
                         dataTable(singletonList(
                                 singletonMap("col1",
                                         ValueMatch.builder().
-                                                desiredType(givenDesiredType).
+                                                desiredSchema(ofType(givenDesiredType)).
                                                 value(givenColumnValue).build()
                                 )
                         )).build(),

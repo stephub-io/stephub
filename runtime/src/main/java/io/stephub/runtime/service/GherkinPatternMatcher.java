@@ -1,7 +1,7 @@
 package io.stephub.runtime.service;
 
 import io.stephub.expression.ParseException;
-import io.stephub.json.Json;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.spec.DataTableSpec.ColumnSpec;
 import io.stephub.provider.spec.StepSpec;
 import lombok.*;
@@ -40,7 +40,7 @@ public class GherkinPatternMatcher {
     @ToString
     public static class ValueMatch {
         private final String value;
-        private final Json.JsonType desiredType;
+        private final JsonSchema desiredSchema;
     }
 
     public StepMatch matches(final StepSpec stepSpec, final String instruction) {
@@ -64,7 +64,7 @@ public class GherkinPatternMatcher {
                         a.getName(),
                         ValueMatch.builder().
                                 value(matcher.group(a.getName())).
-                                desiredType(a.getType()).
+                                desiredSchema(a.getSchema()).
                                 build()
                 ));
                 this.checkAndExtractPayload(stepSpec, instruction, lines, stepMatchBuilder);
@@ -110,7 +110,7 @@ public class GherkinPatternMatcher {
                     cells.put(colSpec.getName(),
                             ValueMatch.builder().
                                     value(matcher.group(1 + j).trim()).
-                                    desiredType(colSpec.getType()).build()
+                                    desiredSchema(colSpec.getSchema()).build()
                     );
                 }
                 rows.add(cells);
@@ -151,7 +151,7 @@ public class GherkinPatternMatcher {
         }
         stepMatchBuilder.docString(
                 ValueMatch.builder().value(extraction.toString()).
-                        desiredType(stepSpec.getDocString().getType()).
+                        desiredSchema(stepSpec.getDocString().getSchema()).
                         build());
     }
 

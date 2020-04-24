@@ -1,6 +1,6 @@
 package io.stephub.provider.spec;
 
-import io.stephub.json.Json;
+import io.stephub.json.schema.JsonSchema;
 import lombok.*;
 
 @AllArgsConstructor
@@ -10,5 +10,5 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 public class DocStringSpec {
-    private Json.JsonType type;
+    private JsonSchema schema;
 }

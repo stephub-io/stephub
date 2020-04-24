@@ -1,6 +1,6 @@
 package io.stephub.provider.spec;
 
-import io.stephub.json.Json.JsonType;
+import io.stephub.json.schema.JsonSchema;
 import lombok.*;
 
 import java.util.List;
@@ -20,7 +20,7 @@ public class DataTableSpec {
     @EqualsAndHashCode
     public static class ColumnSpec {
         private String name;
-        private JsonType type;
+        private JsonSchema schema;
     }
 
     private boolean header;

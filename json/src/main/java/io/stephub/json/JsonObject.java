@@ -1,6 +1,7 @@
 package io.stephub.json;
 
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,7 +11,7 @@ import java.util.Map;
 @Getter
 @Setter
 @EqualsAndHashCode(callSuper = false)
-@Builder
+@SuperBuilder
 public class JsonObject extends Json {
     @Singular
     private Map<String, Json> fields = new HashMap<>();
@@ -20,9 +21,9 @@ public class JsonObject extends Json {
      * @return value in fields if existing, otherwise {@link JsonNull}
      */
     public Json getOpt(final String key) {
-        final Json value = fields.get(key);
+        final Json value = this.fields.get(key);
         if (value == null) {
-            return new JsonNull();
+            return JsonNull.INSTANCE;
         }
         return value;
     }
@@ -44,11 +45,11 @@ public class JsonObject extends Json {
         }
         final StringBuilder str = new StringBuilder("{").append(global_separator);
         boolean sep = false;
-        for (final Map.Entry<String, Json> entry : fields.entrySet()) {
+        for (final Map.Entry<String, Json> entry : this.fields.entrySet()) {
             if (sep) {
                 str.append(pair_separator);
             }
-            str.append(pair_prefix).append("\"").append(encodeString(entry.getKey()))
+            str.append(pair_prefix).append("\"").append(this.encodeString(entry.getKey()))
                     .append("\": ").append(entry.getValue().asJsonString(pretty));
             sep = true;
         }
@@ -56,8 +57,4 @@ public class JsonObject extends Json {
         return str.toString();
     }
 
-    @Override
-    public JsonType getType() {
-        return JsonType.OBJECT;
-    }
 }

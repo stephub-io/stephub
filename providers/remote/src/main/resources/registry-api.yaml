@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 info:
   version: 0.0.1
-  title: Provider REST API
+  title: Stephub Provider Registry REST API
   license:
     name: Apache License 2.0
 servers:

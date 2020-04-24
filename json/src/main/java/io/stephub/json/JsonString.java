@@ -16,11 +16,6 @@ public class JsonString extends Json {
     }
 
     @Override
-    public JsonType getType() {
-        return JsonType.STRING;
-    }
-
-    @Override
     public String toString() {
         return this.value;
     }

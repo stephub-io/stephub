@@ -1,16 +1,24 @@
 package io.stephub.json;
 
-import lombok.EqualsAndHashCode;
-
-@EqualsAndHashCode
 public class JsonNull extends Json {
+    public static final JsonNull INSTANCE = new JsonNull();
+
+    private JsonNull() {
+        super();
+    }
+
     @Override
-    public String asJsonString(boolean pretty) {
+    public String asJsonString(final boolean pretty) {
         return "null";
     }
 
     @Override
-    public JsonType getType() {
-        return JsonType.NULL;
+    public int hashCode() {
+        return 1;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        return obj == INSTANCE;
     }
 }

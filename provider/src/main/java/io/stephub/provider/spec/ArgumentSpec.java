@@ -1,7 +1,7 @@
 package io.stephub.provider.spec;
 
+import io.stephub.json.schema.JsonSchema;
 import lombok.*;
-import io.stephub.json.Json.JsonType;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -11,5 +11,5 @@ import io.stephub.json.Json.JsonType;
 @ToString
 public class ArgumentSpec {
     private String name;
-    private JsonType type;
+    private JsonSchema schema;
 }

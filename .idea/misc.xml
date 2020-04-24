@@ -13,6 +13,7 @@
         <option value="$PROJECT_DIR$/runtime/pom.xml" />
         <option value="$PROJECT_DIR$/providers/base/pom.xml" />
         <option value="$PROJECT_DIR$/providers/remote/pom.xml" />
+        <option value="$PROJECT_DIR$/providers/remote/target/generated-sources/openapi/pom.xml" />
       </list>
     </option>
   </component>

@@ -14,6 +14,7 @@
         <module name="expression" />
         <module name="json" />
         <module name="providers.wiremock" />
+        <module name="providers.remote-client" />
         <module name="providers.remote" />
       </profile>
     </annotationProcessing>
@@ -26,6 +27,7 @@
       <module name="providers" target="10" />
       <module name="providers.base" target="10" />
       <module name="providers.remote" target="10" />
+      <module name="providers.remote-client" target="1.8" />
       <module name="providers.util" target="10" />
       <module name="providers.wiremock" target="10" />
       <module name="runtime" target="10" />

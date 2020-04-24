@@ -10,6 +10,6 @@ import lombok.ToString;
 public class JsonNullNode extends JsonValueNode<JsonNull> {
     @Override
     public JsonNull evaluate(EvaluationContext ec) {
-        return new JsonNull();
+        return JsonNull.INSTANCE;
     }
 }

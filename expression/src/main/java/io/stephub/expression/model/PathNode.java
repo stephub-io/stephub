@@ -3,6 +3,7 @@ package io.stephub.expression.model;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.EvaluationException;
 import io.stephub.json.*;
+import io.stephub.json.Json.JsonType;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
@@ -22,21 +23,21 @@ public class PathNode extends JsonValueNode<Json> {
     @Override
     public Json evaluate(final EvaluationContext ec) {
         final List<String> pathTrace = new ArrayList<>();
-        pathTrace.add(id);
-        Json projection = ec.get(id);
+        pathTrace.add(this.id);
+        Json projection = ec.get(this.id);
         if (projection == null) {
-            projection = new JsonNull();
+            projection = JsonNull.INSTANCE;
         }
-        projection = evaluateIndexes(ec, projection, pathTrace);
-        if (subPath == null) {
+        projection = this.evaluateIndexes(ec, projection, pathTrace);
+        if (this.subPath == null) {
             return projection;
         } else {
-            return evaluateInSubPath(ec, projection, subPath, pathTrace);
+            return evaluateInSubPath(ec, projection, this.subPath, pathTrace);
         }
     }
 
     private Json evaluateIndexes(final EvaluationContext ec, Json projection, final List<String> pathTrace) {
-        for (final PathIndexNode i : indexes) {
+        for (final PathIndexNode i : this.indexes) {
             pathTrace.add("[" + i.getValueText() + "]");
             if (projection instanceof JsonObject) {
                 final Json ei = i.evaluate(ec);
@@ -44,7 +45,7 @@ public class PathNode extends JsonValueNode<Json> {
                     final String eis = ((JsonString) ei).getValue();
                     projection = ((JsonObject) projection).getOpt(eis);
                 } else {
-                    throw createInvalidIndexException(ei.getType().toString(), projection, pathTrace);
+                    throw this.createInvalidIndexException(JsonType.valueOf(ei).toString(), projection, pathTrace);
                 }
             } else if (projection instanceof JsonArray) {
                 final Json ei = i.evaluate(ec);
@@ -53,20 +54,20 @@ public class PathNode extends JsonValueNode<Json> {
                     if (ein instanceof Integer || ein instanceof Long) {
                         projection = ((JsonArray) projection).getOpt(ein.intValue());
                     } else {
-                        throw createInvalidIndexException(ein.getClass().getName().toLowerCase(), projection, pathTrace);
+                        throw this.createInvalidIndexException(ein.getClass().getName().toLowerCase(), projection, pathTrace);
                     }
                 } else {
-                    throw createInvalidIndexException(ei.getType().toString(), projection, pathTrace);
+                    throw this.createInvalidIndexException(JsonType.valueOf(ei).toString(), projection, pathTrace);
                 }
             } else {
-                throw createInvalidIndexException(null, projection, pathTrace);
+                throw this.createInvalidIndexException(null, projection, pathTrace);
             }
         }
         return projection;
     }
 
     protected EvaluationException createInvalidIndexException(final String indexType, final Json projection, final List<String> pathTrace) {
-        return new EvaluationException("Invalid index " + (indexType != null ? ("'" + indexType + "' ") : "") + "in reference '" + pathTrace.stream().collect(Collectors.joining()) + "' to evaluate in JSON of type '" + projection.getType() + "'");
+        return new EvaluationException("Invalid index " + (indexType != null ? ("'" + indexType + "' ") : "") + "in reference '" + pathTrace.stream().collect(Collectors.joining()) + "' to evaluate in JSON of type '" + JsonType.valueOf(projection) + "'");
     }
 
     protected static Json evaluateInSubPath(final EvaluationContext ec, final Json context, final PathNode subPath, final List<String> pathTrace) {
@@ -75,7 +76,7 @@ public class PathNode extends JsonValueNode<Json> {
         if (context instanceof JsonObject) {
             Json projection = ((JsonObject) context).getFields().get(subPathId);
             if (projection == null) {
-                projection = new JsonNull();
+                projection = JsonNull.INSTANCE;
             }
             projection = subPath.evaluateIndexes(ec, projection, pathTrace);
             if (subPath.subPath == null) {
@@ -83,7 +84,7 @@ public class PathNode extends JsonValueNode<Json> {
             }
             return evaluateInSubPath(ec, projection, subPath.subPath, pathTrace);
         } else {
-            throw new EvaluationException("Invalid reference '" + pathTrace.stream().collect(Collectors.joining()) + "' in JSON of type '" + context.getType() + "'");
+            throw new EvaluationException("Invalid reference '" + pathTrace.stream().collect(Collectors.joining()) + "' in JSON of type '" + JsonType.valueOf(context) + "'");
         }
     }
 

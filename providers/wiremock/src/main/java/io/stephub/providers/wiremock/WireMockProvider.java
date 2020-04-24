@@ -1,15 +1,16 @@
 package io.stephub.providers.wiremock;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
-import lombok.Data;
-import lombok.experimental.SuperBuilder;
-import lombok.extern.slf4j.Slf4j;
 import io.stephub.json.JsonString;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.StepResponse;
 import io.stephub.providers.util.LocalProviderAdapter;
 import io.stephub.providers.util.spring.SpringBeanProvider;
 import io.stephub.providers.util.spring.StepMethodAnnotationProcessor.StepArgument;
 import io.stephub.providers.util.spring.StepMethodAnnotationProcessor.StepMethod;
+import lombok.Data;
+import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 
@@ -37,6 +38,11 @@ public class WireMockProvider extends SpringBeanProvider<WireMockState> {
     @Override
     public String getName() {
         return "wiremock";
+    }
+
+    @Override
+    public JsonSchema getOptionsSchema() {
+        return JsonSchema.builder().build();
     }
 }
 
