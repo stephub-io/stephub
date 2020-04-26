@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import static io.stephub.json.Json.JsonType.STRING;
+
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString
@@ -18,7 +20,10 @@ public class OpNode extends JsonValueNode<Json> {
     public static enum Operator {
         PLUS(((left, right) -> {
             if (left instanceof JsonString || right instanceof JsonString) {
-                return new JsonString(left.toString() + right.toString());
+                return new JsonString(
+                        ((JsonString) STRING.convertFrom(left)).getValue()
+                                +
+                                ((JsonString) STRING.convertFrom(right)).getValue());
             }
             throw new UnsupportedOperationException("Not implemented so far");
         }));
