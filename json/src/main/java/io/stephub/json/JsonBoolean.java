@@ -1,20 +1,33 @@
 package io.stephub.json;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-
-@AllArgsConstructor
-@Getter
-@EqualsAndHashCode
 public class JsonBoolean extends Json {
-    private final boolean value;
-    public static final JsonBoolean TRUE = new JsonBoolean(true);
-    public static final JsonBoolean FALSE = new JsonBoolean(false);
+    public static final JsonBoolean TRUE = new JsonBoolean();
+    public static final JsonBoolean FALSE = new JsonBoolean();
+
+    private JsonBoolean() {
+        super();
+    }
+
+    public static JsonBoolean valueOf(final boolean value) {
+        return value ? TRUE : FALSE;
+    }
 
     @Override
     public String asJsonString(final boolean pretty) {
-        return Boolean.toString(this.value);
+        return Boolean.toString(this.isTrue());
     }
 
+    public final boolean isTrue() {
+        return this == TRUE;
+    }
+
+    @Override
+    public int hashCode() {
+        return this.isTrue() ? 1 : -1;
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        return obj == this;
+    }
 }

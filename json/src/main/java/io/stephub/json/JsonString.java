@@ -15,8 +15,4 @@ public class JsonString extends Json {
         return "\"" + this.encodeString(this.value) + "\"";
     }
 
-    @Override
-    public String toString() {
-        return this.value;
-    }
 }

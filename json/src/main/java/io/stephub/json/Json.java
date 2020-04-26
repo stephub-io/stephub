@@ -1,5 +1,9 @@
 package io.stephub.json;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.stephub.json.jackson.JacksonDeserializer;
+import io.stephub.json.jackson.JacksonSerializer;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
@@ -7,6 +11,8 @@ import java.text.NumberFormat;
 
 @SuperBuilder
 @NoArgsConstructor
+@JsonSerialize(using = JacksonSerializer.class)
+@JsonDeserialize(using = JacksonDeserializer.class)
 public abstract class Json {
     public enum JsonType {
         OBJECT(JsonObject.class),
@@ -59,15 +65,15 @@ public abstract class Json {
                     break;
                 case BOOLEAN:
                     if (sourceType == NULL) {
-                        return new JsonBoolean(false);
+                        return JsonBoolean.FALSE;
                     } else if (sourceType == STRING) {
-                        return new JsonBoolean(((JsonString) input).getValue().length() > 0);
+                        return JsonBoolean.valueOf(((JsonString) input).getValue().length() > 0);
                     } else if (sourceType == ARRAY) {
-                        return new JsonBoolean(!((JsonArray) input).getValues().isEmpty());
+                        return JsonBoolean.valueOf(!((JsonArray) input).getValues().isEmpty());
                     } else if (sourceType == OBJECT) {
-                        return new JsonBoolean(!((JsonObject) input).getFields().isEmpty());
+                        return JsonBoolean.valueOf(!((JsonObject) input).getFields().isEmpty());
                     } else if (sourceType == NUMBER) {
-                        return new JsonBoolean(!((JsonNumber) input).getValue().toString().matches("[0\\.]+"));
+                        return JsonBoolean.valueOf(!((JsonNumber) input).getValue().toString().matches("[0\\.]+"));
                     }
                     break;
                 case JSON:

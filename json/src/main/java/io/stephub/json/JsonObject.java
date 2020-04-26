@@ -34,14 +34,17 @@ public class JsonObject extends Json {
         final String global_separator;
         final String pair_prefix;
         final String pair_separator;
+        final String value_prefix;
         if (pretty) {
             global_separator = "\n";
             pair_prefix = "  ";
             pair_separator = ",\n";
+            value_prefix = " ";
         } else {
-            global_separator = " ";
+            global_separator = "";
             pair_prefix = "";
-            pair_separator = ", ";
+            pair_separator = ",";
+            value_prefix = "";
         }
         final StringBuilder str = new StringBuilder("{").append(global_separator);
         boolean sep = false;
@@ -50,7 +53,7 @@ public class JsonObject extends Json {
                 str.append(pair_separator);
             }
             str.append(pair_prefix).append("\"").append(this.encodeString(entry.getKey()))
-                    .append("\": ").append(entry.getValue().asJsonString(pretty));
+                    .append("\":").append(value_prefix).append(entry.getValue().asJsonString(pretty));
             sep = true;
         }
         str.append(global_separator).append("}");

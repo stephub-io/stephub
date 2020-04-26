@@ -26,9 +26,9 @@ public class JsonArray extends Json {
             item_prefix = "  ";
             item_separator = ",\n";
         } else {
-            global_separator = " ";
+            global_separator = "";
             item_prefix = "";
-            item_separator = ", ";
+            item_separator = ",";
         }
         final StringBuilder s = new StringBuilder("[").append(global_separator);
         boolean sep = false;

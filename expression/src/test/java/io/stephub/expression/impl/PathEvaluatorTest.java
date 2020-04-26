@@ -15,95 +15,95 @@ public class PathEvaluatorTest {
 
     @Test
     public void testValidRefPathL1() {
-        final Json result = el.evaluate("${abc}",
-                SimpleEvaluationContext.builder().attribute("abc", new JsonBoolean(true)).build());
-        assertEquals(new JsonBoolean(true), result);
+        final Json result = this.el.evaluate("${abc}",
+                SimpleEvaluationContext.builder().attribute("abc", JsonBoolean.TRUE).build());
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testConvenientRefConcatenationInString() {
-        final Json result = el.evaluate("\"text ${abc}\"",
+        final Json result = this.el.evaluate("\"text ${abc}\"",
                 SimpleEvaluationContext.builder().attribute("abc", new JsonString("plus")).build());
         assertEquals(new JsonString("text plus"), result);
     }
 
     @Test
     public void testValidRefPathNull() {
-        final Json result = el.evaluate("${abc}",
+        final Json result = this.el.evaluate("${abc}",
                 SimpleEvaluationContext.builder().build());
         assertEquals(JsonNull.INSTANCE, result);
     }
 
     @Test
     public void testValidRefPathL2() {
-        final Json result = el.evaluate("${abc.def}",
+        final Json result = this.el.evaluate("${abc.def}",
                 SimpleEvaluationContext.builder().attribute("abc",
-                        JsonObject.builder().field("def", new JsonBoolean(true)).build()
+                        JsonObject.builder().field("def", JsonBoolean.TRUE).build()
                 ).build());
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
 
     @Test
     public void testInvalidRefPathInBoolean() {
         assertThrows(EvaluationException.class, () -> {
-            el.evaluate("${abc.def}",
-                    SimpleEvaluationContext.builder().attribute("abc", new JsonBoolean(true)).build());
+            this.el.evaluate("${abc.def}",
+                    SimpleEvaluationContext.builder().attribute("abc", JsonBoolean.TRUE).build());
         });
     }
 
     @Test
     public void testInvalidRefPathInNull() {
         assertThrows(EvaluationException.class, () -> {
-            el.evaluate("${abc.def}",
+            this.el.evaluate("${abc.def}",
                     SimpleEvaluationContext.builder().build());
         });
     }
 
     @Test
     public void testValidRefPathStringIndexL1() {
-        final Json result = el.evaluate("${abc[\"def\"]}",
+        final Json result = this.el.evaluate("${abc[\"def\"]}",
                 SimpleEvaluationContext.builder().attribute("abc",
-                        JsonObject.builder().field("def", new JsonBoolean(true)).build()
+                        JsonObject.builder().field("def", JsonBoolean.TRUE).build()
                 ).build());
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testValidRefPathStringIndexL2() {
-        final Json result = el.evaluate("${abc[\"def\"][\"hij\"]}",
+        final Json result = this.el.evaluate("${abc[\"def\"][\"hij\"]}",
                 SimpleEvaluationContext.builder().attribute("abc",
                         JsonObject.builder().field("def",
-                                JsonObject.builder().field("hij", new JsonBoolean(true)).build()).build()
+                                JsonObject.builder().field("hij", JsonBoolean.TRUE).build()).build()
                 ).build());
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testValidRefPathStringIndexPath() {
-        final Json result = el.evaluate("${abc[\"def\"].hij}",
+        final Json result = this.el.evaluate("${abc[\"def\"].hij}",
                 SimpleEvaluationContext.builder().attribute("abc",
                         JsonObject.builder().field("def",
-                                JsonObject.builder().field("hij", new JsonBoolean(true)).build()).build()
+                                JsonObject.builder().field("hij", JsonBoolean.TRUE).build()).build()
                 ).build());
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testValidRefPathStringIndexPathIndex() {
-        final Json result = el.evaluate("${abc[\"def\"].hij[\"klm\"]}",
+        final Json result = this.el.evaluate("${abc[\"def\"].hij[\"klm\"]}",
                 SimpleEvaluationContext.builder().attribute("abc",
                         JsonObject.builder().field("def",
                                 JsonObject.builder().field("hij",
-                                        JsonObject.builder().field("klm", new JsonBoolean(true)).build()).
+                                        JsonObject.builder().field("klm", JsonBoolean.TRUE).build()).
                                         build()).build()
                 ).build());
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testValidRefPathStringIndexL2Null() {
-        final Json result = el.evaluate("${abc[\"def\"][\"hij\"]}",
+        final Json result = this.el.evaluate("${abc[\"def\"][\"hij\"]}",
                 SimpleEvaluationContext.builder().attribute("abc",
                         JsonObject.builder().field("def",
                                 JsonObject.builder().build()).build()
@@ -114,7 +114,7 @@ public class PathEvaluatorTest {
     @Test
     public void testInvalidRefPathStringIndexInNull() {
         final Throwable exception = assertThrows(EvaluationException.class, () -> {
-            el.evaluate("${abc[\"def\"]}",
+            this.el.evaluate("${abc[\"def\"]}",
                     SimpleEvaluationContext.builder().build());
         });
         assertEquals("Invalid index in reference 'abc[\"def\"]' to evaluate in JSON of type 'null'", exception.getMessage());
@@ -122,12 +122,12 @@ public class PathEvaluatorTest {
 
     @Test
     public void testValidRefPathIndirectStringIndex() {
-        final Json result = el.evaluate("${abc[indirectVar[\"value\"]][\"hij\"]}",
+        final Json result = this.el.evaluate("${abc[indirectVar[\"value\"]][\"hij\"]}",
                 SimpleEvaluationContext.builder().
                         attribute("abc",
                                 JsonObject.builder().
                                         field("def",
-                                                JsonObject.builder().field("hij", new JsonBoolean(true)).build()
+                                                JsonObject.builder().field("hij", JsonBoolean.TRUE).build()
                                         )
                                         .build()
                         ).
@@ -135,37 +135,37 @@ public class PathEvaluatorTest {
                                 JsonObject.builder().field("value", new JsonString("def")).build()).
                         build()
         );
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testValidRefPathArrayIndexL1() {
-        final Json result = el.evaluate("${abc[0]}",
+        final Json result = this.el.evaluate("${abc[0]}",
                 SimpleEvaluationContext.builder().attribute("abc",
-                        JsonArray.builder().value(new JsonBoolean(true)).build()
+                        JsonArray.builder().value(JsonBoolean.TRUE).build()
                 ).build());
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testInvalidRefPathArrayIndexAsString() {
         final Throwable exception = assertThrows(EvaluationException.class, () -> {
-        final Json result = el.evaluate("${abc[\"0\"]}",
-                SimpleEvaluationContext.builder().attribute("abc",
-                        JsonArray.builder().value(new JsonBoolean(true)).build()
-                ).build());
+            final Json result = this.el.evaluate("${abc[\"0\"]}",
+                    SimpleEvaluationContext.builder().attribute("abc",
+                            JsonArray.builder().value(JsonBoolean.TRUE).build()
+                    ).build());
         });
         assertEquals("Invalid index 'string' in reference 'abc[\"0\"]' to evaluate in JSON of type 'array'", exception.getMessage());
     }
 
     @Test
     public void testValidRefPathIndirectArrayIndex() {
-        final Json result = el.evaluate("${abc[def]}",
+        final Json result = this.el.evaluate("${abc[def]}",
                 SimpleEvaluationContext.builder().
-                    attribute("abc",
-                        JsonArray.builder().value(new JsonBoolean(true)).build()
-                    ).
-                    attribute("def", new JsonNumber(0)).build());
-        assertEquals(new JsonBoolean(true), result);
+                        attribute("abc",
+                                JsonArray.builder().value(JsonBoolean.TRUE).build()
+                        ).
+                        attribute("def", new JsonNumber(0)).build());
+        assertEquals(JsonBoolean.TRUE, result);
     }
 }

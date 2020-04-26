@@ -10,10 +10,10 @@ import lombok.ToString;
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class JsonBooleanNode extends JsonValueNode<JsonBoolean> {
-    private boolean value;
+    private final boolean value;
 
     @Override
-    public JsonBoolean evaluate(EvaluationContext ec) {
-        return new JsonBoolean(value);
+    public JsonBoolean evaluate(final EvaluationContext ec) {
+        return JsonBoolean.valueOf(this.value);
     }
 }

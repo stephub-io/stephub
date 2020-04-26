@@ -81,7 +81,7 @@ class StepRequestEvaluatorTest {
         );
         final StepRequest step = stepBuilder.build();
         assertThat(step.getDocString(), equalTo(
-                JsonObject.builder().field("abc", new JsonBoolean(true)).build()
+                JsonObject.builder().field("abc", JsonBoolean.TRUE).build()
         ));
     }
 
@@ -100,7 +100,7 @@ class StepRequestEvaluatorTest {
         );
         final StepRequest step = stepBuilder.build();
         assertThat(step.getArguments().get("abc"), equalTo(
-                new JsonBoolean(true)
+                JsonBoolean.TRUE
         ));
     }
 

@@ -78,11 +78,11 @@ class StepMethodAnnotationProcessorTest {
         this.testProvider.execute(sid, StepRequest.builder().
                 id("testStepMultipleArgs").
                 argument("data", new JsonObject()).
-                argument("enabled", new JsonBoolean(true)).
+                argument("enabled", JsonBoolean.TRUE).
                 build());
         verify(this.testProvider.mock).testStepMultipleArgs(
                 this.testProvider.state,
-                new JsonBoolean(true),
+                JsonBoolean.TRUE,
                 new JsonObject()
         );
     }

@@ -16,30 +16,30 @@ public class FunctionEvaluatorTest {
     @Test
     public void testCallZeroArgs() {
         // Given
-        Function func = mock(Function.class);
-        when(func.invoke()).thenReturn(new JsonBoolean(true));
+        final Function func = mock(Function.class);
+        when(func.invoke()).thenReturn(JsonBoolean.TRUE);
 
         // Call
-        final Json result = el.evaluate("func1()",
+        final Json result = this.el.evaluate("func1()",
                 SimpleEvaluationContext.builder().
-                function("func1", func)
-                .build());
+                        function("func1", func)
+                        .build());
 
         // Expected
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
         verify(func, times(1)).invoke();
     }
 
     @Test
     public void testCallZeroTwoArgs() {
         // Given
-        Function func = mock(Function.class);
-        JsonObject arg1 =  JsonObject.builder().field("abc", new JsonBoolean(true)).build();
-        JsonNumber arg2 = new JsonNumber(2);
+        final Function func = mock(Function.class);
+        final JsonObject arg1 = JsonObject.builder().field("abc", JsonBoolean.TRUE).build();
+        final JsonNumber arg2 = new JsonNumber(2);
         when(func.invoke(arg1, arg2)).thenReturn(null);
 
         // Call
-        final Json result = el.evaluate("func1({\"abc\": true }, 2)",
+        final Json result = this.el.evaluate("func1({\"abc\": true }, 2)",
                 SimpleEvaluationContext.builder().
                         function("func1", func)
                         .build());

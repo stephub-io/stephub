@@ -45,13 +45,13 @@ public class JsonRepresentationEvaluatorTest {
     @Test
     public void testBooleanTrue() {
         final Json result = this.el.evaluate("true", null);
-        assertEquals(new JsonBoolean(true), result);
+        assertEquals(JsonBoolean.TRUE, result);
     }
 
     @Test
     public void testBooleanFalse() {
         final Json result = this.el.evaluate("false", null);
-        assertEquals(new JsonBoolean(false), result);
+        assertEquals(JsonBoolean.FALSE, result);
     }
 
     @Test
@@ -59,7 +59,7 @@ public class JsonRepresentationEvaluatorTest {
         final Json result = this.el.evaluate("{ \"abc\": true}", null);
         log.debug("JSON pretty object: {}", result);
         log.debug("JSON non pretty object: {}", result.asJsonString(false));
-        assertEquals(new JsonObject(singletonMap("abc", new JsonBoolean(true))), result);
+        assertEquals(new JsonObject(singletonMap("abc", JsonBoolean.TRUE)), result);
     }
 
     @Test
@@ -67,7 +67,7 @@ public class JsonRepresentationEvaluatorTest {
         final Json result = this.el.evaluate("\n{ \n\t \"abc\"\n: \n true \n}\n", null);
         log.debug("JSON pretty object: {}", result);
         log.debug("JSON non pretty object: {}", result.asJsonString(false));
-        assertEquals(new JsonObject(singletonMap("abc", new JsonBoolean(true))), result);
+        assertEquals(new JsonObject(singletonMap("abc", JsonBoolean.TRUE)), result);
     }
 
     @Test
@@ -77,8 +77,8 @@ public class JsonRepresentationEvaluatorTest {
         log.debug("JSON non pretty object: {}", result.asJsonString(false));
         assertEquals(
                 JsonObject.builder()
-                        .field("abc", new JsonBoolean(true))
-                        .field("def", new JsonBoolean(false))
+                        .field("abc", JsonBoolean.TRUE)
+                        .field("def", JsonBoolean.FALSE)
                         .build(), result);
     }
 
@@ -93,6 +93,6 @@ public class JsonRepresentationEvaluatorTest {
         final Json result = this.el.evaluate("[true, false]", null);
         log.debug("JSON pretty array: {}", result);
         log.debug("JSON non pretty array: {}", result.asJsonString(false));
-        assertEquals(JsonArray.builder().value(new JsonBoolean(true)).value(new JsonBoolean(false)).build(), result);
+        assertEquals(JsonArray.builder().value(JsonBoolean.TRUE).value(JsonBoolean.FALSE).build(), result);
     }
 }
