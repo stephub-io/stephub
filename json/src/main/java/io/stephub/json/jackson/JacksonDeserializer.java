@@ -15,7 +15,7 @@ public class JacksonDeserializer extends StdDeserializer<Json> {
         this(null);
     }
 
-    protected JacksonDeserializer(final Class<?> vc) {
+    public JacksonDeserializer(final Class<?> vc) {
         super(vc);
     }
 
@@ -41,7 +41,7 @@ public class JacksonDeserializer extends StdDeserializer<Json> {
                 }
                 return arrayBuilder.build();
             case START_OBJECT:
-                final JsonObject.JsonObjectBuilder objBuilder = JsonObject.builder();
+                final JsonObject.JsonObjectBuilder objBuilder = createObjBuilder();
                 while ((token = jsonParser.nextToken()) != JsonToken.END_OBJECT) {
                     jsonParser.nextToken();
                     objBuilder.field(jsonParser.getCurrentName(), this.deserialize(jsonParser, deserializationContext));
@@ -49,6 +49,10 @@ public class JacksonDeserializer extends StdDeserializer<Json> {
                 return objBuilder.build();
         }
         throw new JsonException("Invalid JSON input at: " + jsonParser.getParsingContext().toString());
+    }
+
+    protected JsonObject.JsonObjectBuilder createObjBuilder() {
+        return JsonObject.builder();
     }
 
     @Override

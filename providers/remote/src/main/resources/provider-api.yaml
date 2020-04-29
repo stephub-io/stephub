@@ -27,7 +27,7 @@ paths:
       tags:
         - session
       responses:
-        '200':
+        '201':
           description: Session information
           content:
             application/json:
@@ -39,6 +39,22 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/SessionOptions"
+  /sessions/{sessionId}:
+    delete:
+      summary: Destroys provider's session
+      operationId: destroySession
+      tags:
+        - session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          description: The id of the session
+          schema:
+            type: string
+      responses:
+        '204':
+          description: No response expected
   /sessions/{sessionId}/execute:
     post:
       summary: Execute step within provider's session
@@ -54,7 +70,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Expected response to a valid request
+          description: Expected step response
           content:
             application/json:
               schema:
@@ -68,35 +84,11 @@ paths:
 components:
   schemas:
     ProviderInfo:
-      type: object
-      required:
-        - name
-        - version
-      properties:
-        name:
-          type: string
-        version:
-          type: string
-        optionsSchema:
-          type: object
+      $ref: "./schema/provider-info.json"
     SessionOptions:
-      type: object
-      properties:
-        sessionTimeout:
-          description: Timeout of the session
-          type: string
-          format: duration
-          default: "PT5M"
-        options:
-          description: Additional provider options applied to the lifetime of the session
-          type: object
+      $ref: "./schema/session-options.json"
     Session:
-      type: object
-      required:
-        - id
-      properties:
-        id:
-          type: string
+      $ref: "./schema/session.json"
     StepRequest:
       type: object
       required:

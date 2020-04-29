@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Step request",
+  "type": "object",
+  "required": [
+    "id"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "title": "Step ID"
+    },
+    "arguments": {
+      "type": "object",
+      "title": "Input arguments",
+      "patternProperties": {
+        "^[a-zA-Z_][a-zA-Z0-9_]*$": {}
+      },
+      "additionalProperties": false,
+      "default": {}
+    },
+    "oneOf": [
+      {
+        "docString": {
+          "title": "DocString payload"
+        }
+      },
+      {
+        "dataTable": {
+          "type": "array",
+          "title": "DataTable rows",
+          "items": {
+            "type": "object",
+            "title": "Column values in given row",
+            "patternProperties": {
+              "^[a-zA-Z_][a-zA-Z0-9_]*$": {}
+            },
+            "additionalProperties": false
+          }
+        }
+      }
+    ]
+  }
+}

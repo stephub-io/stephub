@@ -1,18 +1,28 @@
 package io.stephub.json.schema;
 
-import io.stephub.json.Json;
-import io.stephub.json.JsonException;
-import io.stephub.json.JsonObject;
-import io.stephub.json.JsonString;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.stephub.json.*;
+import io.stephub.json.jackson.JsonSchemaDeserializer;
+import io.stephub.json.jackson.JsonSchemaSerializer;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
+@JsonSerialize(using = JsonSchemaSerializer.class)
+@JsonDeserialize(using = JsonSchemaDeserializer.class)
+@Slf4j
 public class JsonSchema extends JsonObject {
 
     public static JsonSchema ofType(final JsonType type) {
@@ -21,20 +31,49 @@ public class JsonSchema extends JsonObject {
         return schema;
     }
 
-    public JsonType getType() {
-        final Json typeStr = this.getFields().get("type");
-        if (typeStr != null) {
-            if (typeStr instanceof JsonString) {
-                try {
-                    return JsonType.valueOf(((JsonString) typeStr).getValue().toUpperCase());
-                } catch (final IllegalArgumentException e) {
-                    throw new JsonException("Unknown JSON type: " + typeStr);
-                }
-            } else {
-                throw new JsonException("JSON type must be string, got: " + typeStr);
+    public Json convertFrom(final Json input) {
+        final List<JsonType> types = this.getTypes();
+        for (final JsonType type : types) {
+            try {
+                return type.convertFrom(input);
+            } catch (final JsonException e) {
+                log.debug("Failed to convert input={} to type={}", input, type);
             }
         }
-        return JsonType.JSON;
+        throw new JsonException("Can't convert input to types: " + types.stream().map(t -> t.toString()).collect(Collectors.joining(", ")));
+    }
+
+    private List<JsonType> getTypes() {
+        final Json typeRaw = this.getFields().get("type");
+        if (typeRaw != null) {
+            if (typeRaw instanceof JsonString) {
+                return Collections.singletonList(this.getTypeFromJson(typeRaw));
+            } else if (typeRaw instanceof JsonArray) {
+                final List<JsonType> types = new ArrayList<>();
+                for (final Json type : ((JsonArray) typeRaw).getValues()) {
+                    types.add(this.getTypeFromJson(typeRaw));
+                }
+                if (types.isEmpty()) {
+                    types.add(JsonType.JSON);
+                }
+                return types;
+            } else {
+                throw new JsonException("JSON type must be string or array of strings, but got: " + typeRaw);
+            }
+        }
+        return Collections.singletonList(JsonType.JSON);
+    }
+
+    private JsonType getTypeFromJson(final Json typeRaw) {
+        if (typeRaw instanceof JsonString) {
+            try {
+                return JsonType.valueOf(((JsonString) typeRaw).getValue().toUpperCase());
+            } catch (final IllegalArgumentException e) {
+                throw new JsonException("Unknown JSON type: " + typeRaw);
+            }
+        } else {
+            throw new JsonException("JSON type value must be string, got: " + typeRaw);
+        }
     }
 
     public void setType(final JsonType type) {

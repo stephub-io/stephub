@@ -1,5 +1,6 @@
 package io.stephub.provider;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.Json;
 import io.stephub.json.JsonObject;
 import lombok.*;
@@ -15,7 +16,13 @@ import java.util.Map;
 @EqualsAndHashCode
 public class StepResponse {
     public enum StepStatus {
-        PASSED, FAILED
+        PASSED, FAILED;
+
+        @Override
+        @JsonValue
+        public String toString() {
+            return this.name().toLowerCase();
+        }
     }
 
     @AllArgsConstructor

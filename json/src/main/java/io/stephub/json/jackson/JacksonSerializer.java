@@ -9,19 +9,23 @@ import java.io.IOException;
 
 import static io.stephub.json.Json.JsonType.valueOf;
 
-public class JacksonSerializer extends StdSerializer<Json> {
+public class JacksonSerializer<J extends Json> extends StdSerializer<J> {
 
     public JacksonSerializer() {
         this(null);
     }
 
-    protected JacksonSerializer(final Class<Json> t) {
+    protected JacksonSerializer(final Class<J> t) {
         super(t);
     }
 
     @Override
-    public void serialize(final Json json, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
-        switch (valueOf(json)) {
+    public void serialize(final J json, final JsonGenerator jsonGenerator, final SerializerProvider serializerProvider) throws IOException {
+        serializeJson(valueOf(json), json, jsonGenerator, serializerProvider);
+    }
+
+    protected void serializeJson(Json.JsonType serializationType, J json, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+        switch (serializationType) {
             case STRING:
                 serializerProvider.defaultSerializeValue(((JsonString) json).getValue(), jsonGenerator);
                 break;

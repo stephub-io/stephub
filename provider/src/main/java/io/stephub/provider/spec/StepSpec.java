@@ -1,5 +1,6 @@
 package io.stephub.provider.spec;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.*;
 
 import java.util.List;
@@ -12,9 +13,12 @@ import java.util.List;
 @ToString
 public class StepSpec {
     public enum PayloadType {
-        NONE, DOC_STRING, DATA_TABLE;
+        NONE,
+        DOC_STRING,
+        DATA_TABLE;
 
         @Override
+        @JsonValue
         public String toString() {
             return this.name().toLowerCase();
         }

@@ -1,29 +1,17 @@
 package io.stephub.providers.util;
 
+import io.stephub.provider.*;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
-import io.stephub.provider.Provider;
-import io.stephub.provider.StepRequest;
-import io.stephub.provider.StepResponse;
 
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public abstract class LocalProviderAdapter<S extends LocalProviderAdapter.SessionState> implements Provider {
-
-    public static class ProviderException extends RuntimeException {
-        public ProviderException(final String message) {
-            super(message);
-        }
-
-        public ProviderException(final String message, final Throwable cause) {
-            super(message, cause);
-        }
-    }
 
     private final ExpiringMap<String, S> sessionStore = ExpiringMap.builder()
             .expirationListener((sessionId, state) -> {

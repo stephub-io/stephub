@@ -1,8 +1,8 @@
 package io.stephub.runtime.model;
 
+import io.stephub.provider.ProviderOptions;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import io.stephub.provider.Provider.ProviderOptions;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;

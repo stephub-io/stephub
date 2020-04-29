@@ -3,6 +3,8 @@ package io.stephub.provider.spec;
 import io.stephub.json.schema.JsonSchema;
 import lombok.*;
 
+import static io.stephub.json.Json.JsonType.JSON;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -11,5 +13,6 @@ import lombok.*;
 @ToString
 public class ArgumentSpec {
     private String name;
-    private JsonSchema schema;
+    @Builder.Default
+    private JsonSchema schema = JsonSchema.ofType(JSON);
 }

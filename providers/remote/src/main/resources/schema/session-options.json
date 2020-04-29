@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Options for creating a provider session",
+  "type": "object",
+  "properties": {
+    "sessionTimeout": {
+      "type": "string",
+      "format": "duration",
+      "title": "Timeout of the session",
+      "default": "PT5M"
+    },
+    "options": {
+      "type": "object",
+      "title": "Provider options applied to the lifetime of the session"
+    }
+  }
+}

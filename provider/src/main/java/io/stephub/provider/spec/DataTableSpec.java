@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.util.List;
 
+import static io.stephub.json.Json.JsonType.JSON;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -20,7 +22,8 @@ public class DataTableSpec {
     @EqualsAndHashCode
     public static class ColumnSpec {
         private String name;
-        private JsonSchema schema;
+        @Builder.Default
+        private final JsonSchema schema = JsonSchema.ofType(JSON);
     }
 
     private boolean header;

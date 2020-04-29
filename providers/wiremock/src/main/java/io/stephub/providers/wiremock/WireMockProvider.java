@@ -3,6 +3,8 @@ package io.stephub.providers.wiremock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import io.stephub.json.JsonString;
 import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.ProviderException;
+import io.stephub.provider.ProviderOptions;
 import io.stephub.provider.StepResponse;
 import io.stephub.providers.util.LocalProviderAdapter;
 import io.stephub.providers.util.spring.SpringBeanProvider;
@@ -38,6 +40,11 @@ public class WireMockProvider extends SpringBeanProvider<WireMockState> {
     @Override
     public String getName() {
         return "wiremock";
+    }
+
+    @Override
+    public String getVersion() throws ProviderException {
+        return "1";
     }
 
     @Override

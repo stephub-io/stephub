@@ -1,8 +1,8 @@
 package io.stephub.runtime.service;
 
-import lombok.extern.slf4j.Slf4j;
 import io.stephub.expression.AttributesContext;
 import io.stephub.provider.Provider;
+import io.stephub.provider.ProviderOptions;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
 import io.stephub.provider.spec.StepSpec;
@@ -10,6 +10,7 @@ import io.stephub.providers.base.BaseProvider;
 import io.stephub.runtime.model.ProviderSpec;
 import io.stephub.runtime.model.StepExecution;
 import io.stephub.runtime.model.Workspace;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +49,7 @@ public class ProvidersFacade {
         getProviderSpecs(workspace).forEach(
                 providerSpec ->
                         steps.put(providerSpec.getName(),
-                                getProvider(workspace, providerSpec).getSteps()
+                                getProvider(workspace, providerSpec).getInfo().getSteps()
                         )
         );
         return steps;
@@ -81,9 +82,9 @@ public class ProvidersFacade {
 
     private StepResponse execute(final Provider provider,
                                  final ProviderSessionStore providerSessionStore,
-                                 final Provider.ProviderOptions providerOptions,
+                                 final ProviderOptions providerOptions,
                                  final StepRequest.StepRequestBuilder requestBuilder) {
-        final String providerName = provider.getName();
+        final String providerName = provider.getInfo().getName();
         String pSid = providerSessionStore.getProviderSession(providerName);
         if (pSid == null) {
             pSid = provider.createSession(providerOptions);

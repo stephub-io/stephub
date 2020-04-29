@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "DataTable column specification",
+  "type": "object",
+  "required": ["name"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Column name",
+      "pattern": "^[a-zA-Z_][a-zA-Z0-9_]*$"
+    },
+    "schema": {
+      "type": "object",
+      "title": "JSON schema for column values",
+      "default": {
+      }
+    }
+  }
+}

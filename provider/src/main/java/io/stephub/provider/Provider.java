@@ -1,35 +1,12 @@
 package io.stephub.provider;
 
-import io.stephub.json.JsonObject;
-import io.stephub.json.schema.JsonSchema;
-import io.stephub.provider.spec.StepSpec;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
-
-import java.time.Duration;
-import java.util.List;
-
 public interface Provider {
-    String createSession(ProviderOptions options);
+    String createSession(ProviderOptions options) throws ProviderException;
 
-    StepResponse execute(String sessionId, StepRequest request);
+    StepResponse execute(String sessionId, StepRequest request) throws ProviderException;
 
-    void destroySession(String sessionId);
+    void destroySession(String sessionId) throws ProviderException;
 
-    List<StepSpec> getSteps();
+    ProviderInfo getInfo() throws ProviderException;
 
-    String getName();
-
-    JsonSchema getOptionsSchema();
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @Data
-    @SuperBuilder
-    @EqualsAndHashCode
-    class ProviderOptions {
-        @Builder.Default
-        private Duration sessionTimeout = Duration.ofMinutes(5);
-        private JsonObject options;
-    }
 }

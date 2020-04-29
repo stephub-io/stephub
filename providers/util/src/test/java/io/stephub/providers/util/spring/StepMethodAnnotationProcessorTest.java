@@ -3,7 +3,7 @@ package io.stephub.providers.util.spring;
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
 import io.stephub.json.schema.JsonSchema;
-import io.stephub.provider.Provider;
+import io.stephub.provider.ProviderOptions;
 import io.stephub.provider.StepRequest;
 import io.stephub.provider.StepResponse;
 import io.stephub.providers.util.LocalProviderAdapter.SessionState;
@@ -92,7 +92,7 @@ class StepMethodAnnotationProcessorTest {
 
     @Test
     public void testStepNoArgs() throws InterruptedException {
-        final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
+        final String sid = this.testProvider.createSession(ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
         final StepResponse response = this.testProvider.execute(sid, StepRequest.builder().id("testStepNoArgs").build());
         verify(this.testProvider.mock).testStepNoArgs();
         assertThat(response.getDuration().getSeconds(), greaterThanOrEqualTo(1l));
@@ -100,7 +100,7 @@ class StepMethodAnnotationProcessorTest {
 
     @Test
     public void testStepMultipleArgs() {
-        final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
+        final String sid = this.testProvider.createSession(ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
         this.testProvider.execute(sid, StepRequest.builder().
                 id("testStepMultipleArgs").
                 argument("data", new JsonObject()).
@@ -115,7 +115,7 @@ class StepMethodAnnotationProcessorTest {
 
     @Test
     public void testExternalStepNoArgs() {
-        final String sid = this.testProvider.createSession(Provider.ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
+        final String sid = this.testProvider.createSession(ProviderOptions.builder().sessionTimeout(ofMinutes(1)).build());
         this.testProvider.execute(sid, StepRequest.builder().id("testStepExternalNoArgs").build());
         verify(this.externalBean.mock).testStepExternalNoArgs();
     }

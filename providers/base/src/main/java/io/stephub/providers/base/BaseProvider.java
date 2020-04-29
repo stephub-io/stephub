@@ -1,6 +1,7 @@
 package io.stephub.providers.base;
 
 import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.ProviderOptions;
 import io.stephub.providers.util.LocalProviderAdapter;
 import io.stephub.providers.util.spring.SpringBeanProvider;
 import lombok.extern.slf4j.Slf4j;

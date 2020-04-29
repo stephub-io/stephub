@@ -2,6 +2,7 @@ package io.stephub.runtime.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.Json;
 import lombok.*;
 
@@ -15,9 +16,11 @@ import java.util.Map;
 @Builder
 public class RuntimeSession {
     public enum SessionStatus {
-        ACTIVE, INACTIVE;
+        ACTIVE,
+        INACTIVE;
 
         @Override
+        @JsonValue
         public String toString() {
             return this.name().toLowerCase();
         }

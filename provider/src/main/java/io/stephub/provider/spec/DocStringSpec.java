@@ -3,6 +3,8 @@ package io.stephub.provider.spec;
 import io.stephub.json.schema.JsonSchema;
 import lombok.*;
 
+import static io.stephub.json.Json.JsonType.STRING;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
@@ -10,5 +12,6 @@ import lombok.*;
 @ToString
 @EqualsAndHashCode
 public class DocStringSpec {
-    private JsonSchema schema;
+    @Builder.Default
+    private final JsonSchema schema = JsonSchema.ofType(STRING);
 }

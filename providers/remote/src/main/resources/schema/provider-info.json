@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Provider information",
+  "type": "object",
+  "required": [
+    "name",
+    "version",
+    "steps"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Name"
+    },
+    "version": {
+      "type": "string",
+      "title": "Version"
+    },
+    "optionsSchema": {
+      "type": "object",
+      "title": "JSON schema for provider's options",
+      "default": {
+      }
+    },
+    "steps": {
+      "type": "array",
+      "title": "Supported steps",
+      "items": {
+        "$ref": "step-spec.json"
+      }
+    }
+  }
+}

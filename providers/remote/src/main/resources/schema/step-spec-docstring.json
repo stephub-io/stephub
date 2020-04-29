@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Step DocString specification",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "object",
+      "title": "JSON schema for DocString input",
+      "default": {
+        "type": "string"
+      }
+    }
+  }
+}

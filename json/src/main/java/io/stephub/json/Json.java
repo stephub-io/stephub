@@ -1,5 +1,6 @@
 package io.stephub.json;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.stephub.json.jackson.JacksonDeserializer;
@@ -15,6 +16,7 @@ import java.text.NumberFormat;
 @JsonDeserialize(using = JacksonDeserializer.class)
 public abstract class Json {
     public enum JsonType {
+
         OBJECT(JsonObject.class),
         ARRAY(JsonArray.class),
         BOOLEAN(JsonBoolean.class),
@@ -83,6 +85,7 @@ public abstract class Json {
         }
 
         @Override
+        @JsonValue
         public String toString() {
             return this.name().toLowerCase();
         }
