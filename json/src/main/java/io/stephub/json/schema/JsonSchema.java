@@ -43,7 +43,7 @@ public class JsonSchema extends JsonObject {
         throw new JsonException("Can't convert input to types: " + types.stream().map(t -> t.toString()).collect(Collectors.joining(", ")));
     }
 
-    private List<JsonType> getTypes() {
+    public List<JsonType> getTypes() {
         final Json typeRaw = this.getFields().get("type");
         if (typeRaw != null) {
             if (typeRaw instanceof JsonString) {

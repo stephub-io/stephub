@@ -1,12 +1,13 @@
 package io.stephub.provider;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.Json;
 import io.stephub.json.JsonObject;
 import lombok.*;
 
 import java.time.Duration;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 @NoArgsConstructor
@@ -45,10 +46,11 @@ public class StepResponse {
     }
 
     private StepStatus status;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private Duration duration;
     @Singular
-    private Map<String, Json> outputs;
-    private String errorMessage;
-    @Singular
-    private List<StepLog> logs;
+    private Map<String, Json> outputs = new HashMap<>();
+    // private String errorMessage;
+    // @Singular
+    //private List<StepLog> logs;
 }

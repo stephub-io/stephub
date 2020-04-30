@@ -6,6 +6,7 @@ import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
+import io.stephub.json.JsonException;
 import io.stephub.provider.StepRequest;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import org.springframework.expression.ExpressionException;
@@ -60,12 +61,12 @@ public class StepRequestEvaluator {
 
 
     private Json evaluateWithFallback(final EvaluationContext ec, final ValueMatch valueMatch) {
-        final Json.JsonType desiredType = valueMatch.getDesiredSchema().getType();
-        if (desiredType == STRING || desiredType == JSON) {
+        final List<Json.JsonType> desiredTypes = valueMatch.getDesiredSchema().getTypes();
+        if (desiredTypes.contains(STRING) || desiredTypes.contains(JSON)) {
             try {
                 // Try to evaluate as native none JSON string
-                return desiredType.convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
-            } catch (final ExpressionException | ParseException e) {
+                return valueMatch.getDesiredSchema().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
+            } catch (final ExpressionException | ParseException | JsonException e) {
                 return this.evaluator.evaluate(
                         "\"" +
                                 valueMatch.getValue().replaceAll("\"", "\\\"") +
@@ -73,12 +74,12 @@ public class StepRequestEvaluator {
                         ec);
             }
         } else {
-            return desiredType.convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
+            return valueMatch.getDesiredSchema().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));
         }
     }
 
     private Json evaluateArgument(final EvaluationContext ec, final ValueMatch argumentMatch) {
         final Json evaluatedValue = this.evaluator.evaluate(argumentMatch.getValue(), ec);
-        return argumentMatch.getDesiredSchema().getType().convertFrom(evaluatedValue);
+        return argumentMatch.getDesiredSchema().convertFrom(evaluatedValue);
     }
 }

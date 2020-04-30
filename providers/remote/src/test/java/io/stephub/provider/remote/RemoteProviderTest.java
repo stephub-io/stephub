@@ -7,10 +7,7 @@ import com.github.tomakehurst.wiremock.client.WireMock;
 import com.networknt.schema.JsonSchemaFactory;
 import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
-import io.stephub.json.JsonArray;
-import io.stephub.json.JsonBoolean;
-import io.stephub.json.JsonObject;
-import io.stephub.json.JsonString;
+import io.stephub.json.*;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.*;
 import io.stephub.provider.spec.ArgumentSpec;
@@ -165,6 +162,10 @@ class RemoteProviderTest {
         final String sid = "3x3";
         final StepResponse givenResponse = StepResponse.builder().
                 status(PASSED).
+                duration(Duration.ofSeconds(7)).
+                outputs(
+                        Collections.singletonMap("var1", new JsonNumber(3))
+                ).
                 build();
         final String serializedResponse = this.objectMapper.writeValueAsString(givenResponse);
         log.debug("Given response: {}", serializedResponse);
