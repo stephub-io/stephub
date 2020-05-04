@@ -1,10 +1,8 @@
 package io.stephub.runtime.service;
 
 import io.stephub.expression.ParseException;
-import io.stephub.provider.spec.DataTableSpec;
-import io.stephub.provider.spec.DocStringSpec;
-import io.stephub.provider.spec.PatternType;
-import io.stephub.provider.spec.StepSpec;
+import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.spec.*;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -14,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import static io.stephub.json.Json.JsonType.BOOLEAN;
 import static io.stephub.json.Json.JsonType.STRING;
 import static io.stephub.json.schema.JsonSchema.ofType;
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -264,4 +263,26 @@ public class GherkinPatternMatcherTest {
                 ValueMatch.builder().value("true").build()));
     }
 
+    @Test
+    public void testSimplePattern() {
+        final StepSpec stepSpec = StepSpec.builder().pattern("{name} has type {type} with value {value}").
+                patternType(PatternType.SIMPLE).
+                argument(ArgumentSpec.builder().name("name").schema(JsonSchema.ofType(STRING)).build()).
+                argument(ArgumentSpec.builder().name("value").schema(JsonSchema.ofType(BOOLEAN)).build()).
+                argument(ArgumentSpec.builder().name("type").schema(JsonSchema.ofType(STRING)).build()).
+                build();
+        // Positive match
+        final StepMatch match = this.patternMatcher.matches(stepSpec,
+                "\"Peter\" has type \"Human\" with value true");
+        assertThat(match, notNullValue());
+        assertThat(match.getArguments(), aMapWithSize(3));
+        assertThat(match.getArguments(), hasEntry("name",
+                ValueMatch.builder().value("\"Peter\"").desiredSchema(JsonSchema.ofType(STRING)).build()));
+        assertThat(match.getArguments(), hasEntry("type",
+                ValueMatch.builder().value("\"Human\"").desiredSchema(JsonSchema.ofType(STRING)).build()));
+        assertThat(match.getArguments(), hasEntry("value",
+                ValueMatch.builder().value("true").desiredSchema(JsonSchema.ofType(BOOLEAN)).build()));
+        // Negative match
+        assertThat(this.patternMatcher.matches(stepSpec, "some other text"), nullValue());
+    }
 }

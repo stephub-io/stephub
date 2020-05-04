@@ -14,7 +14,6 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.stephub.provider.spec.PatternType.REGEX;
 import static io.stephub.provider.spec.StepSpec.PayloadType.DATA_TABLE;
 import static io.stephub.provider.spec.StepSpec.PayloadType.DOC_STRING;
 
@@ -22,6 +21,7 @@ import static io.stephub.provider.spec.StepSpec.PayloadType.DOC_STRING;
 public class GherkinPatternMatcher {
     private static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
     private static final Pattern SKIP_LINES_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
+    private static final Pattern SIMPLE_PATTERN_ARG_PATTERN = Pattern.compile("(^|[^\\\\])\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}");
 
     @Getter
     @Builder
@@ -44,36 +44,57 @@ public class GherkinPatternMatcher {
     }
 
     public StepMatch matches(final StepSpec stepSpec, final String instruction) {
-        if (stepSpec.getPatternType() == REGEX) {
-            final String[] linesRaw = instruction.split("\r?\n");
-            final List<String> effectiveLines = new ArrayList<>();
-            for (final String line : linesRaw) {
-                if (!SKIP_LINES_PATTERN.matcher(line).matches()) {
-                    effectiveLines.add(line);
+        String patternStr = stepSpec.getPattern();
+        switch (stepSpec.getPatternType()) {
+            case SIMPLE:
+                patternStr = this.convertSimplePatternToRegex(patternStr);
+            case REGEX:
+                final String[] linesRaw = instruction.split("\r?\n");
+                final List<String> effectiveLines = new ArrayList<>();
+                for (final String line : linesRaw) {
+                    if (!SKIP_LINES_PATTERN.matcher(line).matches()) {
+                        effectiveLines.add(line);
+                    }
                 }
-            }
-            final String[] lines = effectiveLines.toArray(new String[effectiveLines.size()]);
-            if (lines.length == 0) {
-                throw new ParseException("Passed instruction doesn't contain any step: " + instruction);
-            }
-            final Pattern pattern = Pattern.compile(stepSpec.getPattern());
-            final Matcher matcher = pattern.matcher(lines[0].trim());
-            if (matcher.matches()) {
-                final StepMatch.StepMatchBuilder stepMatchBuilder = StepMatch.builder();
-                stepSpec.getArguments().forEach(a -> stepMatchBuilder.argument(
-                        a.getName(),
-                        ValueMatch.builder().
-                                value(matcher.group(a.getName())).
-                                desiredSchema(a.getSchema()).
-                                build()
-                ));
-                this.checkAndExtractPayload(stepSpec, instruction, lines, stepMatchBuilder);
-                return stepMatchBuilder.build();
-            } else {
-                return null;
-            }
+                final String[] lines = effectiveLines.toArray(new String[effectiveLines.size()]);
+                if (lines.length == 0) {
+                    throw new ParseException("Passed instruction doesn't contain any step: " + instruction);
+                }
+                final Pattern pattern = Pattern.compile(patternStr);
+                final Matcher matcher = pattern.matcher(lines[0].trim());
+                if (matcher.matches()) {
+                    final StepMatch.StepMatchBuilder stepMatchBuilder = StepMatch.builder();
+                    stepSpec.getArguments().forEach(a -> stepMatchBuilder.argument(
+                            a.getName(),
+                            ValueMatch.builder().
+                                    value(matcher.group(a.getName())).
+                                    desiredSchema(a.getSchema()).
+                                    build()
+                    ));
+                    this.checkAndExtractPayload(stepSpec, instruction, lines, stepMatchBuilder);
+                    return stepMatchBuilder.build();
+                } else {
+                    return null;
+                }
         }
         throw new UnsupportedOperationException("Pattern matching not implemented for type=" + stepSpec.getPatternType());
+    }
+
+    private String convertSimplePatternToRegex(final String patternStr) {
+        final Matcher matcher = SIMPLE_PATTERN_ARG_PATTERN.matcher(patternStr);
+        int left = 0;
+        final StringBuilder regexPattern = new StringBuilder();
+        while (matcher.find()) {
+            if (left < matcher.start()) {
+                regexPattern.append(Pattern.quote(patternStr.substring(left, matcher.start()) + matcher.group(1)));
+            }
+            regexPattern.append("(?<" + matcher.group(2) + ">.+)");
+            left = matcher.end();
+        }
+        if (left < patternStr.length()) {
+            regexPattern.append(Pattern.quote(patternStr.substring(left)));
+        }
+        return regexPattern.toString();
     }
 
     private void checkAndExtractPayload(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {

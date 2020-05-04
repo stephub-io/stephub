@@ -23,7 +23,8 @@
       "enum": [
         "regex",
         "simple"
-      ]
+      ],
+      "default": "simple"
     },
     "arguments": {
       "type": "array",

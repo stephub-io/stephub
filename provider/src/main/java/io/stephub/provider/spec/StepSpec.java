@@ -26,7 +26,7 @@ public class StepSpec {
 
     private String id;
     private String pattern;
-    private PatternType patternType;
+    private PatternType patternType = PatternType.SIMPLE;
     @Singular
     private List<ArgumentSpec> arguments;
     @Builder.Default
