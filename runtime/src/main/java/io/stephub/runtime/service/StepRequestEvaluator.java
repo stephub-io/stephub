@@ -7,7 +7,7 @@ import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.json.JsonException;
-import io.stephub.provider.StepRequest;
+import io.stephub.provider.api.model.StepRequest;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import org.springframework.expression.ExpressionException;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ import static io.stephub.json.Json.JsonType.STRING;
 public class StepRequestEvaluator {
     private final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
 
-    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder stepRequestBuilder, final AttributesContext attributesContext) {
+    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json> stepRequestBuilder, final AttributesContext attributesContext) {
         final EvaluationContext ec = new EvaluationContext() {
             @Override
             public Json get(final String key) {

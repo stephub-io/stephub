@@ -12,10 +12,8 @@
     </parent>
 
     <modules>
-        <module>util</module>
         <module>base</module>
         <module>remote</module>
-        <module>wiremock</module>
     </modules>
 
     <build>
@@ -38,8 +36,14 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>provider</artifactId>
+            <artifactId>json</artifactId>
             <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.stephub</groupId>
+            <artifactId>spring-provider-util</artifactId>
+            <version>${spring-provider.version}</version>
         </dependency>
     </dependencies>
 </project>

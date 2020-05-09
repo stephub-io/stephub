@@ -41,8 +41,8 @@
         </dependency>
         <dependency>
             <groupId>io.stephub</groupId>
-            <artifactId>provider</artifactId>
-            <version>${project.version}</version>
+            <artifactId>spring-provider-api</artifactId>
+            <version>${spring-provider.version}</version>
         </dependency>
         <dependency>
             <groupId>io.stephub</groupId>

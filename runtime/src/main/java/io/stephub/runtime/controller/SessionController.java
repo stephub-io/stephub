@@ -1,6 +1,7 @@
 package io.stephub.runtime.controller;
 
-import io.stephub.provider.StepResponse;
+import io.stephub.json.Json;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.StepExecution;
@@ -45,9 +46,9 @@ public class SessionController {
 
     @PostMapping("/workspaces/{wid}/sessions/{sid}/execute")
     @ResponseBody
-    public StepResponse executeWithinSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
-                                             @PathVariable("sid") final String sid,
-                                             @RequestBody final StepExecution execution) {
+    public StepResponse<Json> executeWithinSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
+                                                   @PathVariable("sid") final String sid,
+                                                   @RequestBody final StepExecution execution) {
         return this.sessionService.execute(ctx, wid, sid, execution);
     }
 

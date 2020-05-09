@@ -1,6 +1,7 @@
 package io.stephub.runtime.model;
 
-import io.stephub.provider.ProviderOptions;
+import io.stephub.json.Json;
+import io.stephub.provider.api.model.ProviderOptions;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -13,7 +14,7 @@ import javax.validation.constraints.Pattern;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @SuperBuilder
-public class ProviderSpec extends ProviderOptions  {
+public class ProviderSpec extends ProviderOptions<Json> {
     @NotEmpty
     private String name;
     @NotEmpty

@@ -1,7 +1,14 @@
 package io.stephub.provider.remote;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.stephub.provider.*;
+import io.stephub.json.Json;
+import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.api.Provider;
+import io.stephub.provider.api.ProviderException;
+import io.stephub.provider.api.model.ProviderInfo;
+import io.stephub.provider.api.model.ProviderOptions;
+import io.stephub.provider.api.model.StepRequest;
+import io.stephub.provider.api.model.StepResponse;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -14,7 +21,7 @@ import static org.apache.commons.lang3.Validate.notBlank;
 
 @Slf4j
 @Builder
-public class RemoteProvider implements Provider {
+public class RemoteProvider implements Provider<Json, JsonSchema, Json> {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json; charset=UTF-8";
     @Builder.Default
@@ -23,8 +30,12 @@ public class RemoteProvider implements Provider {
     @Builder.Default
     private final ObjectMapper objectMapper = createObjectMapper();
 
+    public static class JsonProviderInfo extends ProviderInfo<JsonSchema> {
+
+    }
+
     @Override
-    public ProviderInfo getInfo() {
+    public ProviderInfo<JsonSchema> getInfo() {
         final OkHttpClient client = this.httpClientBuilder.build();
         final Request request = new Request.Builder()
                 .get()
@@ -32,7 +43,7 @@ public class RemoteProvider implements Provider {
                 .build();
         try (final Response response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                return this.objectMapper.readValue(response.body().byteStream(), ProviderInfo.class);
+                return this.objectMapper.readValue(response.body().byteStream(), JsonProviderInfo.class);
             } else {
                 throw new ProviderException("Received wrong HTTP status code (" + response.code() + ") for accessing provider info from " + this);
             }
@@ -64,8 +75,12 @@ public class RemoteProvider implements Provider {
         }
     }
 
+    public static class JsonStepResponse extends StepResponse<Json> {
+
+    }
+
     @Override
-    public StepResponse execute(final String sessionId, final StepRequest stepRequest) {
+    public StepResponse<Json> execute(final String sessionId, final StepRequest<Json> stepRequest) {
         final OkHttpClient client = this.httpClientBuilder.build();
         try {
             final Request request = new Request.Builder()
@@ -76,7 +91,7 @@ public class RemoteProvider implements Provider {
                     .build();
             final Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
-                final StepResponse stepResponse = this.objectMapper.readValue(response.body().byteStream(), StepResponse.class);
+                final StepResponse<Json> stepResponse = this.objectMapper.readValue(response.body().byteStream(), JsonStepResponse.class);
                 log.debug("Executed step={} within session={} with response={} at {}", stepRequest, sessionId, stepResponse, this);
                 return stepResponse;
             } else {

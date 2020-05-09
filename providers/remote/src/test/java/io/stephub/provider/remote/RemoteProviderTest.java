@@ -9,11 +9,15 @@ import com.networknt.schema.SpecVersion;
 import com.networknt.schema.ValidationMessage;
 import io.stephub.json.*;
 import io.stephub.json.schema.JsonSchema;
-import io.stephub.provider.*;
-import io.stephub.provider.spec.ArgumentSpec;
-import io.stephub.provider.spec.DataTableSpec;
-import io.stephub.provider.spec.PatternType;
-import io.stephub.provider.spec.StepSpec;
+import io.stephub.provider.api.ProviderException;
+import io.stephub.provider.api.model.ProviderInfo;
+import io.stephub.provider.api.model.ProviderOptions;
+import io.stephub.provider.api.model.StepRequest;
+import io.stephub.provider.api.model.StepResponse;
+import io.stephub.provider.api.model.spec.ArgumentSpec;
+import io.stephub.provider.api.model.spec.DataTableSpec;
+import io.stephub.provider.api.model.spec.PatternType;
+import io.stephub.provider.api.model.spec.StepSpec;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.apache.http.HttpHeaders;
@@ -33,7 +37,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static io.stephub.json.Json.JsonType.*;
 import static io.stephub.json.jackson.ObjectMapperConfigurer.createObjectMapper;
-import static io.stephub.provider.StepResponse.StepStatus.PASSED;
+import static io.stephub.provider.api.model.StepResponse.StepStatus.PASSED;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.collection.IsEmptyCollection.empty;
@@ -49,22 +53,22 @@ class RemoteProviderTest {
     @Test
     public void testProviderInfo() throws JsonProcessingException, URISyntaxException {
         // Given
-        final ProviderInfo given = ProviderInfo.builder().
+        final ProviderInfo<JsonSchema> given = ProviderInfo.<JsonSchema>builder().
                 name("myProvider").
                 version("1.2.3").
                 optionsSchema(JsonSchema.ofType(OBJECT)).
                 steps(Collections.singletonList(
-                        StepSpec.builder().
+                        StepSpec.<JsonSchema>builder().
                                 id("123").
                                 pattern("abc").
                                 argument(
-                                        ArgumentSpec.builder().
+                                        ArgumentSpec.<JsonSchema>builder().
                                                 name("arg1").
                                                 schema(JsonSchema.ofType(BOOLEAN)).
                                                 build()
                                 ).
                                 argument(
-                                        ArgumentSpec.builder().
+                                        ArgumentSpec.<JsonSchema>builder().
                                                 name("arg2").
                                                 schema(JsonSchema.ofType(STRING)).
                                                 build()
@@ -72,9 +76,9 @@ class RemoteProviderTest {
                                 patternType(PatternType.REGEX).
                                 payload(StepSpec.PayloadType.DATA_TABLE).
                                 dataTable(
-                                        DataTableSpec.builder().
+                                        DataTableSpec.<JsonSchema>builder().
                                                 column(
-                                                        DataTableSpec.ColumnSpec.builder().
+                                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                                 name("col1").schema(JsonSchema.ofType(BOOLEAN)).build()
                                                 ).build()
                                 ).
@@ -160,7 +164,7 @@ class RemoteProviderTest {
     public void testExecStep() throws JsonProcessingException {
         // Given
         final String sid = "3x3";
-        final StepResponse givenResponse = StepResponse.builder().
+        final StepResponse<Json> givenResponse = StepResponse.<Json>builder().
                 status(PASSED).
                 duration(Duration.ofSeconds(7)).
                 outputs(
@@ -180,7 +184,7 @@ class RemoteProviderTest {
                                 withHeader(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE).
                                 withBody(serializedResponse)
                 ));
-        final StepRequest givenRequest = StepRequest.builder().id("456").
+        final StepRequest<Json> givenRequest = StepRequest.<Json>builder().id("456").
                 argument("arg1", new JsonString("abc")).
                 argument("arg2", JsonBoolean.TRUE).
                 dataTable(Collections.singletonList(
@@ -192,7 +196,7 @@ class RemoteProviderTest {
         this.assertValidSchema(serializedRequest, "/schema/step-request.json");
 
         // Call
-        final StepResponse actualResponse = this.provider.execute(sid, givenRequest);
+        final StepResponse<Json> actualResponse = this.provider.execute(sid, givenRequest);
 
         // Expect
         assertThat(actualResponse, equalTo(givenResponse));

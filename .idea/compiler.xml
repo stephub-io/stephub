@@ -9,11 +9,8 @@
         <outputRelativeToContentRoot value="true" />
         <module name="runtime" />
         <module name="providers.base" />
-        <module name="providers.util" />
-        <module name="provider" />
         <module name="expression" />
         <module name="json" />
-        <module name="providers.wiremock" />
         <module name="providers.remote-client" />
         <module name="providers.remote" />
       </profile>

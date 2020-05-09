@@ -5,7 +5,7 @@ import io.stephub.json.Json;
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
 import io.stephub.json.JsonString;
-import io.stephub.provider.StepRequest;
+import io.stephub.provider.api.model.StepRequest;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -33,7 +33,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDocStringAsStringFallback() {
-        final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.builder().
@@ -42,7 +42,7 @@ class StepRequestEvaluatorTest {
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
         );
-        final StepRequest step = stepBuilder.build();
+        final StepRequest<Json> step = stepBuilder.build();
         assertThat(step.getDocString(), equalTo(
                 new JsonString("Hello")
         ));
@@ -50,7 +50,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDocStringAsString() {
-        final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.builder().
@@ -60,7 +60,7 @@ class StepRequestEvaluatorTest {
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
         );
-        final StepRequest step = stepBuilder.build();
+        final StepRequest<Json> step = stepBuilder.build();
         assertThat(step.getDocString(), equalTo(
                 new JsonString("Hel\"lo")
         ));
@@ -68,7 +68,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDocStringAsJsonObj() {
-        final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.builder().desiredSchema(ofType(OBJECT)).
@@ -79,7 +79,7 @@ class StepRequestEvaluatorTest {
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
         );
-        final StepRequest step = stepBuilder.build();
+        final StepRequest<Json> step = stepBuilder.build();
         assertThat(step.getDocString(), equalTo(
                 JsonObject.builder().field("abc", JsonBoolean.TRUE).build()
         ));
@@ -87,7 +87,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testArgEvaluationWithDesiredTypeMapping() {
-        final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().argument(
                         "abc",
@@ -98,7 +98,7 @@ class StepRequestEvaluatorTest {
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
         );
-        final StepRequest step = stepBuilder.build();
+        final StepRequest<Json> step = stepBuilder.build();
         assertThat(step.getArguments().get("abc"), equalTo(
                 JsonBoolean.TRUE
         ));
@@ -130,7 +130,7 @@ class StepRequestEvaluatorTest {
     }
 
     private void verifyDataTableColumn(final Json.JsonType givenDesiredType, final String givenColumnValue, final Json expected) {
-        final StepRequest.StepRequestBuilder stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().
                         dataTable(singletonList(
@@ -143,7 +143,7 @@ class StepRequestEvaluatorTest {
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
         );
-        final StepRequest step = stepBuilder.build();
+        final StepRequest<Json> step = stepBuilder.build();
         assertThat(step.getDataTable(), hasSize(1));
         assertThat(step.getDataTable().get(0), aMapWithSize(1));
         assertThat(step.getDataTable().get(0), hasEntry("col1",

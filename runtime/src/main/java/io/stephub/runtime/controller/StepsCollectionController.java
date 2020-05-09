@@ -1,6 +1,7 @@
 package io.stephub.runtime.controller;
 
-import io.stephub.provider.spec.StepSpec;
+import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.service.ProvidersFacade;
 import io.stephub.runtime.service.WorkspaceService;
@@ -20,7 +21,7 @@ public class StepsCollectionController {
 
     @GetMapping("/workspaces/{wid}/stepsCollection")
     @ResponseBody
-    public Map<String, List<StepSpec>> getStepSpecs(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
+    public Map<String, List<StepSpec<JsonSchema>>> getStepSpecs(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
         return this.providersFacade.getStepsCollection(this.workspaceService.getWorkspace(ctx, wid));
     }
 }

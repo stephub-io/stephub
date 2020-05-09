@@ -14,11 +14,17 @@
     <orderEntry type="module" module-name="expression" />
     <orderEntry type="module" module-name="json" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
-    <orderEntry type="module" module-name="provider" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.8" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jsonSchema:2.10.3" level="project" />
+    <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
+    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
     <orderEntry type="module" module-name="providers.base" />
-    <orderEntry type="module" module-name="providers.util" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.8" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.2.6.RELEASE" level="project" />
-    <orderEntry type="module" module-name="providers.wiremock" />
+    <orderEntry type="library" name="Maven: io.stephub:providers.wiremock:0.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:providers.util:0.0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-context-support:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: com.github.tomakehurst:wiremock-jre8:2.26.3" level="project" />
     <orderEntry type="library" name="Maven: org.eclipse.jetty:jetty-server:9.4.27.v20200227" level="project" />
     <orderEntry type="library" name="Maven: javax.servlet:javax.servlet-api:4.0.1" level="project" />
@@ -86,12 +92,10 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-beans:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-webmvc:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.2.5.RELEASE" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-expression:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: net.jodah:expiringmap:0.5.9" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
-    <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
     <orderEntry type="library" scope="PROVIDED" name="Maven: org.projectlombok:lombok:1.18.12" level="project" />
     <orderEntry type="library" name="Maven: org.apache.commons:commons-lang3:3.10" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-databind:2.10.3" level="project" />

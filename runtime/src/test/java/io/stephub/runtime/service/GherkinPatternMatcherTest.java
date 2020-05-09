@@ -2,7 +2,7 @@ package io.stephub.runtime.service;
 
 import io.stephub.expression.ParseException;
 import io.stephub.json.schema.JsonSchema;
-import io.stephub.provider.spec.*;
+import io.stephub.provider.api.model.spec.*;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -31,10 +31,10 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDocString() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
-                docString(DocStringSpec.builder().schema(ofType(STRING)).build()).
+                docString(DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build()).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -51,10 +51,10 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDocStringMissingOffset() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
-                docString(DocStringSpec.builder().schema(ofType(STRING)).build()).
+                docString(DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build()).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -71,7 +71,7 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDocMissingEndDelimiter() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
                 build();
@@ -86,7 +86,7 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testMissingDocString() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
                 build();
@@ -99,7 +99,7 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testMissingDocStringStartDelimiter() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
                 build();
@@ -112,14 +112,14 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDataTableSingleCol() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
                 dataTable(
-                        DataTableSpec.builder().
+                        DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
@@ -138,14 +138,14 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDataTableSingleColWithCommentAndEmptyLines() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
                 dataTable(
-                        DataTableSpec.builder().
+                        DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
@@ -170,19 +170,19 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDataTableMultipleCols() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
                 dataTable(
-                        DataTableSpec.builder().
+                        DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("text").
                                                 build()
                                 ).
@@ -208,19 +208,19 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDataTableInvalidCols() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
                 dataTable(
-                        DataTableSpec.builder().
+                        DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("text").
                                                 build()
                                 ).
@@ -239,14 +239,14 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDataTableSingleColWithHeader() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("Do with DocString payload").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
                 dataTable(
-                        DataTableSpec.builder().
+                        DataTableSpec.<JsonSchema>builder().
                                 header(true).
                                 column(
-                                        DataTableSpec.ColumnSpec.builder().
+                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
@@ -265,11 +265,11 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testSimplePattern() {
-        final StepSpec stepSpec = StepSpec.builder().pattern("{name} has type {type} with value {value}").
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("{name} has type {type} with value {value}").
                 patternType(PatternType.SIMPLE).
-                argument(ArgumentSpec.builder().name("name").schema(JsonSchema.ofType(STRING)).build()).
-                argument(ArgumentSpec.builder().name("value").schema(JsonSchema.ofType(BOOLEAN)).build()).
-                argument(ArgumentSpec.builder().name("type").schema(JsonSchema.ofType(STRING)).build()).
+                argument(ArgumentSpec.<JsonSchema>builder().name("name").schema(JsonSchema.ofType(STRING)).build()).
+                argument(ArgumentSpec.<JsonSchema>builder().name("value").schema(JsonSchema.ofType(BOOLEAN)).build()).
+                argument(ArgumentSpec.<JsonSchema>builder().name("type").schema(JsonSchema.ofType(STRING)).build()).
                 build();
         // Positive match
         final StepMatch match = this.patternMatcher.matches(stepSpec,

@@ -2,8 +2,8 @@ package io.stephub.runtime.service;
 
 import io.stephub.expression.ParseException;
 import io.stephub.json.schema.JsonSchema;
-import io.stephub.provider.spec.DataTableSpec.ColumnSpec;
-import io.stephub.provider.spec.StepSpec;
+import io.stephub.provider.api.model.spec.DataTableSpec;
+import io.stephub.provider.api.model.spec.StepSpec;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
@@ -14,8 +14,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static io.stephub.provider.spec.StepSpec.PayloadType.DATA_TABLE;
-import static io.stephub.provider.spec.StepSpec.PayloadType.DOC_STRING;
+import static io.stephub.provider.api.model.spec.StepSpec.PayloadType.DATA_TABLE;
+import static io.stephub.provider.api.model.spec.StepSpec.PayloadType.DOC_STRING;
+
 
 @Service
 public class GherkinPatternMatcher {
@@ -43,7 +44,7 @@ public class GherkinPatternMatcher {
         private final JsonSchema desiredSchema;
     }
 
-    public StepMatch matches(final StepSpec stepSpec, final String instruction) {
+    public StepMatch matches(final StepSpec<JsonSchema> stepSpec, final String instruction) {
         String patternStr = stepSpec.getPattern();
         switch (stepSpec.getPatternType()) {
             case SIMPLE:
@@ -105,7 +106,7 @@ public class GherkinPatternMatcher {
         }
     }
 
-    private void checkAndExtractDataTable(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
+    private void checkAndExtractDataTable(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
         final List<Map<String, ValueMatch>> rows = new ArrayList<>();
         final int cols = stepSpec.getDataTable().getColumns().size();
         final StringBuilder rowPatternStr = new StringBuilder();
@@ -127,7 +128,7 @@ public class GherkinPatternMatcher {
                 }
                 final Map<String, ValueMatch> cells = new HashMap<>();
                 for (int j = 0; j < cols; j++) {
-                    final ColumnSpec colSpec = stepSpec.getDataTable().getColumns().get(j);
+                    final DataTableSpec.ColumnSpec<JsonSchema> colSpec = stepSpec.getDataTable().getColumns().get(j);
                     cells.put(colSpec.getName(),
                             ValueMatch.builder().
                                     value(matcher.group(1 + j).trim()).
@@ -142,7 +143,7 @@ public class GherkinPatternMatcher {
         stepMatchBuilder.dataTable(rows);
     }
 
-    private void checkAndExtractDocString(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
+    private void checkAndExtractDocString(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
         // Check syntax
         if (lines.length < 2) {
             throw new ParseException("DocString expected, but missed in: " + instruction);

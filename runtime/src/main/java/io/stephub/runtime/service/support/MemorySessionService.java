@@ -1,10 +1,8 @@
 package io.stephub.runtime.service.support;
 
-import lombok.extern.slf4j.Slf4j;
-import net.jodah.expiringmap.ExpiringMap;
 import io.stephub.expression.AttributesContext;
 import io.stephub.json.Json;
-import io.stephub.provider.StepResponse;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.StepExecution;
@@ -13,6 +11,8 @@ import io.stephub.runtime.service.ExecutionException;
 import io.stephub.runtime.service.ProvidersFacade;
 import io.stephub.runtime.service.ResourceNotFoundException;
 import io.stephub.runtime.service.SessionService;
+import lombok.extern.slf4j.Slf4j;
+import net.jodah.expiringmap.ExpiringMap;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -73,7 +73,7 @@ public class MemorySessionService implements SessionService {
     }
 
     @Override
-    public StepResponse execute(final Context ctx, final String wid, final String sid, final StepExecution stepExecution) {
+    public StepResponse<Json> execute(final Context ctx, final String wid, final String sid, final StepExecution stepExecution) {
         final RuntimeSession session = this.getSessionSafe(wid, sid);
         if (session.getStatus() == INACTIVE) {
             throw new ExecutionException("Session isn't active with id=" + sid);

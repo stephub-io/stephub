@@ -12,10 +12,5 @@
     </parent>
 
     <dependencies>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>providers.util</artifactId>
-            <version>${project.version}</version>
-        </dependency>
     </dependencies>
 </project>
