@@ -49,11 +49,6 @@
             <artifactId>providers.base</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>io.stephub</groupId>
-            <artifactId>providers.wiremock</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <!-- Spring Boot -->
         <dependency>
