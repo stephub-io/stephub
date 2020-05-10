@@ -14,14 +14,14 @@
     <orderEntry type="module" module-name="expression" />
     <orderEntry type="module" module-name="json" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.8" level="project" />
-    <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jsonSchema:2.10.3" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.10" level="project" />
     <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
     <orderEntry type="module" module-name="providers.base" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.8" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.10" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.2.6.RELEASE" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jsonSchema:2.10.3" level="project" />
     <orderEntry type="library" name="Maven: io.stephub:providers.wiremock:0.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: io.stephub:providers.util:0.0.1-SNAPSHOT" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context-support:5.2.5.RELEASE" level="project" />

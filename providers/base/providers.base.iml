@@ -11,8 +11,8 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="json" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.8" level="project" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.8" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.10" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.10" level="project" />
     <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.2.5.RELEASE" level="project" />

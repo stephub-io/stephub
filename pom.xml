@@ -15,7 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dependency versions -->
-        <spring-provider.version>0.0.8</spring-provider.version>
+        <spring-provider.version>0.0.10</spring-provider.version>
         <spring.version>5.2.5.RELEASE</spring.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <expiringmap.version>0.5.9</expiringmap.version>
