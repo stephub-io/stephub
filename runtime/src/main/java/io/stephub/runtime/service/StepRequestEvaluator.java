@@ -1,9 +1,6 @@
 package io.stephub.runtime.service;
 
-import io.stephub.expression.AttributesContext;
-import io.stephub.expression.EvaluationContext;
-import io.stephub.expression.ExpressionEvaluator;
-import io.stephub.expression.ParseException;
+import io.stephub.expression.*;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.json.JsonException;
@@ -22,7 +19,7 @@ import static io.stephub.json.Json.JsonType.STRING;
 
 @Service
 public class StepRequestEvaluator {
-    private final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
+    final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
 
     public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json> stepRequestBuilder, final AttributesContext attributesContext) {
         final EvaluationContext ec = new EvaluationContext() {
@@ -48,7 +45,7 @@ public class StepRequestEvaluator {
         }
     }
 
-    private List<Map<String, Json>> evaluateDataTable(final EvaluationContext ec, final List<Map<String, ValueMatch>> dataTable) {
+    private List<Map<String, Json>> evaluateDataTable(final EvaluationContext ec, final List<Map<String, ValueMatch<String>>> dataTable) {
         return dataTable.stream().map(matchDataTable -> {
                     Map<String, Json> row = new HashMap<>();
                     matchDataTable.forEach((key, cellMatch) ->
@@ -60,7 +57,7 @@ public class StepRequestEvaluator {
     }
 
 
-    private Json evaluateWithFallback(final EvaluationContext ec, final ValueMatch valueMatch) {
+    private Json evaluateWithFallback(final EvaluationContext ec, final ValueMatch<String> valueMatch) {
         final List<Json.JsonType> desiredTypes = valueMatch.getDesiredSchema().getTypes();
         if (desiredTypes.contains(STRING) || desiredTypes.contains(JSON)) {
             try {
@@ -78,7 +75,7 @@ public class StepRequestEvaluator {
         }
     }
 
-    private Json evaluateArgument(final EvaluationContext ec, final ValueMatch argumentMatch) {
+    private Json evaluateArgument(final EvaluationContext ec, final ValueMatch<CompiledExpression> argumentMatch) {
         final Json evaluatedValue = this.evaluator.evaluate(argumentMatch.getValue(), ec);
         return argumentMatch.getDesiredSchema().convertFrom(evaluatedValue);
     }

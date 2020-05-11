@@ -1,5 +1,6 @@
 package io.stephub.runtime.service;
 
+import io.stephub.expression.CompiledExpression;
 import io.stephub.expression.ParseException;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.spec.*;
@@ -277,12 +278,31 @@ public class GherkinPatternMatcherTest {
         assertThat(match, notNullValue());
         assertThat(match.getArguments(), aMapWithSize(3));
         assertThat(match.getArguments(), hasEntry("name",
-                ValueMatch.builder().value("\"Peter\"").desiredSchema(JsonSchema.ofType(STRING)).build()));
+                ValueMatch.<CompiledExpression>builder().value(
+                        patternMatcher.evaluator.match("\"Peter\"").getCompiledExpression()
+                ).desiredSchema(JsonSchema.ofType(STRING)).build()));
         assertThat(match.getArguments(), hasEntry("type",
-                ValueMatch.builder().value("\"Human\"").desiredSchema(JsonSchema.ofType(STRING)).build()));
+                ValueMatch.builder().value(
+                        patternMatcher.evaluator.match("\"Human\"").getCompiledExpression()
+                ).desiredSchema(JsonSchema.ofType(STRING)).build()));
         assertThat(match.getArguments(), hasEntry("value",
-                ValueMatch.builder().value("true").desiredSchema(JsonSchema.ofType(BOOLEAN)).build()));
+                ValueMatch.builder().value(
+                        patternMatcher.evaluator.match("true").getCompiledExpression()
+                ).desiredSchema(JsonSchema.ofType(BOOLEAN)).build()));
         // Negative match
         assertThat(this.patternMatcher.matches(stepSpec, "some other text"), nullValue());
+    }
+
+    @Test
+    public void testSimplePatternGreadyAttributes() {
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("I {name} has type {type}").
+                patternType(PatternType.SIMPLE).
+                argument(ArgumentSpec.<JsonSchema>builder().name("name").schema(JsonSchema.ofType(STRING)).build()).
+                argument(ArgumentSpec.<JsonSchema>builder().name("type").schema(JsonSchema.ofType(STRING)).build()).
+                build();
+        // Positive match
+        final StepMatch match = this.patternMatcher.matches(stepSpec,
+                "I \"Peter\" and Ema has type \"humans\"");
+        assertThat(match, nullValue());
     }
 }

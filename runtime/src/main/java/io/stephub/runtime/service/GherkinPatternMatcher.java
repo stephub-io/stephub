@@ -1,7 +1,12 @@
 package io.stephub.runtime.service;
 
+import io.stephub.expression.CompiledExpression;
+import io.stephub.expression.ExpressionEvaluator;
+import io.stephub.expression.MatchResult;
 import io.stephub.expression.ParseException;
+import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.api.model.spec.ArgumentSpec;
 import io.stephub.provider.api.model.spec.DataTableSpec;
 import io.stephub.provider.api.model.spec.StepSpec;
 import lombok.*;
@@ -23,6 +28,7 @@ public class GherkinPatternMatcher {
     private static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
     private static final Pattern SKIP_LINES_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
     private static final Pattern SIMPLE_PATTERN_ARG_PATTERN = Pattern.compile("(^|[^\\\\])\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}");
+    final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
 
     @Getter
     @Builder
@@ -30,17 +36,18 @@ public class GherkinPatternMatcher {
     @ToString
     public static class StepMatch {
         @Singular
-        private final Map<String, ValueMatch> arguments;
-        private final ValueMatch docString;
-        private final List<Map<String, ValueMatch>> dataTable;
+        private final Map<String, ValueMatch<CompiledExpression>> arguments;
+        private final ValueMatch<String> docString;
+        private final List<Map<String, ValueMatch<String>>> dataTable;
     }
+
 
     @Getter
     @Builder
     @EqualsAndHashCode
     @ToString
-    public static class ValueMatch {
-        private final String value;
+    public static class ValueMatch<V> {
+        private final V value;
         private final JsonSchema desiredSchema;
     }
 
@@ -65,13 +72,20 @@ public class GherkinPatternMatcher {
                 final Matcher matcher = pattern.matcher(lines[0].trim());
                 if (matcher.matches()) {
                     final StepMatch.StepMatchBuilder stepMatchBuilder = StepMatch.builder();
-                    stepSpec.getArguments().forEach(a -> stepMatchBuilder.argument(
-                            a.getName(),
-                            ValueMatch.builder().
-                                    value(matcher.group(a.getName())).
-                                    desiredSchema(a.getSchema()).
-                                    build()
-                    ));
+                    for (final ArgumentSpec<JsonSchema> a : stepSpec.getArguments()) {
+                        final String argValue = matcher.group(a.getName());
+                        final MatchResult argExprMatcher = this.evaluator.match(argValue);
+                        if (!argExprMatcher.matches()) {
+                            return null;
+                        }
+                        stepMatchBuilder.argument(
+                                a.getName(),
+                                ValueMatch.<CompiledExpression>builder().
+                                        value(argExprMatcher.getCompiledExpression()).
+                                        desiredSchema(a.getSchema()).
+                                        build());
+                    }
+
                     this.checkAndExtractPayload(stepSpec, instruction, lines, stepMatchBuilder);
                     return stepMatchBuilder.build();
                 } else {
@@ -107,7 +121,7 @@ public class GherkinPatternMatcher {
     }
 
     private void checkAndExtractDataTable(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
-        final List<Map<String, ValueMatch>> rows = new ArrayList<>();
+        final List<Map<String, ValueMatch<String>>> rows = new ArrayList<>();
         final int cols = stepSpec.getDataTable().getColumns().size();
         final StringBuilder rowPatternStr = new StringBuilder();
         rowPatternStr.append("\\s*\\|\\s*");
@@ -126,11 +140,11 @@ public class GherkinPatternMatcher {
                     ignoreHeader = false;
                     continue;
                 }
-                final Map<String, ValueMatch> cells = new HashMap<>();
+                final Map<String, ValueMatch<String>> cells = new HashMap<>();
                 for (int j = 0; j < cols; j++) {
                     final DataTableSpec.ColumnSpec<JsonSchema> colSpec = stepSpec.getDataTable().getColumns().get(j);
                     cells.put(colSpec.getName(),
-                            ValueMatch.builder().
+                            ValueMatch.<String>builder().
                                     value(matcher.group(1 + j).trim()).
                                     desiredSchema(colSpec.getSchema()).build()
                     );
@@ -172,7 +186,7 @@ public class GherkinPatternMatcher {
             }
         }
         stepMatchBuilder.docString(
-                ValueMatch.builder().value(extraction.toString()).
+                ValueMatch.<String>builder().value(extraction.toString()).
                         desiredSchema(stepSpec.getDocString().getSchema()).
                         build());
     }

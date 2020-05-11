@@ -123,6 +123,34 @@ class RemoteProviderTest {
     }
 
     @Test
+    public void testStartSessionWithEmptyOptions() throws JsonProcessingException {
+        // Given
+        final String serializedSession = this.objectMapper.writeValueAsString(Collections.singletonMap("id", "def"));
+        final String url = this.baseUrlBuilder.addPathSegment("sessions").build().encodedPath();
+        stubFor(post(urlEqualTo(url)).
+                willReturn(
+                        aResponse().
+                                withStatus(201).
+                                withHeader(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE).
+                                withBody(serializedSession)
+                ));
+
+        // Call
+        final String sessionId = this.provider.createSession(ProviderOptions.builder().
+                sessionTimeout(Duration.ofMinutes(7))
+                .build()
+        );
+
+        // Expect
+        assertThat(sessionId, equalTo("def"));
+        verify(postRequestedFor(urlEqualTo(url))
+                .withHeader(RemoteProvider.HEADER_CONTENT_TYPE, WireMock.equalTo(RemoteProvider.APPLICATION_JSON)).
+                        withRequestBody(matchingJsonPath("$.sessionTimeout", WireMock.equalTo("PT7M"))).
+                        withRequestBody(matchingJsonPath("$.options", WireMock.absent()))
+        );
+    }
+
+    @Test
     public void testDestroySession() {
         // Given
         final String sid = "x3x";
@@ -214,7 +242,7 @@ class RemoteProviderTest {
         configureFor("localhost", this.wireMockServer.port());
         this.baseUrlBuilder = HttpUrl.parse("http://localhost:" + this.wireMockServer.port() + "/myProvider").newBuilder();
         this.provider = RemoteProvider.builder().
-                baseUrl(this.baseUrlBuilder.build()).build();
+                baseUrl(this.baseUrlBuilder.build().toString()).build();
     }
 
     @AfterEach

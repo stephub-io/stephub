@@ -1,13 +1,16 @@
 package io.stephub.runtime.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.expression.AttributesContext;
 import io.stephub.json.Json;
+import io.stephub.json.JsonObject;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.Provider;
 import io.stephub.provider.api.model.ProviderOptions;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
+import io.stephub.provider.remote.RemoteProvider;
 import io.stephub.providers.base.BaseProvider;
 import io.stephub.runtime.model.ProviderSpec;
 import io.stephub.runtime.model.StepExecution;
@@ -33,6 +36,9 @@ public class ProvidersFacade {
 
     @Autowired
     private StepRequestEvaluator stepRequestEvaluator;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     public interface ProviderSessionStore {
         String getProviderSession(String providerName);
@@ -77,14 +83,18 @@ public class ProvidersFacade {
         throw new ExecutionException("No step found matching the instruction='" + execution.getInstruction() + "'");
     }
 
-    private Provider<Json, JsonSchema, Json> getProvider(final Workspace workspace, final ProviderSpec providerSpec) {
-        // TODO
-        return this.baseProvider;
+    private Provider<JsonObject, JsonSchema, Json> getProvider(final Workspace workspace, final ProviderSpec providerSpec) {
+        if (BaseProvider.PROVIDER_NAME.equals(providerSpec.getName())) {
+            return this.baseProvider;
+        } else {
+            return RemoteProvider.builder().baseUrl(providerSpec.getProviderUrl()).
+                    objectMapper(this.objectMapper).build();
+        }
     }
 
-    private StepResponse<Json> execute(final Provider<Json, JsonSchema, Json> provider,
+    private StepResponse<Json> execute(final Provider<JsonObject, JsonSchema, Json> provider,
                                        final ProviderSessionStore providerSessionStore,
-                                       final ProviderOptions<Json> providerOptions,
+                                       final ProviderOptions<JsonObject> providerOptions,
                                        final StepRequest.StepRequestBuilder<Json> requestBuilder) {
         final String providerName = provider.getInfo().getName();
         String pSid = providerSessionStore.getProviderSession(providerName);

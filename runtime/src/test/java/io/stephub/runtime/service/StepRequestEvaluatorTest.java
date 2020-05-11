@@ -1,5 +1,6 @@
 package io.stephub.runtime.service;
 
+import io.stephub.expression.CompiledExpression;
 import io.stephub.expression.impl.SimpleEvaluationContext;
 import io.stephub.json.Json;
 import io.stephub.json.JsonBoolean;
@@ -36,7 +37,7 @@ class StepRequestEvaluatorTest {
         final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
-                        ValueMatch.builder().
+                        ValueMatch.<String>builder().
                                 desiredSchema(ofType(STRING)).
                                 value("Hello").build()).build(),
                 stepBuilder,
@@ -53,7 +54,7 @@ class StepRequestEvaluatorTest {
         final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
-                        ValueMatch.builder().
+                        ValueMatch.<String>builder().
                                 desiredSchema(ofType(STRING)).
                                 value("\"Hel\\\"lo\"").build()
                 ).build(),
@@ -71,7 +72,7 @@ class StepRequestEvaluatorTest {
         final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
-                        ValueMatch.builder().desiredSchema(ofType(OBJECT)).
+                        ValueMatch.<String>builder().desiredSchema(ofType(OBJECT)).
                                 value(
                                         "{\n" +
                                                 "\"abc\": true \n}").
@@ -91,8 +92,8 @@ class StepRequestEvaluatorTest {
         this.evaluator.populateRequest(
                 StepMatch.builder().argument(
                         "abc",
-                        ValueMatch.builder().
-                                desiredSchema(ofType(BOOLEAN)).value("{ \"some\": null }")
+                        ValueMatch.<CompiledExpression>builder().
+                                desiredSchema(ofType(BOOLEAN)).value(this.evaluator.evaluator.match("{ \"some\": null }").getCompiledExpression())
                                 .build()
                 ).build(),
                 stepBuilder,
@@ -135,7 +136,7 @@ class StepRequestEvaluatorTest {
                 StepMatch.builder().
                         dataTable(singletonList(
                                 singletonMap("col1",
-                                        ValueMatch.builder().
+                                        ValueMatch.<String>builder().
                                                 desiredSchema(ofType(givenDesiredType)).
                                                 value(givenColumnValue).build()
                                 )

@@ -2,6 +2,7 @@ package io.stephub.provider.remote;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.json.Json;
+import io.stephub.json.JsonObject;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.Provider;
 import io.stephub.provider.api.ProviderException;
@@ -13,6 +14,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 
@@ -21,14 +23,18 @@ import static org.apache.commons.lang3.Validate.notBlank;
 
 @Slf4j
 @Builder
-public class RemoteProvider implements Provider<Json, JsonSchema, Json> {
+public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json; charset=UTF-8";
     @Builder.Default
     private final OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
-    private final HttpUrl baseUrl;
+    private final String baseUrl;
     @Builder.Default
     private final ObjectMapper objectMapper = createObjectMapper();
+
+    private HttpUrl.Builder baseUrlBuilder() {
+        return HttpUrl.parse(this.baseUrl).newBuilder();
+    }
 
     public static class JsonProviderInfo extends ProviderInfo<JsonSchema> {
 
@@ -59,7 +65,7 @@ public class RemoteProvider implements Provider<Json, JsonSchema, Json> {
             final Request request = new Request.Builder()
                     .post(RequestBody.create(this.objectMapper.writeValueAsBytes(options)))
                     .header(HEADER_CONTENT_TYPE, APPLICATION_JSON)
-                    .url(this.baseUrl.newBuilder().addPathSegment("sessions").build())
+                    .url(this.baseUrlBuilder().addPathSegment("sessions").build())
                     .build();
             final Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
@@ -86,7 +92,7 @@ public class RemoteProvider implements Provider<Json, JsonSchema, Json> {
             final Request request = new Request.Builder()
                     .post(RequestBody.create(this.objectMapper.writeValueAsBytes(stepRequest)))
                     .header(HEADER_CONTENT_TYPE, APPLICATION_JSON)
-                    .url(this.baseUrl.newBuilder().addPathSegment("sessions").
+                    .url(this.baseUrlBuilder().addPathSegment("sessions").
                             addPathSegment(sessionId).addPathSegment("execute").build())
                     .build();
             final Response response = client.newCall(request).execute();
@@ -95,7 +101,7 @@ public class RemoteProvider implements Provider<Json, JsonSchema, Json> {
                 log.debug("Executed step={} within session={} with response={} at {}", stepRequest, sessionId, stepResponse, this);
                 return stepResponse;
             } else {
-                throw new ProviderException("Failed to execute step at " + this + " due to: " + response.message());
+                throw new ProviderException("Failed to execute step at " + this + " due to bad response (" + response.code() + ")" + (StringUtils.isNotBlank(response.message()) ? ": " + response.message() : ""));
             }
         } catch (final IOException e) {
             throw new ProviderException("Failed to execute step at " + this, e);
@@ -108,7 +114,7 @@ public class RemoteProvider implements Provider<Json, JsonSchema, Json> {
         try {
             final Request request = new Request.Builder()
                     .delete()
-                    .url(this.baseUrl.newBuilder().addPathSegment("sessions").
+                    .url(this.baseUrlBuilder().addPathSegment("sessions").
                             addPathSegment(sessionId).build())
                     .build();
             final Response response = client.newCall(request).execute();

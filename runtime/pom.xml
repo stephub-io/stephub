@@ -36,17 +36,22 @@
     <dependencies>
         <dependency>
             <groupId>io.stephub</groupId>
-            <artifactId>expression</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.stephub</groupId>
             <artifactId>spring-provider-api</artifactId>
             <version>${spring-provider.version}</version>
         </dependency>
         <dependency>
-            <groupId>io.stephub</groupId>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>expression</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
             <artifactId>providers.base</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>providers.remote</artifactId>
             <version>${project.version}</version>
         </dependency>
 
