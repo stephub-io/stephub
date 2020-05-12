@@ -5,14 +5,13 @@ import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.StepExecution;
-import io.stephub.runtime.model.Workspace;
 
 import java.util.List;
 
 public interface SessionService {
     List<RuntimeSession> getSessions(Context ctx, String wid);
 
-    RuntimeSession startSession(Context ctx, Workspace workspace);
+    RuntimeSession startSession(Context ctx, String wid);
 
     void stopSession(Context ctx, String wid, String sid);
 

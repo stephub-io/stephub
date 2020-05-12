@@ -1,5 +1,6 @@
 package io.stephub.runtime.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 
@@ -20,4 +21,14 @@ public class Workspace {
     @Valid
     @Singular
     private List<ProviderSpec> providers = new ArrayList<>();
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private List<Error> errors;
+
+    @Value
+    @Builder
+    public static class Error {
+         String path;
+        String message;
+    }
 }

@@ -33,8 +33,8 @@ public class SessionController {
 
     @PostMapping("/workspaces/{wid}/sessions")
     @ResponseBody
-    public RuntimeSession startSessions(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
-        return this.sessionService.startSession(ctx, this.workspaceService.getWorkspace(ctx, wid));
+    public RuntimeSession startSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
+        return this.sessionService.startSession(ctx, wid);
     }
 
     @GetMapping("/workspaces/{wid}/sessions/{sid}")

@@ -14,6 +14,12 @@ public class WorkspaceController {
     @Autowired
     private WorkspaceService workspaceService;
 
+    @GetMapping("/workspaces/{wid}")
+    @ResponseBody
+    public Workspace startSessions(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
+        return this.workspaceService.getWorkspace(ctx, wid, true);
+    }
+
     @GetMapping("/workspaces")
     @ResponseBody
     public List<Workspace> getWorkspaces(@ModelAttribute final Context ctx) {
@@ -22,7 +28,7 @@ public class WorkspaceController {
 
     @PostMapping("/workspaces")
     @ResponseBody
-    public Workspace getWorkspaces(@ModelAttribute final Context ctx,@Valid @RequestBody final Workspace draft) {
+    public Workspace createWorkspace(@ModelAttribute final Context ctx, @Valid @RequestBody final Workspace draft) {
         return this.workspaceService.createWorkspace(ctx, draft);
     }
 

@@ -7,10 +7,7 @@ import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.StepExecution;
 import io.stephub.runtime.model.Workspace;
-import io.stephub.runtime.service.ExecutionException;
-import io.stephub.runtime.service.ProvidersFacade;
-import io.stephub.runtime.service.ResourceNotFoundException;
-import io.stephub.runtime.service.SessionService;
+import io.stephub.runtime.service.*;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +27,9 @@ public class MemorySessionService implements SessionService {
     @Autowired
     private ProvidersFacade providersFacade;
 
+    @Autowired
+    private WorkspaceService workspaceService;
+
     private final ExpiringMap<String, RuntimeSession> sessionStore = ExpiringMap.builder()
             .expirationListener((sessionId, s) -> {
                 RuntimeSession session = (RuntimeSession) s;
@@ -47,7 +47,11 @@ public class MemorySessionService implements SessionService {
     }
 
     @Override
-    public RuntimeSession startSession(final Context ctx, final Workspace workspace) {
+    public RuntimeSession startSession(final Context ctx, final String wid) {
+        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid, true);
+        if (!workspace.getErrors().isEmpty()) {
+            throw new ExecutionException("Erroneous workspace, please correct the errors first");
+        }
         final RuntimeSession session = RuntimeSession.builder().id(UUID.randomUUID().toString()).
                 workspace(workspace).
                 status(ACTIVE).

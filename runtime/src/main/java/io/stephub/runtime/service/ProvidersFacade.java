@@ -24,6 +24,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
+
 @Service
 @Slf4j
 public class ProvidersFacade {
@@ -64,23 +66,31 @@ public class ProvidersFacade {
     }
 
     public StepResponse<Json> execute(final Workspace workspace, final StepExecution execution, final ProviderSessionStore providerSessionStore, final AttributesContext attributesContext) {
-        final Map<String, List<StepSpec<JsonSchema>>> stepSpecs = this.getStepsCollection(workspace);
-        for (final String providerName : stepSpecs.keySet()) {
-            for (final StepSpec<JsonSchema> s : stepSpecs.get(providerName)) {
-                final GherkinPatternMatcher.StepMatch stepMatch = this.patternMatcher.matches(s, execution.getInstruction());
-                if (stepMatch != null) {
-                    final StepRequest.StepRequestBuilder<Json> requestBuilder = StepRequest.<Json>builder().id(s.getId());
-                    this.stepRequestEvaluator.populateRequest(stepMatch, requestBuilder, attributesContext);
-                    final ProviderSpec providerSpec = this.getProviderSpecs(workspace).stream().filter(ps -> ps.getName().equals(providerName)).findFirst().get();
-                    return this.execute(
-                            this.getProvider(workspace, providerSpec),
-                            providerSessionStore,
-                            providerSpec,
-                            requestBuilder);
+        try {
+            final Map<String, List<StepSpec<JsonSchema>>> stepSpecs = this.getStepsCollection(workspace);
+            for (final String providerName : stepSpecs.keySet()) {
+                for (final StepSpec<JsonSchema> s : stepSpecs.get(providerName)) {
+                    final GherkinPatternMatcher.StepMatch stepMatch = this.patternMatcher.matches(s, execution.getInstruction());
+                    if (stepMatch != null) {
+                        final StepRequest.StepRequestBuilder<Json> requestBuilder = StepRequest.<Json>builder().id(s.getId());
+                        this.stepRequestEvaluator.populateRequest(stepMatch, requestBuilder, attributesContext);
+                        final ProviderSpec providerSpec = this.getProviderSpecs(workspace).stream().filter(ps -> ps.getName().equals(providerName)).findFirst().get();
+                        return this.execute(
+                                this.getProvider(workspace, providerSpec),
+                                providerSessionStore,
+                                providerSpec,
+                                requestBuilder);
+                    }
                 }
             }
+        } catch (final Exception e) {
+            return StepResponse.<Json>builder().status(ERRONEOUS).
+                    errorMessage(e.getMessage()).
+                    build();
         }
-        throw new ExecutionException("No step found matching the instruction='" + execution.getInstruction() + "'");
+        return StepResponse.<Json>builder().status(ERRONEOUS).
+                errorMessage("No step found matching the instruction '" + execution.getInstruction() + "'").
+                build();
     }
 
     private Provider<JsonObject, JsonSchema, Json> getProvider(final Workspace workspace, final ProviderSpec providerSpec) {
@@ -88,7 +98,8 @@ public class ProvidersFacade {
             return this.baseProvider;
         } else {
             return RemoteProvider.builder().baseUrl(providerSpec.getProviderUrl()).
-                    objectMapper(this.objectMapper).build();
+                    objectMapper(this.objectMapper).
+                    alias(providerSpec.getName() + ":" + providerSpec.getVersion()).build();
         }
     }
 

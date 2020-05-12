@@ -29,6 +29,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
     @Builder.Default
     private final OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
     private final String baseUrl;
+    private final String alias;
     @Builder.Default
     private final ObjectMapper objectMapper = createObjectMapper();
 
@@ -51,10 +52,10 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
             if (response.isSuccessful()) {
                 return this.objectMapper.readValue(response.body().byteStream(), JsonProviderInfo.class);
             } else {
-                throw new ProviderException("Received wrong HTTP status code (" + response.code() + ") for accessing provider info from " + this);
+                throw new ProviderException("Received unexpected HTTP status code (" + response.code() + ") for accessing provider info from " + this);
             }
         } catch (final IOException e) {
-            throw new ProviderException("Failed to access provider info from " + this, e);
+            throw new ProviderException("Failed to access provider info from " + this + ": " + e.getMessage(), e);
         }
     }
 
@@ -77,7 +78,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
                 throw new ProviderException("Received non 201 HTTP status code (" + response.code() + ") for starting new session at " + this);
             }
         } catch (final IOException e) {
-            throw new ProviderException("Failed to start new session at " + this, e);
+            throw new ProviderException("Failed to start new session at " + this + ": " + e.getMessage(), e);
         }
     }
 
@@ -104,7 +105,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
                 throw new ProviderException("Failed to execute step at " + this + " due to bad response (" + response.code() + ")" + (StringUtils.isNotBlank(response.message()) ? ": " + response.message() : ""));
             }
         } catch (final IOException e) {
-            throw new ProviderException("Failed to execute step at " + this, e);
+            throw new ProviderException("Failed to execute step at " + this + ": " + e.getMessage(), e);
         }
     }
 
@@ -123,13 +124,13 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
             }
             log.debug("Destroyed session {} at {}", sessionId, this);
         } catch (final IOException e) {
-            throw new ProviderException("Failed to delete session at " + this, e);
+            throw new ProviderException("Failed to delete session at " + this + ": " + e.getMessage(), e);
         }
     }
 
     @Override
     public String toString() {
-        return "RemoteProvider@" + this.baseUrl.toString() + "";
+        return this.alias + "@" + this.baseUrl.toString() + "";
     }
 
     @Data

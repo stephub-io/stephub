@@ -22,7 +22,6 @@ public class ProviderSpec extends ProviderOptions<JsonObject> {
     @Pattern(regexp = "(>|>=|=|$)\\d+(\\.\\d+(\\.\\d+)?)?")
     private String version;
 
-    @NotEmpty
     @URL
     private String providerUrl;
 
