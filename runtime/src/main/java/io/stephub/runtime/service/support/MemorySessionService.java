@@ -49,7 +49,7 @@ public class MemorySessionService implements SessionService {
     @Override
     public RuntimeSession startSession(final Context ctx, final String wid) {
         final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid, true);
-        if (!workspace.getErrors().isEmpty()) {
+        if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
             throw new ExecutionException("Erroneous workspace, please correct the errors first");
         }
         final RuntimeSession session = RuntimeSession.builder().id(UUID.randomUUID().toString()).

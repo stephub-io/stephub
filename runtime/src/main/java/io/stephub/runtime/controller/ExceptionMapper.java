@@ -5,15 +5,14 @@ import io.stephub.expression.ParseException;
 import io.stephub.runtime.service.ExecutionException;
 import io.stephub.runtime.service.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@ControllerAdvice
-public class ExceptionMapper extends ResponseEntityExceptionHandler {
+@RestControllerAdvice
+public class ExceptionMapper {
     @ExceptionHandler(ResourceNotFoundException.class)
     public void handleMissingResource(
             final ResourceNotFoundException ex, final HttpServletResponse response) throws IOException {
@@ -37,4 +36,5 @@ public class ExceptionMapper extends ResponseEntityExceptionHandler {
             final EvaluationException ex, final HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
     }
+
 }

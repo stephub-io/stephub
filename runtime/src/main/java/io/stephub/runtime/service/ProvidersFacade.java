@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
 @Service
 @Slf4j
@@ -59,7 +60,7 @@ public class ProvidersFacade {
         this.getProviderSpecs(workspace).forEach(
                 providerSpec ->
                         steps.put(providerSpec.getName(),
-                                this.getProvider(workspace, providerSpec).getInfo().getSteps()
+                                this.getProvider(providerSpec).getInfo().getSteps()
                         )
         );
         return steps;
@@ -76,7 +77,7 @@ public class ProvidersFacade {
                         this.stepRequestEvaluator.populateRequest(stepMatch, requestBuilder, attributesContext);
                         final ProviderSpec providerSpec = this.getProviderSpecs(workspace).stream().filter(ps -> ps.getName().equals(providerName)).findFirst().get();
                         return this.execute(
-                                this.getProvider(workspace, providerSpec),
+                                this.getProvider(providerSpec),
                                 providerSessionStore,
                                 providerSpec,
                                 requestBuilder);
@@ -93,13 +94,15 @@ public class ProvidersFacade {
                 build();
     }
 
-    private Provider<JsonObject, JsonSchema, Json> getProvider(final Workspace workspace, final ProviderSpec providerSpec) {
+    public Provider<JsonObject, JsonSchema, Json> getProvider(final ProviderSpec providerSpec) {
         if (BaseProvider.PROVIDER_NAME.equals(providerSpec.getName())) {
             return this.baseProvider;
         } else {
             return RemoteProvider.builder().baseUrl(providerSpec.getProviderUrl()).
                     objectMapper(this.objectMapper).
-                    alias(providerSpec.getName() + ":" + providerSpec.getVersion()).build();
+                    alias(providerSpec.getName() +
+                            (isNotBlank(providerSpec.getVersion()) ? ":" + providerSpec.getVersion() : "")
+                    ).build();
         }
     }
 

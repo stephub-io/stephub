@@ -52,10 +52,10 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
             if (response.isSuccessful()) {
                 return this.objectMapper.readValue(response.body().byteStream(), JsonProviderInfo.class);
             } else {
-                throw new ProviderException("Received unexpected HTTP status code (" + response.code() + ") for accessing provider info from " + this);
+                throw new ProviderException("Received unexpected HTTP status code (" + response.code() + ") for accessing provider " + this);
             }
         } catch (final IOException e) {
-            throw new ProviderException("Failed to access provider info from " + this + ": " + e.getMessage(), e);
+            throw new ProviderException("Failed to access provider " + this + ": " + e.getMessage(), e);
         }
     }
 
@@ -130,7 +130,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
     @Override
     public String toString() {
-        return this.alias + "@" + this.baseUrl.toString() + "";
+        return "'" + this.alias + "@" + this.baseUrl + "'";
     }
 
     @Data
