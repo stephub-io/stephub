@@ -7,14 +7,13 @@ import io.stephub.expression.model.*;
 import io.stephub.json.Json;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import java.text.NumberFormat;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
-    private StringInterpolator stringInterpolater = new StringInterpolator();
+    private final StringInterpolator stringInterpolater = new StringInterpolator();
 
     @Override
     public JsonValueNode<?> visitJson(final ExpressionsParser.JsonContext ctx) {
@@ -27,7 +26,7 @@ public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
         for (final ExpressionsParser.PairContext pair : ctx.pair()) {
             final JsonValueNode<?> value = pair.value().accept(new JsonVisitor());
             fields.put(
-                    mapString(pair.STRING()),
+                    this.mapString(pair.STRING()),
                     value
             );
         }
@@ -49,9 +48,9 @@ public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
     @Override
     public PathIndexNode visitIndex(final ExpressionsParser.IndexContext ctx) {
         if (ctx.STRING() != null) {
-            return new PathIndexNode(ctx.getText(), mapString(ctx.STRING()));
+            return new PathIndexNode(ctx.getText(), this.mapString(ctx.STRING()));
         } else if (ctx.INT_NUMBER() != null) {
-            return new PathIndexNode(ctx.getText(), mapNumber(ctx.INT_NUMBER()));
+            return new PathIndexNode(ctx.getText(), this.mapNumber(ctx.INT_NUMBER()));
         } else if (ctx.function() != null) {
             return new PathIndexNode(ctx.getText(), ctx.function().accept(this));
         } else if (ctx.path() != null) {
@@ -74,15 +73,15 @@ public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
     @Override
     public JsonValueNode<?> visitValue(final ExpressionsParser.ValueContext ctx) {
         if (ctx.STRING() != null) {
-            return mapString(ctx.STRING());
+            return this.mapString(ctx.STRING());
         } else if (ctx.NULL() != null) {
-            return mapNull(ctx.NULL());
+            return this.mapNull(ctx.NULL());
         } else if (ctx.BOOLEAN() != null) {
-            return mapBoolean(ctx.BOOLEAN());
+            return this.mapBoolean(ctx.BOOLEAN());
         } else if (ctx.NUMBER() != null) {
-            return mapNumber(ctx.NUMBER());
+            return this.mapNumber(ctx.NUMBER());
         } else if (ctx.INT_NUMBER() != null) {
-            return mapNumber(ctx.INT_NUMBER());
+            return this.mapNumber(ctx.INT_NUMBER());
         }
         return super.visitValue(ctx);
         // throw new ParseException("Invalid JSON value type: " + ctx.getText());
@@ -96,24 +95,30 @@ public class JsonVisitor extends ExpressionsBaseVisitor<JsonValueNode<?>> {
                         Collections.emptyList());
     }
 
-    private  JsonBooleanNode mapBoolean(final TerminalNode tn) {
+    private JsonBooleanNode mapBoolean(final TerminalNode tn) {
         return new JsonBooleanNode("true".equals(tn.getText()));
     }
 
     private JsonValueNode<? extends Json> mapString(final TerminalNode tn) {
         final String textIncludingQuotes = tn.getText();
-        return stringInterpolater.interpolate(textIncludingQuotes.substring(1, textIncludingQuotes.length() - 1));
+        return this.stringInterpolater.interpolate(textIncludingQuotes.substring(1, textIncludingQuotes.length() - 1));
     }
 
-    private  JsonNullNode mapNull(final TerminalNode tn) {
+    private JsonNullNode mapNull(final TerminalNode tn) {
         return new JsonNullNode();
     }
 
-    private  JsonNumberNode mapNumber(final TerminalNode tn) {
-        try {
-            return new JsonNumberNode(NumberFormat.getInstance().parse(tn.getText()));
-        } catch (final java.text.ParseException e) {
-            throw new ParseException(e.getMessage());
+    private JsonNumberNode mapNumber(final TerminalNode tn) {
+        final String nbText = tn.getText();
+        if (nbText.contains(".")) {
+            return new JsonNumberNode(Double.parseDouble(nbText));
+        } else {
+            final long l = Long.parseLong(nbText);
+            if (l < Integer.MAX_VALUE) {
+                return new JsonNumberNode((int) l);
+            } else {
+                return new JsonNumberNode(l);
+            }
         }
     }
 }

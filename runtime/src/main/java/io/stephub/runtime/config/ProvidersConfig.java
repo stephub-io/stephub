@@ -10,6 +10,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
+import java.lang.reflect.AnnotatedType;
+
 @Configuration
 @ComponentScan(basePackageClasses = {BaseProvider.class})
 public class ProvidersConfig {
@@ -27,8 +29,8 @@ public class ProvidersConfig {
         }
 
         @Override
-        protected Object wrapSchema(final Class<?> type) {
-            return JsonSchema.ofType(Json.JsonType.valueOf(type));
+        protected Object wrapSchema(final AnnotatedType type) {
+            return JsonSchema.ofType(Json.JsonType.valueOf((Class<?>) type.getType()));
         }
     }
 }

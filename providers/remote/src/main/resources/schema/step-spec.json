@@ -43,6 +43,9 @@
       ],
       "default": "none"
     },
+    "output": {
+      "$ref": "step-spec-output.json"
+    },
     "docString": {
       "$ref": "step-spec-docstring.json"
     },

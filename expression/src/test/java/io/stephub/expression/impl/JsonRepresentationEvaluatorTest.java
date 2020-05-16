@@ -89,6 +89,12 @@ public class JsonRepresentationEvaluatorTest {
     }
 
     @Test
+    public void testJsonFloatNumber() {
+        final Json result = this.el.evaluate("1.0", null);
+        assertEquals(new JsonNumber(1.0), result);
+    }
+
+    @Test
     public void testSimpleArray() {
         final Json result = this.el.evaluate("[true, false]", null);
         log.debug("JSON pretty array: {}", result);

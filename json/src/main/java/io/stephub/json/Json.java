@@ -23,7 +23,7 @@ public abstract class Json {
         STRING(JsonString.class),
         NUMBER(JsonNumber.class),
         NULL(JsonNull.class),
-        JSON(null);
+        JSON(Json.class);
 
         private final Class<? extends Json> desiredClass;
 
@@ -33,7 +33,7 @@ public abstract class Json {
 
         public static JsonType valueOf(final Class<?> type) {
             for (final JsonType jt : values()) {
-                if (jt.desiredClass != null && type.isAssignableFrom(jt.desiredClass)) {
+                if (jt.desiredClass != null && jt.desiredClass.isAssignableFrom(type)) {
                     return jt;
                 }
             }

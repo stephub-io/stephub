@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Step output specification",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "type": "object",
+      "title": "JSON schema for output"
+    }
+  }
+}

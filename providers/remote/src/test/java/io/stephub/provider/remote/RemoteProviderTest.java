@@ -195,8 +195,8 @@ class RemoteProviderTest {
         final StepResponse<Json> givenResponse = StepResponse.<Json>builder().
                 status(PASSED).
                 duration(Duration.ofSeconds(7)).
-                outputs(
-                        Collections.singletonMap("var1", new JsonNumber(3))
+                output(
+                        new JsonNumber(3)
                 ).
                 build();
         final String serializedResponse = this.objectMapper.writeValueAsString(givenResponse);

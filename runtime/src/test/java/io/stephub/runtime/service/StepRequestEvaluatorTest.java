@@ -6,7 +6,11 @@ import io.stephub.json.Json;
 import io.stephub.json.JsonBoolean;
 import io.stephub.json.JsonObject;
 import io.stephub.json.JsonString;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepRequest;
+import io.stephub.provider.api.model.spec.ArgumentSpec;
+import io.stephub.provider.api.model.spec.DataTableSpec.ColumnSpec;
+import io.stephub.provider.api.model.spec.DocStringSpec;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -21,7 +25,6 @@ import static io.stephub.json.schema.JsonSchema.ofType;
 import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -38,7 +41,10 @@ class StepRequestEvaluatorTest {
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.<String>builder().
-                                desiredSchema(ofType(STRING)).
+                                spec(
+                                        DocStringSpec.<JsonSchema>builder().
+                                                schema(ofType(STRING))
+                                                .build()).
                                 value("Hello").build()).build(),
                 stepBuilder,
                 SimpleEvaluationContext.builder().build()
@@ -55,7 +61,12 @@ class StepRequestEvaluatorTest {
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.<String>builder().
-                                desiredSchema(ofType(STRING)).
+                                spec(
+                                        DocStringSpec.<JsonSchema>builder().
+                                                schema(
+                                                        ofType(STRING)
+                                                ).build()
+                                ).
                                 value("\"Hel\\\"lo\"").build()
                 ).build(),
                 stepBuilder,
@@ -72,7 +83,11 @@ class StepRequestEvaluatorTest {
         final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
-                        ValueMatch.<String>builder().desiredSchema(ofType(OBJECT)).
+                        ValueMatch.<String>builder().
+                                spec(
+                                        DocStringSpec.<JsonSchema>builder().
+                                                schema(ofType(OBJECT)).build()
+                                ).
                                 value(
                                         "{\n" +
                                                 "\"abc\": true \n}").
@@ -93,7 +108,11 @@ class StepRequestEvaluatorTest {
                 StepMatch.builder().argument(
                         "abc",
                         ValueMatch.<CompiledExpression>builder().
-                                desiredSchema(ofType(BOOLEAN)).value(this.evaluator.evaluator.match("{ \"some\": null }").getCompiledExpression())
+                                spec(
+                                        ArgumentSpec.<JsonSchema>builder().
+                                                schema(
+                                                        ofType(BOOLEAN)).build()).
+                                value(this.evaluator.evaluator.match("{ \"some\": null }").getCompiledExpression())
                                 .build()
                 ).build(),
                 stepBuilder,
@@ -137,7 +156,11 @@ class StepRequestEvaluatorTest {
                         dataTable(singletonList(
                                 singletonMap("col1",
                                         ValueMatch.<String>builder().
-                                                desiredSchema(ofType(givenDesiredType)).
+                                                spec(
+                                                        ColumnSpec.<JsonSchema>builder().
+                                                                schema(ofType(givenDesiredType)).
+                                                                build()
+                                                ).
                                                 value(givenColumnValue).build()
                                 )
                         )).build(),

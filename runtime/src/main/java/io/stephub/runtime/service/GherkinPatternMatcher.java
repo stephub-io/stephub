@@ -9,6 +9,7 @@ import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.spec.ArgumentSpec;
 import io.stephub.provider.api.model.spec.DataTableSpec;
 import io.stephub.provider.api.model.spec.StepSpec;
+import io.stephub.provider.api.model.spec.ValueSpec;
 import lombok.*;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +49,7 @@ public class GherkinPatternMatcher {
     @ToString
     public static class ValueMatch<V> {
         private final V value;
-        private final JsonSchema desiredSchema;
+        private final ValueSpec<JsonSchema> spec;
     }
 
     public StepMatch matches(final StepSpec<JsonSchema> stepSpec, final String instruction) {
@@ -82,7 +83,7 @@ public class GherkinPatternMatcher {
                                 a.getName(),
                                 ValueMatch.<CompiledExpression>builder().
                                         value(argExprMatcher.getCompiledExpression()).
-                                        desiredSchema(a.getSchema()).
+                                        spec(a).
                                         build());
                     }
 
@@ -112,7 +113,7 @@ public class GherkinPatternMatcher {
         return regexPattern.toString();
     }
 
-    private void checkAndExtractPayload(final StepSpec stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
+    private void checkAndExtractPayload(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
         if (stepSpec.getPayload() == DOC_STRING) {
             this.checkAndExtractDocString(stepSpec, instruction, lines, stepMatchBuilder);
         } else if (stepSpec.getPayload() == DATA_TABLE) {
@@ -146,7 +147,7 @@ public class GherkinPatternMatcher {
                     cells.put(colSpec.getName(),
                             ValueMatch.<String>builder().
                                     value(matcher.group(1 + j).trim()).
-                                    desiredSchema(colSpec.getSchema()).build()
+                                    spec(colSpec).build()
                     );
                 }
                 rows.add(cells);
@@ -187,7 +188,7 @@ public class GherkinPatternMatcher {
         }
         stepMatchBuilder.docString(
                 ValueMatch.<String>builder().value(extraction.toString()).
-                        desiredSchema(stepSpec.getDocString().getSchema()).
+                        spec(stepSpec.getDocString()).
                         build());
     }
 

@@ -4,6 +4,7 @@ import io.stephub.expression.CompiledExpression;
 import io.stephub.expression.ParseException;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.spec.*;
+import io.stephub.provider.api.model.spec.DataTableSpec.ColumnSpec;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -32,10 +33,11 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDocString() {
+        final DocStringSpec<JsonSchema> docStringSpec = DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build();
         final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
-                docString(DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build()).
+                docString(docStringSpec).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -45,17 +47,19 @@ public class GherkinPatternMatcherTest {
                         "  \"\"\"");
         assertThat(match, notNullValue());
         assertThat(match.getDocString(), equalTo(
-                ValueMatch.builder().desiredSchema(ofType(STRING)).value(
+                ValueMatch.builder().spec(docStringSpec).value(
                         "My doc string line 1\n" +
                                 "My doc string line 2").build()));
     }
 
     @Test
     public void testDocStringMissingOffset() {
+        final DocStringSpec<JsonSchema> docStringSpec =
+                DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build();
         final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DOC_STRING).
-                docString(DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build()).
+                docString(docStringSpec).
                 build();
         final StepMatch match = this.patternMatcher.matches(stepSpec,
                 "Do with DocString payload\n" +
@@ -65,7 +69,7 @@ public class GherkinPatternMatcherTest {
                         "\"\"\"");
         assertThat(match, notNullValue());
         assertThat(match.getDocString(), equalTo(
-                ValueMatch.builder().desiredSchema(ofType(STRING)).value(
+                ValueMatch.builder().spec(docStringSpec).value(
                         "My doc string line 1\n" +
                                 "My doc string line 2").build()));
     }
@@ -113,6 +117,9 @@ public class GherkinPatternMatcherTest {
 
     @Test
     public void testDataTableSingleCol() {
+        final ColumnSpec<JsonSchema> colSpec = ColumnSpec.<JsonSchema>builder().
+                name("condition").
+                build();
         final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
@@ -120,9 +127,7 @@ public class GherkinPatternMatcherTest {
                         DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
-                                                name("condition").
-                                                build()
+                                        colSpec
                                 ).
                                 build()
                 ).build();
@@ -133,12 +138,15 @@ public class GherkinPatternMatcherTest {
         assertThat(match.getDataTable(), hasSize(1));
         assertThat(match.getDataTable().get(0), aMapWithSize(1));
         assertThat(match.getDataTable().get(0), hasEntry("condition",
-                ValueMatch.builder().value("true").build()));
+                ValueMatch.builder().value("true").spec(colSpec).build()));
     }
 
 
     @Test
     public void testDataTableSingleColWithCommentAndEmptyLines() {
+        final ColumnSpec<JsonSchema> colSpec = ColumnSpec.<JsonSchema>builder().
+                name("condition").
+                build();
         final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
@@ -146,9 +154,7 @@ public class GherkinPatternMatcherTest {
                         DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
-                                                name("condition").
-                                                build()
+                                        colSpec
                                 ).
                                 build()
                 ).build();
@@ -163,14 +169,20 @@ public class GherkinPatternMatcherTest {
         assertThat(match.getDataTable(), hasSize(2));
         assertThat(match.getDataTable().get(0), aMapWithSize(1));
         assertThat(match.getDataTable().get(0), hasEntry("condition",
-                ValueMatch.builder().value("true").build()));
+                ValueMatch.builder().value("true").spec(colSpec).build()));
         assertThat(match.getDataTable().get(1), aMapWithSize(1));
         assertThat(match.getDataTable().get(1), hasEntry("condition",
-                ValueMatch.builder().value("false").build()));
+                ValueMatch.builder().value("false").spec(colSpec).build()));
     }
 
     @Test
     public void testDataTableMultipleCols() {
+        final ColumnSpec<JsonSchema> col1Spec = ColumnSpec.<JsonSchema>builder().
+                name("condition").
+                build();
+        final ColumnSpec<JsonSchema> col2Spec = ColumnSpec.<JsonSchema>builder().
+                name("text").
+                build();
         final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
                 patternType(PatternType.REGEX).
                 payload(StepSpec.PayloadType.DATA_TABLE).
@@ -178,14 +190,10 @@ public class GherkinPatternMatcherTest {
                         DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
-                                                name("condition").
-                                                build()
+                                        col1Spec
                                 ).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
-                                                name("text").
-                                                build()
+                                        col2Spec
                                 ).
                                 build()
                 ).build();
@@ -197,14 +205,14 @@ public class GherkinPatternMatcherTest {
         assertThat(match.getDataTable(), hasSize(2));
         assertThat(match.getDataTable().get(0), aMapWithSize(2));
         assertThat(match.getDataTable().get(0), hasEntry("condition",
-                ValueMatch.builder().value("true").build()));
+                ValueMatch.builder().value("true").spec(col1Spec).build()));
         assertThat(match.getDataTable().get(0), hasEntry("text",
-                ValueMatch.builder().value("my text").build()));
+                ValueMatch.builder().value("my text").spec(col2Spec).build()));
         assertThat(match.getDataTable().get(1), aMapWithSize(2));
         assertThat(match.getDataTable().get(1), hasEntry("condition",
-                ValueMatch.builder().value("false").build()));
+                ValueMatch.builder().value("false").spec(col1Spec).build()));
         assertThat(match.getDataTable().get(1), hasEntry("text",
-                ValueMatch.builder().value("next text").build()));
+                ValueMatch.builder().value("next text").spec(col2Spec).build()));
     }
 
     @Test
@@ -216,12 +224,12 @@ public class GherkinPatternMatcherTest {
                         DataTableSpec.<JsonSchema>builder().
                                 header(false).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
+                                        ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
+                                        ColumnSpec.<JsonSchema>builder().
                                                 name("text").
                                                 build()
                                 ).
@@ -247,7 +255,7 @@ public class GherkinPatternMatcherTest {
                         DataTableSpec.<JsonSchema>builder().
                                 header(true).
                                 column(
-                                        DataTableSpec.ColumnSpec.<JsonSchema>builder().
+                                        ColumnSpec.<JsonSchema>builder().
                                                 name("condition").
                                                 build()
                                 ).
@@ -261,7 +269,9 @@ public class GherkinPatternMatcherTest {
         assertThat(match.getDataTable(), hasSize(1));
         assertThat(match.getDataTable().get(0), aMapWithSize(1));
         assertThat(match.getDataTable().get(0), hasEntry("condition",
-                ValueMatch.builder().value("true").build()));
+                ValueMatch.builder().
+                        spec(stepSpec.getDataTable().getColumns().get(0)).
+                        value("true").build()));
     }
 
     @Test
@@ -279,16 +289,16 @@ public class GherkinPatternMatcherTest {
         assertThat(match.getArguments(), aMapWithSize(3));
         assertThat(match.getArguments(), hasEntry("name",
                 ValueMatch.<CompiledExpression>builder().value(
-                        patternMatcher.evaluator.match("\"Peter\"").getCompiledExpression()
-                ).desiredSchema(JsonSchema.ofType(STRING)).build()));
+                        this.patternMatcher.evaluator.match("\"Peter\"").getCompiledExpression()
+                ).spec(stepSpec.getArguments().get(0)).build()));
         assertThat(match.getArguments(), hasEntry("type",
                 ValueMatch.builder().value(
-                        patternMatcher.evaluator.match("\"Human\"").getCompiledExpression()
-                ).desiredSchema(JsonSchema.ofType(STRING)).build()));
+                        this.patternMatcher.evaluator.match("\"Human\"").getCompiledExpression()
+                ).spec(stepSpec.getArguments().get(2)).build()));
         assertThat(match.getArguments(), hasEntry("value",
                 ValueMatch.builder().value(
-                        patternMatcher.evaluator.match("true").getCompiledExpression()
-                ).desiredSchema(JsonSchema.ofType(BOOLEAN)).build()));
+                        this.patternMatcher.evaluator.match("true").getCompiledExpression()
+                ).spec(stepSpec.getArguments().get(1)).build()));
         // Negative match
         assertThat(this.patternMatcher.matches(stepSpec, "some other text"), nullValue());
     }
