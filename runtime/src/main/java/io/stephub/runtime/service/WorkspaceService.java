@@ -10,5 +10,5 @@ public interface WorkspaceService {
 
     Workspace createWorkspace(Context ctx, Workspace draft);
 
-    Workspace getWorkspace(Context ctx, String wid, boolean withValidation);
+    Workspace getWorkspace(Context ctx, String wid);
 }

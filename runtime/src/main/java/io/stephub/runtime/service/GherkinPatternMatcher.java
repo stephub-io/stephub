@@ -11,6 +11,7 @@ import io.stephub.provider.api.model.spec.DataTableSpec;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.provider.api.model.spec.ValueSpec;
 import lombok.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -28,8 +29,11 @@ import static io.stephub.provider.api.model.spec.StepSpec.PayloadType.DOC_STRING
 public class GherkinPatternMatcher {
     private static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
     private static final Pattern SKIP_LINES_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
-    private static final Pattern SIMPLE_PATTERN_ARG_PATTERN = Pattern.compile("(^|[^\\\\])\\{([a-zA-Z_][a-zA-Z0-9_]*)\\}");
+
     final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
+
+    @Autowired
+    private SimplePatternExtractor simplePatternExtractor;
 
     @Getter
     @Builder
@@ -53,10 +57,10 @@ public class GherkinPatternMatcher {
     }
 
     public StepMatch matches(final StepSpec<JsonSchema> stepSpec, final String instruction) {
-        String patternStr = stepSpec.getPattern();
+        Pattern pattern = null;
         switch (stepSpec.getPatternType()) {
             case SIMPLE:
-                patternStr = this.convertSimplePatternToRegex(patternStr);
+                pattern = this.simplePatternExtractor.extract(stepSpec.getPattern()).getRegexPattern();
             case REGEX:
                 final String[] linesRaw = instruction.split("\r?\n");
                 final List<String> effectiveLines = new ArrayList<>();
@@ -69,7 +73,9 @@ public class GherkinPatternMatcher {
                 if (lines.length == 0) {
                     throw new ParseException("Passed instruction doesn't contain any step: " + instruction);
                 }
-                final Pattern pattern = Pattern.compile(patternStr);
+                if (pattern == null) {
+                    pattern = Pattern.compile(stepSpec.getPattern());
+                }
                 final Matcher matcher = pattern.matcher(lines[0].trim());
                 if (matcher.matches()) {
                     final StepMatch.StepMatchBuilder stepMatchBuilder = StepMatch.builder();
@@ -94,23 +100,6 @@ public class GherkinPatternMatcher {
                 }
         }
         throw new UnsupportedOperationException("Pattern matching not implemented for type=" + stepSpec.getPatternType());
-    }
-
-    private String convertSimplePatternToRegex(final String patternStr) {
-        final Matcher matcher = SIMPLE_PATTERN_ARG_PATTERN.matcher(patternStr);
-        int left = 0;
-        final StringBuilder regexPattern = new StringBuilder();
-        while (matcher.find()) {
-            if (left < matcher.start()) {
-                regexPattern.append(Pattern.quote(patternStr.substring(left, matcher.start()) + matcher.group(1)));
-            }
-            regexPattern.append("(?<" + matcher.group(2) + ">.+)");
-            left = matcher.end();
-        }
-        if (left < patternStr.length()) {
-            regexPattern.append(Pattern.quote(patternStr.substring(left)));
-        }
-        return regexPattern.toString();
     }
 
     private void checkAndExtractPayload(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {

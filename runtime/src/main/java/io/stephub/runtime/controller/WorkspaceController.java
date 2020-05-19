@@ -3,6 +3,7 @@ package io.stephub.runtime.controller;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.WorkspaceService;
+import io.stephub.runtime.service.WorkspaceValidator;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,10 +15,15 @@ public class WorkspaceController {
     @Autowired
     private WorkspaceService workspaceService;
 
+    @Autowired
+    private WorkspaceValidator workspaceValidator;
+
     @GetMapping("/workspaces/{wid}")
     @ResponseBody
-    public Workspace startSessions(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
-        return this.workspaceService.getWorkspace(ctx, wid, true);
+    public Workspace getWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
+        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
+        this.workspaceValidator.validate(workspace);
+        return workspace;
     }
 
     @GetMapping("/workspaces")

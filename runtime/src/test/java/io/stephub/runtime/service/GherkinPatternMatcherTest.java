@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(classes = {GherkinPatternMatcher.class})
+@ContextConfiguration(classes = {GherkinPatternMatcher.class, SimplePatternExtractor.class})
 @Slf4j
 public class GherkinPatternMatcherTest {
     @Autowired

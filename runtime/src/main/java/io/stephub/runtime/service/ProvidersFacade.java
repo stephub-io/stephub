@@ -6,6 +6,7 @@ import io.stephub.json.Json;
 import io.stephub.json.JsonObject;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.Provider;
+import io.stephub.provider.api.ProviderException;
 import io.stephub.provider.api.model.ProviderOptions;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
@@ -13,7 +14,7 @@ import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.provider.remote.RemoteProvider;
 import io.stephub.providers.base.BaseProvider;
 import io.stephub.runtime.model.ProviderSpec;
-import io.stephub.runtime.model.StepExecution;
+import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,6 +56,22 @@ public class ProvidersFacade {
         return providerSpecs;
     }
 
+    public GherkinPatternMatcher.StepMatch getMatchingStep(final Workspace workspace, final String instruction) {
+        for (final ProviderSpec providerSpec : this.getProviderSpecs(workspace)) {
+            try {
+                for (final StepSpec<JsonSchema> stepSpec : this.getProvider(providerSpec).getInfo().getSteps()) {
+                    final GherkinPatternMatcher.StepMatch stepMatch = this.patternMatcher.matches(stepSpec, instruction);
+                    if (stepMatch != null) {
+                        return stepMatch;
+                    }
+                }
+            } catch (final ProviderException e) {
+                log.debug("Failed to check provider " + providerSpec + " for matching step", e);
+            }
+        }
+        return null;
+    }
+
     public Map<String, List<StepSpec<JsonSchema>>> getStepsCollection(final Workspace workspace) {
         final Map<String, List<StepSpec<JsonSchema>>> steps = new HashMap<>();
         this.getProviderSpecs(workspace).forEach(
@@ -66,7 +83,7 @@ public class ProvidersFacade {
         return steps;
     }
 
-    public StepResponse<Json> execute(final Workspace workspace, final StepExecution execution, final ProviderSessionStore providerSessionStore, final AttributesContext attributesContext) {
+    public StepResponse<Json> execute(final Workspace workspace, final StepInstruction execution, final ProviderSessionStore providerSessionStore, final AttributesContext attributesContext) {
         try {
             final Map<String, List<StepSpec<JsonSchema>>> stepSpecs = this.getStepsCollection(workspace);
             for (final String providerName : stepSpecs.keySet()) {

@@ -7,6 +7,6 @@ import lombok.*;
 @Data
 @Builder
 @EqualsAndHashCode
-public class StepExecution {
+public class StepInstruction {
     private String instruction;
 }

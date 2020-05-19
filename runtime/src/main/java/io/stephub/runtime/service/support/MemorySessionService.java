@@ -5,7 +5,7 @@ import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
-import io.stephub.runtime.model.StepExecution;
+import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +30,9 @@ public class MemorySessionService implements SessionService {
     @Autowired
     private WorkspaceService workspaceService;
 
+    @Autowired
+    private WorkspaceValidator workspaceValidator;
+
     private final ExpiringMap<String, RuntimeSession> sessionStore = ExpiringMap.builder()
             .expirationListener((sessionId, s) -> {
                 RuntimeSession session = (RuntimeSession) s;
@@ -48,7 +51,8 @@ public class MemorySessionService implements SessionService {
 
     @Override
     public RuntimeSession startSession(final Context ctx, final String wid) {
-        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid, true);
+        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
+        this.workspaceValidator.validate(workspace);
         if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
             throw new ExecutionException("Erroneous workspace, please correct the errors first");
         }
@@ -77,13 +81,13 @@ public class MemorySessionService implements SessionService {
     }
 
     @Override
-    public StepResponse<Json> execute(final Context ctx, final String wid, final String sid, final StepExecution stepExecution) {
+    public StepResponse<Json> execute(final Context ctx, final String wid, final String sid, final StepInstruction stepInstruction) {
         final RuntimeSession session = this.getSessionSafe(wid, sid);
         if (session.getStatus() == INACTIVE) {
             throw new ExecutionException("Session isn't active with id=" + sid);
         }
-        log.debug("Execute within session={} the step={}", session, stepExecution);
-        return this.providersFacade.execute(session.getWorkspace(), stepExecution, new ProvidersFacade.ProviderSessionStore() {
+        log.debug("Execute within session={} the step={}", session, stepInstruction);
+        return this.providersFacade.execute(session.getWorkspace(), stepInstruction, new ProvidersFacade.ProviderSessionStore() {
             @Override
             public String getProviderSession(final String providerName) {
                 return session.getProviderSessions().get(providerName);

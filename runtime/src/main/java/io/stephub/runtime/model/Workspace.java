@@ -27,6 +27,10 @@ public class Workspace {
     @Singular
     private List<@ProviderValidator.Valid ProviderSpec> providers = new ArrayList<>();
 
+    @Singular
+    @Valid
+    private List<Step> steps = new ArrayList<>();
+
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private List<ObjectError> errors = null;

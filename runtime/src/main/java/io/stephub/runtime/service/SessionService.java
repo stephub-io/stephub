@@ -4,7 +4,7 @@ import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
-import io.stephub.runtime.model.StepExecution;
+import io.stephub.runtime.model.StepInstruction;
 
 import java.util.List;
 
@@ -17,5 +17,5 @@ public interface SessionService {
 
     RuntimeSession getSession(Context ctx, String wid, String sid);
 
-    StepResponse<Json> execute(Context ctx, String wid, String sid, StepExecution stepExecution);
+    StepResponse<Json> execute(Context ctx, String wid, String sid, StepInstruction stepInstruction);
 }
