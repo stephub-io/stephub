@@ -9,6 +9,11 @@
       "default": {
         "type": "string"
       }
+    },
+    "strict": {
+      "type": "boolean",
+      "title": "Strictness of argument schema validation",
+      "default": false
     }
   }
 }

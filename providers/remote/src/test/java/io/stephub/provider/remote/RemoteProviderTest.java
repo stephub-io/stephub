@@ -65,6 +65,7 @@ class RemoteProviderTest {
                                         ArgumentSpec.<JsonSchema>builder().
                                                 name("arg1").
                                                 schema(JsonSchema.ofType(BOOLEAN)).
+                                                strict(true).
                                                 build()
                                 ).
                                 argument(
