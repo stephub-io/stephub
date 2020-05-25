@@ -1,11 +1,7 @@
 package io.stephub.runtime.service.support;
 
-import io.stephub.expression.AttributesContext;
-import io.stephub.json.Json;
-import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
-import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +19,7 @@ import static io.stephub.runtime.model.RuntimeSession.SessionStatus.INACTIVE;
 
 @Service
 @Slf4j
-public class MemorySessionService implements SessionService {
+public class MemorySessionService extends SessionService {
     @Autowired
     private ProvidersFacade providersFacade;
 
@@ -81,26 +77,17 @@ public class MemorySessionService implements SessionService {
     }
 
     @Override
-    public StepResponse<Json> execute(final Context ctx, final String wid, final String sid, final StepInstruction stepInstruction) {
+    public <T> T executeWithinSession(final Context ctx, final String wid, final String sid, final WinthinSessionExecutor<T> executor) {
         final RuntimeSession session = this.getSessionSafe(wid, sid);
-        if (session.getStatus() == INACTIVE) {
-            throw new ExecutionException("Session isn't active with id=" + sid);
-        }
-        log.debug("Execute within session={} the step={}", session, stepInstruction);
-        return this.providersFacade.execute(session.getWorkspace(), stepInstruction, new ProvidersFacade.ProviderSessionStore() {
+        return executor.execute(session, new SessionExecutionContext() {
             @Override
-            public String getProviderSession(final String providerName) {
-                return session.getProviderSessions().get(providerName);
+            public void setProviderSession(final String providerName, final String sid) {
+                session.getProviderSessions().put(providerName, sid);
             }
 
             @Override
-            public void setProviderSession(final String providerName, final String providerSession) {
-                session.getProviderSessions().put(providerName, providerSession);
-            }
-        }, new AttributesContext() {
-            @Override
-            public Json get(final String key) {
-                return session.getGlobals().get(key);
+            public String getProviderSession(final String providerName) {
+                return session.getProviderSessions().get(providerName);
             }
         });
     }

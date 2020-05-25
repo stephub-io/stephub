@@ -27,7 +27,9 @@ public class JsonSchema extends JsonObject {
 
     public static JsonSchema ofType(final JsonType type) {
         final JsonSchema schema = new JsonSchema();
-        schema.setType(type);
+        if (type != JsonType.ANY) {
+            schema.setType(type);
+        }
         return schema;
     }
 
@@ -54,14 +56,14 @@ public class JsonSchema extends JsonObject {
                     types.add(this.getTypeFromJson(typeRaw));
                 }
                 if (types.isEmpty()) {
-                    types.add(JsonType.JSON);
+                    types.add(JsonType.ANY);
                 }
                 return types;
             } else {
                 throw new JsonException("JSON type must be string or array of strings, but got: " + typeRaw);
             }
         }
-        return Collections.singletonList(JsonType.JSON);
+        return Collections.singletonList(JsonType.ANY);
     }
 
     private JsonType getTypeFromJson(final Json typeRaw) {
@@ -77,6 +79,10 @@ public class JsonSchema extends JsonObject {
     }
 
     public void setType(final JsonType type) {
-        this.getFields().put("type", new JsonString(type.toString()));
+        if (type != JsonType.ANY) {
+            this.getFields().put("type", new JsonString(type.toString()));
+        } else {
+            this.getFields().remove("type");
+        }
     }
 }

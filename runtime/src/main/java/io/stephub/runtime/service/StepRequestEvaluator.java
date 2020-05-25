@@ -17,14 +17,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static io.stephub.json.Json.JsonType.JSON;
+import static io.stephub.json.Json.JsonType.ANY;
 import static io.stephub.json.Json.JsonType.STRING;
 
 @Service
 public class StepRequestEvaluator {
     final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
 
-    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json> stepRequestBuilder, final AttributesContext attributesContext) {
+    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json, ?, ?> stepRequestBuilder, final AttributesContext attributesContext) {
         final EvaluationContext ec = new EvaluationContext() {
             @Override
             public Json get(final String key) {
@@ -62,7 +62,7 @@ public class StepRequestEvaluator {
 
     private Json evaluateWithFallback(final String valueContext, final EvaluationContext ec, final ValueMatch<String> valueMatch) {
         final List<Json.JsonType> desiredTypes = valueMatch.getSpec().getSchema().getTypes();
-        if (desiredTypes.contains(STRING) || desiredTypes.contains(JSON)) {
+        if (desiredTypes.contains(STRING) || desiredTypes.contains(ANY)) {
             try {
                 // Try to evaluate as native none JSON string
                 return valueMatch.getSpec().getSchema().convertFrom(this.evaluator.evaluate(valueMatch.getValue(), ec));

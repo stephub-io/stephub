@@ -23,7 +23,7 @@ public abstract class Json {
         STRING(JsonString.class),
         NUMBER(JsonNumber.class),
         NULL(JsonNull.class),
-        JSON(Json.class);
+        ANY(Json.class);
 
         private final Class<? extends Json> desiredClass;
 
@@ -78,7 +78,7 @@ public abstract class Json {
                         return JsonBoolean.valueOf(!((JsonNumber) input).getValue().toString().matches("[0\\.]+"));
                     }
                     break;
-                case JSON:
+                case ANY:
                     return input;
             }
             throw this.getMappingException(input);

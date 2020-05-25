@@ -38,7 +38,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDocStringAsStringFallback() {
-        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json, ?, ?> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.<String>builder().
@@ -58,7 +58,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDocStringAsString() {
-        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json, ?, ?> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.<String>builder().
@@ -81,7 +81,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDocStringAsJsonObj() {
-        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json, ?, ?> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().docString(
                         ValueMatch.<String>builder().
@@ -104,7 +104,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testArgEvaluationWithDesiredTypeMapping() {
-        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json, ?, ?> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().argument(
                         "abc",
@@ -137,7 +137,7 @@ class StepRequestEvaluatorTest {
 
     @Test
     public void testDataTableJsonColAsStringFallback() {
-        this.verifyDataTableColumn(JSON, "Hello", new JsonString("Hello"));
+        this.verifyDataTableColumn(ANY, "Hello", new JsonString("Hello"));
     }
 
     @Test
@@ -151,7 +151,7 @@ class StepRequestEvaluatorTest {
     }
 
     private void verifyDataTableColumn(final Json.JsonType givenDesiredType, final String givenColumnValue, final Json expected) {
-        final StepRequest.StepRequestBuilder<Json> stepBuilder = StepRequest.builder();
+        final StepRequest.StepRequestBuilder<Json, ?, ?> stepBuilder = StepRequest.builder();
         this.evaluator.populateRequest(
                 StepMatch.builder().
                         dataTable(singletonList(

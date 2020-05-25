@@ -2,6 +2,8 @@ package io.stephub.runtime.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.stephub.runtime.model.customsteps.CustomStepContainer;
+import io.stephub.runtime.model.customsteps.Step;
 import io.stephub.runtime.validation.ProviderValidator;
 import lombok.*;
 import org.springframework.validation.ObjectError;
@@ -17,7 +19,7 @@ import java.util.List;
 @Builder
 @EqualsAndHashCode
 @ToString(of = {"id"})
-public class Workspace {
+public class Workspace implements CustomStepContainer {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
     @NotEmpty
