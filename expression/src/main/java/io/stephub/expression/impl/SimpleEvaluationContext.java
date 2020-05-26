@@ -1,9 +1,9 @@
 package io.stephub.expression.impl;
 
-import lombok.Builder;
-import lombok.Singular;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.json.Json;
+import lombok.Builder;
+import lombok.Singular;
 
 import java.util.Map;
 
@@ -18,6 +18,11 @@ public class SimpleEvaluationContext implements EvaluationContext {
     @Override
     public Json get(final String key) {
         return this.attributes.get(key);
+    }
+
+    @Override
+    public void put(final String key, final Json value) {
+        this.attributes.put(key, value);
     }
 
     @Override

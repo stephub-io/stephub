@@ -19,7 +19,7 @@ import java.util.List;
 @Builder
 @EqualsAndHashCode
 @ToString(of = {"id"})
-public class Workspace implements CustomStepContainer {
+public class Workspace implements CustomStepContainer, GherkinPreferences {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
     @NotEmpty

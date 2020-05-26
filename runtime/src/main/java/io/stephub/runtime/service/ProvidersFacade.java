@@ -86,7 +86,7 @@ public class ProvidersFacade implements StepExecutionSource {
         for (final ProviderSpec providerSpec : this.getProviderSpecs(workspace)) {
             try {
                 for (final StepSpec<JsonSchema> stepSpec : this.getProvider(providerSpec).getInfo().getSteps()) {
-                    final StepMatch stepMatch = this.patternMatcher.matches(stepSpec, instruction.getInstruction());
+                    final StepMatch stepMatch = this.patternMatcher.matches(workspace, stepSpec, instruction.getInstruction());
                     if (stepMatch != null) {
                         return Triple.of(providerSpec, stepSpec, stepMatch);
                     }

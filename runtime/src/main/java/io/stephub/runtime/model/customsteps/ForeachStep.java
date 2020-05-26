@@ -29,7 +29,6 @@ public class ForeachStep extends BasicStep {
     private String itemsExpression;
     private final String indexAttributeName = "index";
     private final String valueAttributeName = "value";
-    private final String countAttributeName = "count";
 
     @Override
     protected NestedStepResponse executeInternally(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final ExpressionEvaluator expressionEvaluator) {
@@ -52,7 +51,8 @@ public class ForeachStep extends BasicStep {
         for (final Pair<Json, Json> item : items) {
             final NestedStepResponse.Context.ContextBuilder context = NestedStepResponse.Context.
                     builder().name("Loop for item: " + wrapJson(item.getValue()));
-            // TODO Overlay evaluation context
+            evaluationContext.put(this.indexAttributeName, item.getKey());
+            evaluationContext.put(this.valueAttributeName, item.getValue());
             this.executeNestedInstructions(sessionExecutionContext, evaluationContext, stepExecutionResolver, context, this.getInstructions());
             response.subResponse(context.build());
         }

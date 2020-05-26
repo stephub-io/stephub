@@ -1,6 +1,9 @@
 package io.stephub.runtime.service;
 
-import io.stephub.expression.*;
+import io.stephub.expression.CompiledExpression;
+import io.stephub.expression.EvaluationContext;
+import io.stephub.expression.ExpressionEvaluator;
+import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.json.JsonException;
@@ -24,19 +27,7 @@ import static io.stephub.json.Json.JsonType.STRING;
 public class StepRequestEvaluator {
     final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
 
-    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json, ?, ?> stepRequestBuilder, final AttributesContext attributesContext) {
-        final EvaluationContext ec = new EvaluationContext() {
-            @Override
-            public Json get(final String key) {
-                return attributesContext.get(key);
-            }
-
-            @Override
-            public Function createFunction(final String name) {
-                // TODO
-                return null;
-            }
-        };
+    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json, ?, ?> stepRequestBuilder, final EvaluationContext ec) {
         stepMatch.getArguments().forEach((key, value) -> stepRequestBuilder.argument(key, this.evaluateCompiledValue("argument '" + key + "'", ec, value)));
         if (stepMatch.getDocString() != null) {
             stepRequestBuilder.docString(

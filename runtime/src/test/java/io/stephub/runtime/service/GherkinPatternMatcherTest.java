@@ -5,6 +5,7 @@ import io.stephub.expression.ParseException;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.spec.*;
 import io.stephub.provider.api.model.spec.DataTableSpec.ColumnSpec;
+import io.stephub.runtime.model.GherkinPreferences;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,9 @@ public class GherkinPatternMatcherTest {
     @Autowired
     private GherkinPatternMatcher patternMatcher;
 
+    private final GherkinPreferences defaultPreferences = new GherkinPreferences() {
+    };
+
     @Test
     public void testDocString() {
         final DocStringSpec<JsonSchema> docStringSpec = DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build();
@@ -39,7 +43,7 @@ public class GherkinPatternMatcherTest {
                 payload(StepSpec.PayloadType.DOC_STRING).
                 docString(docStringSpec).
                 build();
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "Do with DocString payload\n" +
                         "  \"\"\"\n" +
                         "  My doc string line 1\n" +
@@ -61,7 +65,7 @@ public class GherkinPatternMatcherTest {
                 payload(StepSpec.PayloadType.DOC_STRING).
                 docString(docStringSpec).
                 build();
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "Do with DocString payload\n" +
                         "  \"\"\"\n" +
                         "My doc string line 1\n" +
@@ -81,7 +85,7 @@ public class GherkinPatternMatcherTest {
                 payload(StepSpec.PayloadType.DOC_STRING).
                 build();
         final ParseException e = assertThrows(ParseException.class, () -> {
-            this.patternMatcher.matches(stepSpec,
+            this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                     "Do with DocString payload\n" +
                             "  \"\"\"\n" +
                             "My doc string line 1\n");
@@ -96,7 +100,7 @@ public class GherkinPatternMatcherTest {
                 payload(StepSpec.PayloadType.DOC_STRING).
                 build();
         final ParseException e = assertThrows(ParseException.class, () -> {
-            this.patternMatcher.matches(stepSpec,
+            this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                     "Do with DocString payload");
         });
         log.debug("Exception output", e);
@@ -109,7 +113,7 @@ public class GherkinPatternMatcherTest {
                 payload(StepSpec.PayloadType.DOC_STRING).
                 build();
         final ParseException e = assertThrows(ParseException.class, () -> {
-            this.patternMatcher.matches(stepSpec,
+            this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                     "Do with DocString payload\n-Invalid delimiter");
         });
         log.debug("Exception output", e);
@@ -131,7 +135,7 @@ public class GherkinPatternMatcherTest {
                                 ).
                                 build()
                 ).build();
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "Do with DocString payload\n" +
                         "| true |");
         assertThat(match, notNullValue());
@@ -158,7 +162,7 @@ public class GherkinPatternMatcherTest {
                                 ).
                                 build()
                 ).build();
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "  \n " +
                         "# Step with data table \n \n " +
                         " Do with DocString payload\n" +
@@ -197,7 +201,7 @@ public class GherkinPatternMatcherTest {
                                 ).
                                 build()
                 ).build();
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "Do with DocString payload\n" +
                         "   | true  | my text   | \n" +
                         "| false | next text | \n");
@@ -236,7 +240,7 @@ public class GherkinPatternMatcherTest {
                                 build()
                 ).build();
         final ParseException e = assertThrows(ParseException.class, () -> {
-            final StepMatch match = this.patternMatcher.matches(stepSpec,
+            final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                     "Do with DocString payload\n" +
                             "   | true  | my text   | \n" +
                             "| false | \n" +
@@ -261,7 +265,7 @@ public class GherkinPatternMatcherTest {
                                 ).
                                 build()
                 ).build();
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "Do with DocString payload\n" +
                         " | Condition header | \n" +
                         " | true |");
@@ -283,7 +287,7 @@ public class GherkinPatternMatcherTest {
                 argument(ArgumentSpec.<JsonSchema>builder().name("type").schema(JsonSchema.ofType(STRING)).build()).
                 build();
         // Positive match
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "\"Peter\" has type \"Human\" with value true");
         assertThat(match, notNullValue());
         assertThat(match.getArguments(), aMapWithSize(3));
@@ -300,7 +304,7 @@ public class GherkinPatternMatcherTest {
                         this.patternMatcher.evaluator.match("true").getCompiledExpression()
                 ).spec(stepSpec.getArguments().get(1)).build()));
         // Negative match
-        assertThat(this.patternMatcher.matches(stepSpec, "some other text"), nullValue());
+        assertThat(this.patternMatcher.matches(this.defaultPreferences, stepSpec, "some other text"), nullValue());
     }
 
     @Test
@@ -311,7 +315,7 @@ public class GherkinPatternMatcherTest {
                 argument(ArgumentSpec.<JsonSchema>builder().name("type").schema(JsonSchema.ofType(STRING)).build()).
                 build();
         // Positive match
-        final StepMatch match = this.patternMatcher.matches(stepSpec,
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
                 "I \"Peter\" and Ema has type \"humans\"");
         assertThat(match, nullValue());
     }

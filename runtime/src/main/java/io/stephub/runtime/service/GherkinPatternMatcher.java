@@ -10,6 +10,7 @@ import io.stephub.provider.api.model.spec.ArgumentSpec;
 import io.stephub.provider.api.model.spec.DataTableSpec;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.provider.api.model.spec.ValueSpec;
+import io.stephub.runtime.model.GherkinPreferences;
 import lombok.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ public class GherkinPatternMatcher {
         private final ValueSpec<JsonSchema> spec;
     }
 
-    public StepMatch matches(final StepSpec<JsonSchema> stepSpec, final String instruction) {
+    public StepMatch matches(GherkinPreferences preferences, final StepSpec<JsonSchema> stepSpec, final String instruction) {
         Pattern pattern = null;
         switch (stepSpec.getPatternType()) {
             case SIMPLE:
