@@ -10,6 +10,7 @@ import org.springframework.validation.ObjectError;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,11 +20,16 @@ import java.util.List;
 @Builder
 @EqualsAndHashCode
 @ToString(of = {"id"})
-public class Workspace implements CustomStepContainer, GherkinPreferences {
+public class Workspace implements CustomStepContainer {
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
     @NotEmpty
     private String name;
+
+    @Builder.Default
+    @Valid
+    @NotNull
+    private GherkinPreferences gherkinPreferences = new GherkinPreferences();
 
     @Valid
     @Singular

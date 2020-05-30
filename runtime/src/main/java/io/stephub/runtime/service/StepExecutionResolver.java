@@ -34,7 +34,7 @@ public class StepExecutionResolver implements StepExecutionSource {
     private GherkinPatternMatcher patternMatcher;
 
     @Autowired
-    private StepRequestEvaluator stepRequestEvaluator;
+    private StepEvaluationDelegate stepEvaluationDelegate;
 
     @Autowired
     private ExpressionEvaluator expressionEvaluator;
@@ -42,7 +42,7 @@ public class StepExecutionResolver implements StepExecutionSource {
     @Override
     public StepExecution resolveStepExecution(final StepInstruction stepInstruction, final Workspace workspace) {
         return new StepExecutionResolver.HierarchicalResolver(
-                workspace,
+                workspace.getGherkinPreferences(),
                 instruction ->
                         this.providersFacade.resolveStepExecution(
                                 StepInstruction.builder().instruction(instruction).build(),
@@ -75,18 +75,19 @@ public class StepExecutionResolver implements StepExecutionSource {
                         // Do step
                         this.stepStack.add(step);
                         try {
-                            final StepRequest.StepRequestBuilder<Json, ?, ?> requestBuilder = StepRequest.builder();
-                            StepExecutionResolver.this.stepRequestEvaluator.populateRequest(match, requestBuilder, evaluationContext);
-                            final StepRequest<Json> stepRequest = requestBuilder.build();
-                            return step.execute(stepRequest, sessionExecutionContext,
+                            final StepEvaluationDelegate.StepEvaluation stepEvaluation = StepExecutionResolver.this.stepEvaluationDelegate.getStepEvaluation(match, evaluationContext);
+                            final StepRequest<Json> stepRequest = stepEvaluation.getRequestBuilder().build();
+                            final StepResponse<Json> response = step.execute(stepRequest, sessionExecutionContext,
                                     new StepScopedEvaluationContext(evaluationContext, stepRequest),
-                                    new StepExecutionResolver.HierarchicalResolver(
+                                    new HierarchicalResolver(
                                             this.gherkinPreferences,
                                             this,
                                             step,
                                             this.stepStack),
                                     StepExecutionResolver.this.expressionEvaluator
                             );
+                            stepEvaluation.postEvaluateResponse(response);
+                            return response;
                         } finally {
                             this.stepStack.remove(step);
                         }

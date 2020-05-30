@@ -41,7 +41,7 @@ public class ProvidersFacade implements StepExecutionSource {
     private GherkinPatternMatcher patternMatcher;
 
     @Autowired
-    private StepRequestEvaluator stepRequestEvaluator;
+    private StepEvaluationDelegate stepEvaluationDelegate;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -59,13 +59,14 @@ public class ProvidersFacade implements StepExecutionSource {
             @Override
             public StepResponse<Json> execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
                 try {
-                    final StepRequest.StepRequestBuilder<Json, ?, ?> requestBuilder = StepRequest.<Json>builder().id(stepSpec.getId());
-                    ProvidersFacade.this.stepRequestEvaluator.populateRequest(stepMatch, requestBuilder, evaluationContext);
-                    return ProvidersFacade.this.execute(
+                    final StepEvaluationDelegate.StepEvaluation stepEvaluation = ProvidersFacade.this.stepEvaluationDelegate.getStepEvaluation(stepMatch, evaluationContext);
+                    final StepResponse<Json> response = ProvidersFacade.this.execute(
                             ProvidersFacade.this.getProvider(providerSpec),
                             sessionExecutionContext,
                             providerSpec,
-                            requestBuilder);
+                            stepEvaluation.getRequestBuilder().id(stepSpec.getId()).build());
+                    stepEvaluation.postEvaluateResponse(response);
+                    return response;
                 } catch (final Exception e) {
                     return StepResponse.<Json>builder().status(ERRONEOUS).
                             errorMessage(e.getMessage()).
@@ -86,7 +87,7 @@ public class ProvidersFacade implements StepExecutionSource {
         for (final ProviderSpec providerSpec : this.getProviderSpecs(workspace)) {
             try {
                 for (final StepSpec<JsonSchema> stepSpec : this.getProvider(providerSpec).getInfo().getSteps()) {
-                    final StepMatch stepMatch = this.patternMatcher.matches(workspace, stepSpec, instruction.getInstruction());
+                    final StepMatch stepMatch = this.patternMatcher.matches(workspace.getGherkinPreferences(), stepSpec, instruction.getInstruction());
                     if (stepMatch != null) {
                         return Triple.of(providerSpec, stepSpec, stepMatch);
                     }
@@ -124,7 +125,7 @@ public class ProvidersFacade implements StepExecutionSource {
     private StepResponse<Json> execute(final Provider<JsonObject, JsonSchema, Json> provider,
                                        final SessionExecutionContext sessionExecutionContext,
                                        final ProviderOptions<JsonObject> providerOptions,
-                                       final StepRequest.StepRequestBuilder<Json, ?, ?> requestBuilder) {
+                                       final StepRequest<Json> request) {
         final String providerName = provider.getInfo().getName();
         String pSid = sessionExecutionContext.getProviderSession(providerName);
         if (pSid == null) {
@@ -132,6 +133,6 @@ public class ProvidersFacade implements StepExecutionSource {
             log.debug("Retrieved new session id={} from provider={}", pSid, providerName);
             sessionExecutionContext.setProviderSession(providerName, pSid);
         }
-        return provider.execute(pSid, requestBuilder.build());
+        return provider.execute(pSid, request);
     }
 }

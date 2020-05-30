@@ -12,6 +12,7 @@ import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.provider.api.model.spec.ValueSpec;
 import io.stephub.runtime.model.GherkinPreferences;
 import lombok.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ import java.util.regex.Pattern;
 
 import static io.stephub.provider.api.model.spec.StepSpec.PayloadType.DATA_TABLE;
 import static io.stephub.provider.api.model.spec.StepSpec.PayloadType.DOC_STRING;
+import static io.stephub.runtime.service.SimplePatternExtractor.DEFAULT_PATTERN_FLAGS;
 
 
 @Service
@@ -45,6 +47,7 @@ public class GherkinPatternMatcher {
         private final Map<String, ValueMatch<CompiledExpression>> arguments;
         private final ValueMatch<String> docString;
         private final List<Map<String, ValueMatch<String>>> dataTable;
+        private final String outputAssignmentAttribute;
     }
 
 
@@ -57,11 +60,11 @@ public class GherkinPatternMatcher {
         private final ValueSpec<JsonSchema> spec;
     }
 
-    public StepMatch matches(GherkinPreferences preferences, final StepSpec<JsonSchema> stepSpec, final String instruction) {
+    public StepMatch matches(final GherkinPreferences preferences, final StepSpec<JsonSchema> stepSpec, final String instruction) {
         Pattern pattern = null;
         switch (stepSpec.getPatternType()) {
             case SIMPLE:
-                pattern = this.simplePatternExtractor.extract(stepSpec.getPattern()).getRegexPattern();
+                pattern = this.simplePatternExtractor.extract(preferences, stepSpec.getPattern(), stepSpec.getOutput() != null).getRegexPattern();
             case REGEX:
                 final String[] linesRaw = instruction.split("\r?\n");
                 final List<String> effectiveLines = new ArrayList<>();
@@ -75,7 +78,7 @@ public class GherkinPatternMatcher {
                     throw new ParseException("Passed instruction doesn't contain any step: " + instruction);
                 }
                 if (pattern == null) {
-                    pattern = Pattern.compile(stepSpec.getPattern());
+                    pattern = Pattern.compile(preferences.surround(stepSpec.getPattern(), stepSpec.getOutput() != null), DEFAULT_PATTERN_FLAGS);
                 }
                 final Matcher matcher = pattern.matcher(lines[0].trim());
                 if (matcher.matches()) {
@@ -95,6 +98,12 @@ public class GherkinPatternMatcher {
                     }
 
                     this.checkAndExtractPayload(stepSpec, instruction, lines, stepMatchBuilder);
+                    if (stepSpec.getOutput() != null) {
+                        final String outputAttribute = matcher.group(GherkinPreferences.OUTPUT_ATTRIBUTE_GROUP_NAME);
+                        if (StringUtils.isNotBlank(outputAttribute)) {
+                            stepMatchBuilder.outputAssignmentAttribute(outputAttribute);
+                        }
+                    }
                     return stepMatchBuilder.build();
                 } else {
                     return null;

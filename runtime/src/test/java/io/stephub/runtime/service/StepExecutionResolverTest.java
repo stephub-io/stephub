@@ -34,7 +34,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = {StepExecutionResolver.class, ExpressionsConfig.class,
-        GherkinPatternMatcher.class, StepRequestEvaluator.class, SimplePatternExtractor.class})
+        GherkinPatternMatcher.class, StepEvaluationDelegate.class, SimplePatternExtractor.class})
 @Slf4j
 class StepExecutionResolverTest {
     @MockBean

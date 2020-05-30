@@ -1,5 +1,6 @@
 package io.stephub.runtime.service;
 
+import io.stephub.runtime.model.GherkinPreferences;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,7 +22,7 @@ class SimplePatternExtractorTest {
     @Test
     public void testFaultyArgument() {
         assertThat(
-            extractor.extract("{abc").getRegexPattern().matcher("{abc").matches(),
+            extractor.extract(GherkinPreferences.builder().build(),"{abc", false).getRegexPattern().matcher("{abc").matches(),
                 equalTo(true));
     }
 }

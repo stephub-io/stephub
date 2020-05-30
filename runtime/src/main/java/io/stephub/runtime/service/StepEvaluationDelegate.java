@@ -7,8 +7,11 @@ import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.json.JsonException;
+import io.stephub.json.JsonString;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepRequest;
+import io.stephub.provider.api.model.StepResponse;
+import io.stephub.provider.api.model.spec.DocStringSpec;
 import io.stephub.provider.api.model.spec.ValueSpec;
 import io.stephub.runtime.service.GherkinPatternMatcher.ValueMatch;
 import org.apache.commons.lang3.ArrayUtils;
@@ -24,10 +27,19 @@ import static io.stephub.json.Json.JsonType.ANY;
 import static io.stephub.json.Json.JsonType.STRING;
 
 @Service
-public class StepRequestEvaluator {
+public class StepEvaluationDelegate {
+    private static final ValueSpec<JsonSchema> OUTPUT_ATTRIBUTE_SPEC = DocStringSpec.<JsonSchema>builder().schema(JsonSchema.ofType(STRING)).build();
+
     final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
 
-    public void populateRequest(final GherkinPatternMatcher.StepMatch stepMatch, final StepRequest.StepRequestBuilder<Json, ?, ?> stepRequestBuilder, final EvaluationContext ec) {
+    public interface StepEvaluation {
+        StepRequest.StepRequestBuilder<Json, ?, ?> getRequestBuilder();
+
+        void postEvaluateResponse(StepResponse<Json> response);
+    }
+
+    public StepEvaluation getStepEvaluation(final GherkinPatternMatcher.StepMatch stepMatch, final EvaluationContext ec) {
+        final StepRequest.StepRequestBuilder<Json, ?, ?> stepRequestBuilder = StepRequest.<Json>builder();
         stepMatch.getArguments().forEach((key, value) -> stepRequestBuilder.argument(key, this.evaluateCompiledValue("argument '" + key + "'", ec, value)));
         if (stepMatch.getDocString() != null) {
             stepRequestBuilder.docString(
@@ -37,6 +49,25 @@ public class StepRequestEvaluator {
             stepRequestBuilder.dataTable(
                     this.evaluateDataTable(ec, stepMatch.getDataTable()));
         }
+        final String outputAssignmentAttribute = stepMatch.getOutputAssignmentAttribute() != null ?
+                ((JsonString) Json.JsonType.STRING.convertFrom(
+                        this.evaluateWithFallback("Output assignment attribute", ec,
+                                ValueMatch.<String>builder().spec(OUTPUT_ATTRIBUTE_SPEC).value(stepMatch.getOutputAssignmentAttribute()).build()
+                        ))).getValue()
+                : null;
+        return new StepEvaluation() {
+            @Override
+            public StepRequest.StepRequestBuilder<Json, ?, ?> getRequestBuilder() {
+                return stepRequestBuilder;
+            }
+
+            @Override
+            public void postEvaluateResponse(final StepResponse<Json> response) {
+                if (outputAssignmentAttribute != null && response.getOutput() != null) {
+                    ec.put(outputAssignmentAttribute, response.getOutput());
+                }
+            }
+        };
     }
 
     private List<Map<String, Json>> evaluateDataTable(final EvaluationContext ec, final List<Map<String, ValueMatch<String>>> dataTable) {

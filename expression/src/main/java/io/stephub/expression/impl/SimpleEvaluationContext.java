@@ -2,12 +2,14 @@ package io.stephub.expression.impl;
 
 import io.stephub.expression.EvaluationContext;
 import io.stephub.json.Json;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Singular;
 
 import java.util.Map;
 
 @Builder
+@AllArgsConstructor
 public class SimpleEvaluationContext implements EvaluationContext {
     @Singular
     private final Map<String, Json> attributes;
