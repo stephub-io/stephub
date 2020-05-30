@@ -55,7 +55,7 @@ class StepExecutionResolverTest {
                                                 patternType(PatternType.SIMPLE)
                                                 .build()
                                 ).
-                                instruction("Inner provider step").
+                                instruction("When Inner provider step").
                                 build()
                 ).
                 build();
@@ -66,13 +66,13 @@ class StepExecutionResolverTest {
                                 duration(Duration.ofMinutes(3)).build()
                 );
         when(this.providersFacade.resolveStepExecution(
-                StepInstruction.builder().instruction("Inner provider step").build(),
+                StepInstruction.builder().instruction("When Inner provider step").build(),
                 workspace
         )).thenReturn(innerStepExec);
 
         // Call
         final StepExecution execution = this.executionResolver.resolveStepExecution(
-                StepInstruction.builder().instruction("Custom step").build(),
+                StepInstruction.builder().instruction("When custom step").build(),
                 workspace
         );
 
@@ -95,7 +95,7 @@ class StepExecutionResolverTest {
                                                 patternType(PatternType.SIMPLE)
                                                 .build()
                                 ).
-                                instruction("Inner provider step").
+                                instruction("When inner provider step").
                                 build()
                 ).
                 step(
@@ -106,8 +106,8 @@ class StepExecutionResolverTest {
                                                 patternType(PatternType.SIMPLE)
                                                 .build()
                                 ).
-                                instruction("Custom step 1").
-                                instruction("Inner provider step").
+                                instruction("When custom step 1").
+                                instruction("When inner provider step").
                                 build()
                 ).
                 build();
@@ -118,13 +118,13 @@ class StepExecutionResolverTest {
                                 duration(Duration.ofMinutes(3)).build()
                 );
         when(this.providersFacade.resolveStepExecution(
-                StepInstruction.builder().instruction("Inner provider step").build(),
+                StepInstruction.builder().instruction("When inner provider step").build(),
                 workspace
         )).thenReturn(innerStepExec);
 
         // Call
         final StepExecution execution = this.executionResolver.resolveStepExecution(
-                StepInstruction.builder().instruction("Custom step 2").build(),
+                StepInstruction.builder().instruction("When custom step 2").build(),
                 workspace
         );
 
@@ -134,9 +134,9 @@ class StepExecutionResolverTest {
         assertThat(response.getStatus(), equalTo(PASSED));
         assertThat(response.getDuration(), equalTo(Duration.ofMinutes(6)));
         assertThat(response.getSubResponses().size(), equalTo(1));
-        assertThat(response.getSubResponses().get(0).getEntries().get(0).getInstruction(), equalTo("Custom step 1"));
+        assertThat(response.getSubResponses().get(0).getEntries().get(0).getInstruction(), equalTo("When custom step 1"));
         assertThat(response.getSubResponses().get(0).getEntries().get(0).getResponse(), instanceOf(NestedStepResponse.class));
-        assertThat(response.getSubResponses().get(0).getEntries().get(1).getInstruction(), equalTo("Inner provider step"));
+        assertThat(response.getSubResponses().get(0).getEntries().get(1).getInstruction(), equalTo("When inner provider step"));
         assertThat(response.getSubResponses().get(0).getEntries().get(1).getResponse(), instanceOf(StepResponse.class));
     }
 
@@ -152,7 +152,7 @@ class StepExecutionResolverTest {
                                                 patternType(PatternType.SIMPLE)
                                                 .build()
                                 ).
-                                instruction("Custom step 2").
+                                instruction("When custom step 2").
                                 build()
                 ).
                 step(
@@ -163,8 +163,8 @@ class StepExecutionResolverTest {
                                                 patternType(PatternType.SIMPLE)
                                                 .build()
                                 ).
-                                instruction("Custom step 1").
-                                instruction("Inner provider step").
+                                instruction("When custom step 1").
+                                instruction("When inner provider step").
                                 build()
                 ).
                 build();
@@ -175,13 +175,13 @@ class StepExecutionResolverTest {
                                 duration(Duration.ofMinutes(3)).build()
                 );
         when(this.providersFacade.resolveStepExecution(
-                StepInstruction.builder().instruction("Inner provider step").build(),
+                StepInstruction.builder().instruction("When inner provider step").build(),
                 workspace
         )).thenReturn(innerStepExec);
 
         // Call
         final StepExecution execution = this.executionResolver.resolveStepExecution(
-                StepInstruction.builder().instruction("Custom step 2").build(),
+                StepInstruction.builder().instruction("When custom step 2").build(),
                 workspace
         );
 
@@ -191,13 +191,13 @@ class StepExecutionResolverTest {
         assertThat(response.getStatus(), equalTo(ERRONEOUS));
         assertThat(response.getSubResponses().size(), equalTo(1));
         assertThat(response.getSubResponses().get(0).getEntries().size(), equalTo(1));
-        assertThat(response.getSubResponses().get(0).getEntries().get(0).getInstruction(), equalTo("Custom step 1"));
+        assertThat(response.getSubResponses().get(0).getEntries().get(0).getInstruction(), equalTo("When custom step 1"));
         assertThat(((NestedStepResponse) response.getSubResponses().get(0).getEntries().get(0).getResponse()).
                 getSubResponses().size(), equalTo(1));
         assertThat(((NestedStepResponse) response.getSubResponses().get(0).getEntries().get(0).getResponse()).
                 getSubResponses().get(0).getEntries().size(), equalTo(1));
         assertThat(((NestedStepResponse) response.getSubResponses().get(0).getEntries().get(0).getResponse()).
-                getSubResponses().get(0).getEntries().get(0).getInstruction(), equalTo("Custom step 2"));
+                getSubResponses().get(0).getEntries().get(0).getInstruction(), equalTo("When custom step 2"));
         assertThat(((NestedStepResponse) response.getSubResponses().get(0).getEntries().get(0).getResponse()).
                 getSubResponses().get(0).getEntries().get(0).getResponse().getErrorMessage(), equalTo(RECURSIVE_STEP_CALL_SEQUENCE_DETECTED));
     }
