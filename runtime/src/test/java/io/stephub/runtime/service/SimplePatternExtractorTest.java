@@ -22,7 +22,7 @@ class SimplePatternExtractorTest {
     @Test
     public void testFaultyArgument() {
         assertThat(
-            extractor.extract(GherkinPreferences.builder().build(),"{abc", false).getRegexPattern().matcher("{abc").matches(),
+            extractor.extract(GherkinPreferences.builder().build(),"{abc", false).getRegexPattern().matcher("When {abc").matches(),
                 equalTo(true));
     }
 }
