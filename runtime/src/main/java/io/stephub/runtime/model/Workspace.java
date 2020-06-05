@@ -11,8 +11,14 @@ import org.springframework.validation.ObjectError;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import static io.stephub.provider.api.util.Patterns.ID_PATTERN_STR;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -38,6 +44,10 @@ public class Workspace implements CustomStepContainer {
     @Singular
     @Valid
     private List<Step> steps = new ArrayList<>();
+
+    @Singular
+    @Valid
+    private Map<@Pattern(regexp = ID_PATTERN_STR) String, Variable> variables = new HashMap<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)

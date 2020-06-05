@@ -2,6 +2,8 @@ package io.stephub.runtime.service;
 
 import io.stephub.expression.impl.SimpleEvaluationContext;
 import io.stephub.json.Json;
+import io.stephub.json.JsonNull;
+import io.stephub.json.JsonObject;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
@@ -9,7 +11,9 @@ import io.stephub.runtime.model.StepInstruction;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
 import static io.stephub.runtime.model.RuntimeSession.SessionStatus.INACTIVE;
@@ -21,11 +25,29 @@ public abstract class SessionService {
 
     public abstract List<RuntimeSession> getSessions(Context ctx, String wid);
 
-    public abstract RuntimeSession startSession(Context ctx, String wid);
+    public abstract RuntimeSession startSession(Context ctx, String wid, RuntimeSession.SessionStart sessionStart);
 
     public abstract void stopSession(Context ctx, String wid, String sid);
 
     public abstract RuntimeSession getSession(Context ctx, String wid, String sid);
+
+    protected void setUpAttributes(final RuntimeSession session, final RuntimeSession.SessionStart sessionStart) {
+        final Map<String, Json> attributes = new HashMap<>();
+        final JsonObject vars = new JsonObject();
+        session.getWorkspace().getVariables().forEach((key, var) -> {
+            Json value = sessionStart.getVariables().get(key);
+            if (value == null) {
+                if (var.getValue() != JsonNull.INSTANCE) {
+                    value = var.getValue();
+                } else {
+                    value = var.getDefaultValue();
+                }
+            }
+            var.getSchema().accept(value);
+            vars.getFields().put(key, value);
+        });
+        attributes.put("var", vars);
+    }
 
     public interface WinthinSessionExecutor<T> {
         T execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext);

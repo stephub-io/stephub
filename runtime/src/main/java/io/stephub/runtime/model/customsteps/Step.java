@@ -14,6 +14,7 @@ import io.stephub.runtime.model.NestedStepResponse;
 import io.stephub.runtime.service.SessionExecutionContext;
 import io.stephub.runtime.service.SessionService;
 import io.stephub.runtime.service.StepExecution;
+import io.stephub.runtime.validation.StepSpecValidator;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
@@ -44,6 +45,8 @@ import java.util.List;
 public abstract class Step implements CustomStepContainer {
     @NotNull
     @Builder.Default
+    @Valid
+    @StepSpecValidator.Valid
     private final StepSpec<JsonSchema> spec = StepSpec.<JsonSchema>builder().
             patternType(PatternType.SIMPLE).build();
 
@@ -86,7 +89,7 @@ public abstract class Step implements CustomStepContainer {
                     instruction(instruction).
                     response(subStepResponse).
                     build());
-            if (subStepResponse.getStatus()!= StepResponse.StepStatus.PASSED) {
+            if (subStepResponse.getStatus() != StepResponse.StepStatus.PASSED) {
                 log.debug("Cancel execution of {} due to a faulty instruction: {}", this, instruction);
                 return;
             }

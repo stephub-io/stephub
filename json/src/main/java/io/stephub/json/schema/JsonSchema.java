@@ -1,29 +1,54 @@
 package io.stephub.json.schema;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.networknt.schema.*;
 import io.stephub.json.*;
 import io.stephub.json.jackson.JsonSchemaDeserializer;
 import io.stephub.json.jackson.JsonSchemaSerializer;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @NoArgsConstructor
 @Data
-@EqualsAndHashCode(callSuper = true)
+@EqualsAndHashCode(callSuper = true, exclude = "rawSchema")
 @SuperBuilder
 @JsonSerialize(using = JsonSchemaSerializer.class)
 @JsonDeserialize(using = JsonSchemaDeserializer.class)
 @Slf4j
 public class JsonSchema extends JsonObject {
+    private static final String V201909_URI = "https://json-schema.org/draft/2019-09/schema";
+    private static JsonSchemaFactory rawSchemaFactory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V201909);
+    private static com.networknt.schema.JsonSchema schemaForSchema;
+
+    static {
+        final JsonMetaSchema metaSchema = JsonMetaSchema.builder(V201909_URI, JsonMetaSchema.getV201909()).
+                addKeywords(Arrays.asList(new NonValidationKeyword("$vocabulary"), new NonValidationKeyword("$recursiveAnchor"), new NonValidationKeyword("$comment"), new NonValidationKeyword("propertyNames"), new NonValidationKeyword("$recursiveRef"))).build();
+        final Map<String, String> metaSchemaUriMappings = new HashMap<>();
+        metaSchemaUriMappings.put(V201909_URI,
+                "classpath:org/json-schema/draft/2019-09/schema");
+        final JsonSchemaFactory metaSchemaFactory = new JsonSchemaFactory.Builder().defaultMetaSchemaURI(metaSchema.getUri())
+                .addMetaSchema(metaSchema).addUriMappings(metaSchemaUriMappings)
+                .build();
+        try {
+            schemaForSchema = metaSchemaFactory.getSchema(new URI(V201909_URI));
+        } catch (final URISyntaxException e) {
+            log.error("Init error", e);
+        }
+    }
+
+    private static ObjectMapper objectMapper = new ObjectMapper();
+
+    @Getter(AccessLevel.NONE)
+    @Setter(AccessLevel.NONE)
+    private com.networknt.schema.JsonSchema rawSchema;
 
     public static JsonSchema ofType(final JsonType type) {
         final JsonSchema schema = new JsonSchema();
@@ -84,5 +109,52 @@ public class JsonSchema extends JsonObject {
         } else {
             this.getFields().remove("type");
         }
+    }
+
+    public void accept(final Json value) throws JsonInvalidSchemaException {
+        Set<ValidationMessage> validationMessages = null;
+        try {
+            final com.networknt.schema.JsonSchema rawSchema = this.getRawSchema();
+            validationMessages = rawSchema.validate(objectMapper.valueToTree(value));
+        } catch (final Exception e) {
+            throw new JsonInvalidSchemaException("Failed to validate schema due to: " + e.getMessage(), e);
+        }
+        if (!validationMessages.isEmpty()) {
+            throw new JsonInvalidSchemaException(validationMessages.stream().map(Object::toString).collect(Collectors.joining("\n")));
+        }
+    }
+
+    private com.networknt.schema.JsonSchema getRawSchema() {
+        if (this.rawSchema == null) {
+            this.rawSchema = rawSchemaFactory.getSchema(objectMapper.valueToTree(this));
+        }
+        return this.rawSchema;
+    }
+
+    public SchemaValidity validate() {
+        try {
+            final Set<ValidationMessage> validationMessages = schemaForSchema.
+                    validate(objectMapper.valueToTree(this));
+            if (validationMessages.isEmpty()) {
+                return SchemaValidity.builder().valid(true).build();
+            } else {
+                return SchemaValidity.builder().valid(false).errors(
+                        validationMessages.stream().map(vm -> vm.getMessage()).collect(Collectors.toList())
+                ).build();
+            }
+        } catch (final Exception e) {
+            log.debug("Error", e);
+            return SchemaValidity.builder().valid(false).
+                    error(e.getMessage()).
+                    build();
+        }
+    }
+
+    @Data
+    @Builder
+    public static class SchemaValidity {
+        private boolean valid;
+        @Singular
+        private List<String> errors;
     }
 }

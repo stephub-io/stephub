@@ -112,7 +112,7 @@ public class StepExecutionResolver implements StepExecutionSource {
 
         @Override
         public Json get(final String key) {
-            if (key.equals("args")) {
+            if (key.equals("arg")) {
                 return new JsonObject(this.stepRequest.getArguments());
             } else if (key.equals("docString")) {
                 return this.stepRequest.getDocString();

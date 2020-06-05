@@ -56,6 +56,27 @@ public class GherkinPatternMatcherTest {
     }
 
     @Test
+    public void testDocStringWithoutDetailSpec() {
+        final StepSpec<JsonSchema> stepSpec = StepSpec.<JsonSchema>builder().pattern("Do with DocString payload").
+                patternType(PatternType.REGEX).
+                payload(StepSpec.PayloadType.DOC_STRING).
+                build();
+        final StepMatch match = this.patternMatcher.matches(this.defaultPreferences, stepSpec,
+                "When do with DocString payload\n" +
+                        "  \"\"\"\n" +
+                        "  My doc string line 1\n" +
+                        "  My doc string line 2\n" +
+                        "  \"\"\"");
+        assertThat(match, notNullValue());
+        assertThat(match.getDocString(), equalTo(
+                ValueMatch.builder().
+                        spec(DocStringSpec.<JsonSchema>builder().schema(JsonSchema.ofType(ANY)).build()).
+                        value(
+                        "My doc string line 1\n" +
+                                "My doc string line 2").build()));
+    }
+
+    @Test
     public void testDocStringMissingOffset() {
         final DocStringSpec<JsonSchema> docStringSpec =
                 DocStringSpec.<JsonSchema>builder().schema(ofType(STRING)).build();

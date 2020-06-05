@@ -5,11 +5,9 @@ import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.expression.MatchResult;
 import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
+import io.stephub.json.Json;
 import io.stephub.json.schema.JsonSchema;
-import io.stephub.provider.api.model.spec.ArgumentSpec;
-import io.stephub.provider.api.model.spec.DataTableSpec;
-import io.stephub.provider.api.model.spec.StepSpec;
-import io.stephub.provider.api.model.spec.ValueSpec;
+import io.stephub.provider.api.model.spec.*;
 import io.stephub.runtime.model.GherkinPreferences;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
@@ -62,9 +60,12 @@ public class GherkinPatternMatcher {
 
     public StepMatch matches(final GherkinPreferences preferences, final StepSpec<JsonSchema> stepSpec, final String instruction) {
         Pattern pattern = null;
+        List<ArgumentSpec<JsonSchema>> additionalArguments = null;
         switch (stepSpec.getPatternType()) {
             case SIMPLE:
-                pattern = this.simplePatternExtractor.extract(preferences, stepSpec.getPattern(), stepSpec.getOutput() != null).getRegexPattern();
+                final SimplePatternExtractor.Extraction simplePatternExtraction = this.simplePatternExtractor.extract(preferences, stepSpec.getPattern(), stepSpec.getOutput() != null);
+                additionalArguments = simplePatternExtraction.getArguments();
+                pattern = simplePatternExtraction.getRegexPattern();
             case REGEX:
                 final String[] linesRaw = instruction.split("\r?\n");
                 final List<String> effectiveLines = new ArrayList<>();
@@ -83,7 +84,14 @@ public class GherkinPatternMatcher {
                 final Matcher matcher = pattern.matcher(lines[0].trim());
                 if (matcher.matches()) {
                     final StepMatch.StepMatchBuilder stepMatchBuilder = StepMatch.builder();
-                    for (final ArgumentSpec<JsonSchema> a : stepSpec.getArguments()) {
+                    final Map<String, ArgumentSpec<JsonSchema>> arguments = new HashMap<>();
+                    if (additionalArguments != null) {
+                        additionalArguments.forEach(a -> arguments.put(a.getName(), a));
+                    }
+                    if (stepSpec.getArguments() != null) {
+                        stepSpec.getArguments().forEach(a -> arguments.put(a.getName(), a));
+                    }
+                    for (final ArgumentSpec<JsonSchema> a : arguments.values()) {
                         final String argValue = matcher.group(a.getName());
                         final MatchResult argExprMatcher = this.evaluator.match(argValue);
                         if (!argExprMatcher.matches()) {
@@ -187,7 +195,10 @@ public class GherkinPatternMatcher {
         }
         stepMatchBuilder.docString(
                 ValueMatch.<String>builder().value(extraction.toString()).
-                        spec(stepSpec.getDocString()).
+                        spec(
+                                stepSpec.getDocString() != null ? stepSpec.getDocString() :
+                                        DocStringSpec.<JsonSchema>builder().schema(JsonSchema.ofType(Json.JsonType.ANY)).build()
+                        ).
                         build());
     }
 

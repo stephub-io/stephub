@@ -6,8 +6,11 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.Json;
 import lombok.*;
 
+import javax.validation.constraints.Pattern;
 import java.util.HashMap;
 import java.util.Map;
+
+import static io.stephub.provider.api.util.Patterns.ID_PATTERN_STR;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -35,9 +38,16 @@ public class RuntimeSession {
     private SessionStatus status;
 
     @Builder.Default
-    private Map<String, Json> globals = new HashMap<>();
+    private Map<String, Json> attributes = new HashMap<>();
 
     @JsonIgnore
     @Builder.Default
     private Map<String, String> providerSessions = new HashMap<>();
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    public static class SessionStart {
+        private Map<@Pattern(regexp = ID_PATTERN_STR) String, Json> variables = new HashMap<>();
+    }
 }

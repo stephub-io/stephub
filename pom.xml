@@ -15,7 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dependency versions -->
-        <spring-provider.version>0.0.16</spring-provider.version>
+        <spring-provider.version>0.0.17</spring-provider.version>
         <spring.version>5.2.5.RELEASE</spring.version>
         <spring-boot.version>2.2.6.RELEASE</spring-boot.version>
         <expiringmap.version>0.5.9</expiringmap.version>
@@ -75,6 +75,11 @@
                 <groupId>com.squareup.okhttp3</groupId>
                 <artifactId>okhttp</artifactId>
                 <version>4.5.0</version>
+            </dependency>
+            <dependency>
+                <groupId>com.networknt</groupId>
+                <artifactId>json-schema-validator</artifactId>
+                <version>1.0.40</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

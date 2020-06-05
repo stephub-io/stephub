@@ -11,4 +11,10 @@
         <relativePath>../</relativePath>
     </parent>
 
+    <dependencies>
+        <dependency>
+            <groupId>com.networknt</groupId>
+            <artifactId>json-schema-validator</artifactId>
+        </dependency>
+    </dependencies>
 </project>

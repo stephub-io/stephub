@@ -2,6 +2,7 @@ package io.stephub.runtime.service.support;
 
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
+import io.stephub.runtime.model.RuntimeSession.SessionStart;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.*;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +47,7 @@ public class MemorySessionService extends SessionService {
     }
 
     @Override
-    public RuntimeSession startSession(final Context ctx, final String wid) {
+    public RuntimeSession startSession(final Context ctx, final String wid, final SessionStart sessionStart) {
         final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
         this.workspaceValidator.validate(workspace);
         if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
@@ -56,6 +57,7 @@ public class MemorySessionService extends SessionService {
                 workspace(workspace).
                 status(ACTIVE).
                 build();
+        this.setUpAttributes(session, sessionStart);
         this.sessionStore.put(session.getId(), session);
         log.info("Started session={}", session);
         return session;
