@@ -1,4 +1,4 @@
-package io.stephub.runtime.service;
+package io.stephub.runtime.service.exception;
 
 public class ExecutionException extends RuntimeException {
     public ExecutionException(String message) {

@@ -2,8 +2,8 @@ package io.stephub.runtime.controller;
 
 import io.stephub.expression.EvaluationException;
 import io.stephub.expression.ParseException;
-import io.stephub.runtime.service.ExecutionException;
 import io.stephub.runtime.service.ResourceNotFoundException;
+import io.stephub.runtime.service.exception.ExecutionException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;

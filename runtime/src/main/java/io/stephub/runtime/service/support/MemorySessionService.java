@@ -5,6 +5,7 @@ import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.RuntimeSession.SessionStart;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.*;
+import io.stephub.runtime.service.exception.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.springframework.beans.factory.annotation.Autowired;

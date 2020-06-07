@@ -6,6 +6,8 @@ import io.stephub.json.JsonNull;
 import io.stephub.json.schema.JsonSchema;
 import lombok.*;
 
+import javax.validation.Valid;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -16,5 +18,6 @@ public class Variable {
     @JsonProperty("default")
     private Json defaultValue = JsonNull.INSTANCE;
     private String description;
+    @Valid
     private JsonSchema schema = JsonSchema.ofType(Json.JsonType.ANY);
 }

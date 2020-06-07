@@ -1,13 +1,17 @@
 package io.stephub.runtime.service;
 
-import io.stephub.expression.impl.SimpleEvaluationContext;
+import io.stephub.expression.EvaluationContext;
+import io.stephub.expression.FunctionFactory;
 import io.stephub.json.Json;
 import io.stephub.json.JsonNull;
 import io.stephub.json.JsonObject;
+import io.stephub.json.schema.JsonInvalidSchemaException;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.StepInstruction;
+import io.stephub.runtime.service.exception.ExecutionException;
+import io.stephub.runtime.service.exception.ExecutionPrerequisiteException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -22,6 +26,9 @@ import static io.stephub.runtime.model.RuntimeSession.SessionStatus.INACTIVE;
 public abstract class SessionService {
     @Autowired
     private StepExecutionResolver stepExecutionResolver;
+
+    @Autowired
+    private FunctionFactory functionFactory;
 
     public abstract List<RuntimeSession> getSessions(Context ctx, String wid);
 
@@ -43,10 +50,14 @@ public abstract class SessionService {
                     value = var.getDefaultValue();
                 }
             }
-            var.getSchema().accept(value);
+            try {
+                var.getSchema().accept(value);
+            } catch (final JsonInvalidSchemaException e) {
+                throw new ExecutionPrerequisiteException("Invalid value for variable '" + key + "': " + e.getMessage());
+            }
             vars.getFields().put(key, value);
         });
-        attributes.put("var", vars);
+        session.getAttributes().put("var", vars);
     }
 
     public interface WinthinSessionExecutor<T> {
@@ -66,7 +77,22 @@ public abstract class SessionService {
                         return buildResponseForMissingStep(stepInstruction.getInstruction());
                     }
                     return stepExecution.execute(sessionExecutionContext,
-                            SimpleEvaluationContext.builder().build());
+                            new EvaluationContext() {
+                                @Override
+                                public Json get(final String key) {
+                                    return session.getAttributes().get(key);
+                                }
+
+                                @Override
+                                public void put(final String key, final Json value) {
+                                    session.getAttributes().put(key, value);
+                                }
+
+                                @Override
+                                public Function createFunction(final String name) {
+                                    return SessionService.this.functionFactory.createFunction(name);
+                                }
+                            });
                 }
         );
     }

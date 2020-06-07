@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.Json;
 import lombok.*;
 
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,7 @@ import static io.stephub.provider.api.util.Patterns.ID_PATTERN_STR;
 @NoArgsConstructor
 @Data
 @EqualsAndHashCode(of = {"id", "workspace"})
+@ToString(of = {"id", "status"})
 @Builder
 public class RuntimeSession {
     public enum SessionStatus {
@@ -48,6 +50,7 @@ public class RuntimeSession {
     @NoArgsConstructor
     @Data
     public static class SessionStart {
+        @NotNull
         private Map<@Pattern(regexp = ID_PATTERN_STR) String, Json> variables = new HashMap<>();
     }
 }
