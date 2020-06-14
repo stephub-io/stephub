@@ -8,7 +8,6 @@ import io.stephub.json.JsonObject;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.GherkinPreferences;
-import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.model.customsteps.CustomStepContainer;
 import io.stephub.runtime.model.customsteps.Step;
@@ -40,17 +39,17 @@ public class StepExecutionResolver implements StepExecutionSource {
     private ExpressionEvaluator expressionEvaluator;
 
     @Override
-    public StepExecution resolveStepExecution(final StepInstruction stepInstruction, final Workspace workspace) {
+    public StepExecution resolveStepExecution(final String stepInstruction, final Workspace workspace) {
         return new StepExecutionResolver.HierarchicalResolver(
                 workspace.getGherkinPreferences(),
                 instruction ->
                         this.providersFacade.resolveStepExecution(
-                                StepInstruction.builder().instruction(instruction).build(),
+                                instruction,
                                 workspace
                         ),
                 workspace,
                 new HashSet<>()).
-                resolveStepExecution(stepInstruction.getInstruction());
+                resolveStepExecution(stepInstruction);
     }
 
     @AllArgsConstructor

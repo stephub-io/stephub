@@ -14,7 +14,6 @@ import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.provider.remote.RemoteProvider;
 import io.stephub.providers.base.BaseProvider;
 import io.stephub.runtime.model.ProviderSpec;
-import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.GherkinPatternMatcher.StepMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -47,7 +46,7 @@ public class ProvidersFacade implements StepExecutionSource {
     private ObjectMapper objectMapper;
 
     @Override
-    public StepExecution resolveStepExecution(final StepInstruction stepInstruction, final Workspace workspace) {
+    public StepExecution resolveStepExecution(final String stepInstruction, final Workspace workspace) {
         final Triple<ProviderSpec, StepSpec<JsonSchema>, StepMatch> match = this.getMatchingStep(workspace, stepInstruction);
         if (match == null) {
             return null;
@@ -83,11 +82,11 @@ public class ProvidersFacade implements StepExecutionSource {
         return providerSpecs;
     }
 
-    private Triple<ProviderSpec, StepSpec<JsonSchema>, StepMatch> getMatchingStep(final Workspace workspace, final StepInstruction instruction) {
+    private Triple<ProviderSpec, StepSpec<JsonSchema>, StepMatch> getMatchingStep(final Workspace workspace, final String instruction) {
         for (final ProviderSpec providerSpec : this.getProviderSpecs(workspace)) {
             try {
                 for (final StepSpec<JsonSchema> stepSpec : this.getProvider(providerSpec).getInfo().getSteps()) {
-                    final StepMatch stepMatch = this.patternMatcher.matches(workspace.getGherkinPreferences(), stepSpec, instruction.getInstruction());
+                    final StepMatch stepMatch = this.patternMatcher.matches(workspace.getGherkinPreferences(), stepSpec, instruction);
                     if (stepMatch != null) {
                         return Triple.of(providerSpec, stepSpec, stepMatch);
                     }

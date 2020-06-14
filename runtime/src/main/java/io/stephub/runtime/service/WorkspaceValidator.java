@@ -1,6 +1,5 @@
 package io.stephub.runtime.service;
 
-import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.model.customsteps.Step;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ public class WorkspaceValidator {
         for (final Step step : steps) {
             step.validate("steps[" + i + "].", errors, (instruction) ->
                     this.stepExecutionResolver.resolveStepExecution(
-                            StepInstruction.builder().instruction(instruction).build(),
+                            instruction,
                             workspace
                     ));
             i++;

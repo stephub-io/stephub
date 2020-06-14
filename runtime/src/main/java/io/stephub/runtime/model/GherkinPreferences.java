@@ -33,7 +33,7 @@ public class GherkinPreferences {
     @NotNull
     @Size(min = 1)
     private final List<@RegexValidator.Regex String> stepPrefixes = CollectionUtils.arrayToList(new String[]{
-            "Given", "When", "Then", "But"
+            "Given( I)?", "When( I)?", "Then( I)?", "But( I)?"
     });
 
     public String surround(final String stepRegexPattern, final boolean withOutput) {

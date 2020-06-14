@@ -80,9 +80,9 @@ public class MemorySessionService extends SessionService {
     }
 
     @Override
-    public <T> T executeWithinSession(final Context ctx, final String wid, final String sid, final WinthinSessionExecutor<T> executor) {
+    public void executeWithinSession(final String wid, final String sid, final String execId, final WithinSessionExecutor executor) {
         final RuntimeSession session = this.getSessionSafe(wid, sid);
-        return executor.execute(session, new SessionExecutionContext() {
+        executor.execute(session, new SessionExecutionContext() {
             @Override
             public void setProviderSession(final String providerName, final String sid) {
                 session.getProviderSessions().put(providerName, sid);

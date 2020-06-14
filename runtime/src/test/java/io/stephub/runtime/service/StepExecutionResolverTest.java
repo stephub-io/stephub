@@ -9,7 +9,6 @@ import io.stephub.provider.api.model.spec.PatternType;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.runtime.config.ExpressionsConfig;
 import io.stephub.runtime.model.NestedStepResponse;
-import io.stephub.runtime.model.StepInstruction;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.model.customsteps.BasicStep;
 import lombok.extern.slf4j.Slf4j;
@@ -66,13 +65,13 @@ class StepExecutionResolverTest {
                                 duration(Duration.ofMinutes(3)).build()
                 );
         when(this.providersFacade.resolveStepExecution(
-                StepInstruction.builder().instruction("When Inner provider step").build(),
+                "When Inner provider step",
                 workspace
         )).thenReturn(innerStepExec);
 
         // Call
         final StepExecution execution = this.executionResolver.resolveStepExecution(
-                StepInstruction.builder().instruction("When custom step").build(),
+                "When custom step",
                 workspace
         );
 
@@ -118,13 +117,13 @@ class StepExecutionResolverTest {
                                 duration(Duration.ofMinutes(3)).build()
                 );
         when(this.providersFacade.resolveStepExecution(
-                StepInstruction.builder().instruction("When inner provider step").build(),
+                "When inner provider step",
                 workspace
         )).thenReturn(innerStepExec);
 
         // Call
         final StepExecution execution = this.executionResolver.resolveStepExecution(
-                StepInstruction.builder().instruction("When custom step 2").build(),
+                "When custom step 2",
                 workspace
         );
 
@@ -175,13 +174,13 @@ class StepExecutionResolverTest {
                                 duration(Duration.ofMinutes(3)).build()
                 );
         when(this.providersFacade.resolveStepExecution(
-                StepInstruction.builder().instruction("When inner provider step").build(),
+                "When inner provider step",
                 workspace
         )).thenReturn(innerStepExec);
 
         // Call
         final StepExecution execution = this.executionResolver.resolveStepExecution(
-                StepInstruction.builder().instruction("When custom step 2").build(),
+                "When custom step 2",
                 workspace
         );
 
