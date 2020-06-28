@@ -10,7 +10,7 @@ import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.GherkinPreferences;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.model.customsteps.CustomStepContainer;
-import io.stephub.runtime.model.customsteps.Step;
+import io.stephub.runtime.model.customsteps.StepDefinition;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,42 +53,42 @@ public class StepExecutionResolver implements StepExecutionSource {
     }
 
     @AllArgsConstructor
-    private class HierarchicalResolver implements Step.StepExecutionResolverWrapper {
+    private class HierarchicalResolver implements StepDefinition.StepExecutionResolverWrapper {
         private final GherkinPreferences gherkinPreferences;
-        private final Step.StepExecutionResolverWrapper parentResolver;
+        private final StepDefinition.StepExecutionResolverWrapper parentResolver;
         private final CustomStepContainer stepContainer;
-        private final HashSet<Step> stepStack;
+        private final HashSet<StepDefinition> stepDefinitionStack;
 
         @Override
         public StepExecution resolveStepExecution(final String instruction) {
-            for (final Step step : this.stepContainer.getSteps()) {
-                final GherkinPatternMatcher.StepMatch match = StepExecutionResolver.this.patternMatcher.matches(this.gherkinPreferences, step.getSpec(), instruction);
+            for (final StepDefinition stepDefinition : this.stepContainer.getStepDefinitions()) {
+                final GherkinPatternMatcher.StepMatch match = StepExecutionResolver.this.patternMatcher.matches(this.gherkinPreferences, stepDefinition.getSpec(), instruction);
                 if (match != null) {
-                    log.trace("Resolved for instruction={} a custom step={}", instruction, step);
+                    log.trace("Resolved for instruction={} a custom step={}", instruction, stepDefinition);
                     return (sessionExecutionContext, evaluationContext) -> {
                         // Check cycle
-                        if (this.stepStack.contains(step)) {
+                        if (this.stepDefinitionStack.contains(stepDefinition)) {
                             return StepResponse.<Json>builder().status(ERRONEOUS).
                                     errorMessage(RECURSIVE_STEP_CALL_SEQUENCE_DETECTED).build();
                         }
                         // Do step
-                        this.stepStack.add(step);
+                        this.stepDefinitionStack.add(stepDefinition);
                         try {
                             final StepEvaluationDelegate.StepEvaluation stepEvaluation = StepExecutionResolver.this.stepEvaluationDelegate.getStepEvaluation(match, evaluationContext);
                             final StepRequest<Json> stepRequest = stepEvaluation.getRequestBuilder().build();
-                            final StepResponse<Json> response = step.execute(stepRequest, sessionExecutionContext,
+                            final StepResponse<Json> response = stepDefinition.execute(stepRequest, sessionExecutionContext,
                                     new StepScopedEvaluationContext(evaluationContext, stepRequest),
                                     new HierarchicalResolver(
                                             this.gherkinPreferences,
                                             this,
-                                            step,
-                                            this.stepStack),
+                                            stepDefinition,
+                                            this.stepDefinitionStack),
                                     StepExecutionResolver.this.expressionEvaluator
                             );
                             stepEvaluation.postEvaluateResponse(response);
                             return response;
                         } finally {
-                            this.stepStack.remove(step);
+                            this.stepDefinitionStack.remove(stepDefinition);
                         }
                     };
                 }

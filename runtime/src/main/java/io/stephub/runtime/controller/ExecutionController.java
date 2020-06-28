@@ -3,16 +3,34 @@ package io.stephub.runtime.controller;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.Execution;
 import io.stephub.runtime.service.ExecutionPersistence;
+import io.stephub.runtime.service.ExecutionService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.IOException;
+
 @RestController
+@Slf4j
 public class ExecutionController {
     @Autowired
     private ExecutionPersistence executionPersistence;
+
+    @Autowired
+    private ExecutionService executionService;
+
+    @PostMapping("/workspaces/{wid}/executions")
+    public void startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
+                               @RequestBody @Valid final Execution.ExecutionStart executionStart,
+                               final HttpServletResponse response) throws IOException {
+        final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
+        response.sendRedirect("./" + execution.getId() + "?waitForCompletion=true");
+    }
 
     @GetMapping("/workspaces/{wid}/executions/{execId}")
     @ResponseBody
@@ -21,10 +39,21 @@ public class ExecutionController {
                                                                   @PathVariable("execId") final String execId,
                                                                   @RequestParam(name = "waitForCompletion", defaultValue = "false") final boolean waitForCompletion) {
         final DeferredResult<ResponseEntity<Execution>> deferredResult = new DeferredResult<>();
-        deferredResult.onTimeout(() ->
-                deferredResult.setErrorResult(
-                        ResponseEntity.status(HttpStatus.ACCEPTED)
-                                .body("Execution is still not completed, retry again")));
+        deferredResult.onTimeout(() -> {
+            if (waitForCompletion) {
+                try {
+                    deferredResult.setErrorResult(
+                            ResponseEntity.ok(this.executionPersistence.getExecution(wid, execId, false).get())
+                    );
+                    return;
+                } catch (final Exception e) {
+                    log.warn("Failed to expose execution", e);
+                }
+            }
+            deferredResult.setErrorResult(
+                    ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Failed to load execution"));
+        });
         this.executionPersistence.getExecution(wid, execId, waitForCompletion).whenCompleteAsync(
                 (execution, throwable) -> {
                     if (throwable != null) {

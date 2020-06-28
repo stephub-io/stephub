@@ -1,19 +1,17 @@
 package io.stephub.runtime.service;
 
+import io.stephub.expression.AttributesContext;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.FunctionFactory;
 import io.stephub.json.Json;
 import io.stephub.json.JsonNull;
 import io.stephub.json.JsonObject;
 import io.stephub.json.schema.JsonInvalidSchemaException;
-import io.stephub.provider.api.model.StepResponse;
-import io.stephub.runtime.model.Context;
-import io.stephub.runtime.model.Execution;
-import io.stephub.runtime.model.ExecutionInstruction;
-import io.stephub.runtime.model.ExecutionInstruction.StepExecutionInstruction;
-import io.stephub.runtime.model.RuntimeSession;
+import io.stephub.runtime.model.*;
 import io.stephub.runtime.service.exception.ExecutionException;
 import io.stephub.runtime.service.exception.ExecutionPrerequisiteException;
+import io.stephub.runtime.service.executor.ExecutorDelegate;
+import io.stephub.runtime.service.executor.StepExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,13 +21,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
 import static io.stephub.runtime.model.RuntimeSession.SessionStatus.INACTIVE;
 
 @Slf4j
 public abstract class SessionService {
+
     @Autowired
-    private StepExecutionResolver stepExecutionResolver;
+    private StepExecutor stepExecutor;
 
     @Autowired
     private FunctionFactory functionFactory;
@@ -40,19 +38,44 @@ public abstract class SessionService {
     @Autowired
     private ExecutionPersistence executionPersistence;
 
+    @Autowired
+    private WorkspaceService workspaceService;
+
+    @Autowired
+    private WorkspaceValidator workspaceValidator;
+
+    @Autowired
+    private ExecutorDelegate executorDelegate;
+
     public abstract List<RuntimeSession> getSessions(Context ctx, String wid);
 
-    public abstract RuntimeSession startSession(Context ctx, String wid, RuntimeSession.SessionStart sessionStart);
+    public final RuntimeSession startSession(final Context ctx, final String wid, final RuntimeSession.SessionSettings sessionSettings) {
+        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
+        return this.startSession(workspace, sessionSettings);
+    }
+
+    public final RuntimeSession startSession(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings) {
+        this.workspaceValidator.validate(workspace);
+        if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
+            throw new ExecutionException("Erroneous workspace, please correct the errors first");
+        }
+        final Map<String, Json> attributes = this.setUpAttributes(workspace, sessionSettings);
+        return this.startSession(workspace, sessionSettings, attributes);
+    }
+
+    protected abstract RuntimeSession startSession(Workspace workspace, RuntimeSession.SessionSettings sessionSettings, Map<String, Json> attributes);
 
     public abstract void stopSession(Context ctx, String wid, String sid);
 
+    public abstract void stopSession(RuntimeSession session);
+
     public abstract RuntimeSession getSession(Context ctx, String wid, String sid);
 
-    protected void setUpAttributes(final RuntimeSession session, final RuntimeSession.SessionStart sessionStart) {
+    Map<String, Json> setUpAttributes(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings) {
         final Map<String, Json> attributes = new HashMap<>();
         final JsonObject vars = new JsonObject();
-        session.getWorkspace().getVariables().forEach((key, var) -> {
-            Json value = sessionStart.getVariables().get(key);
+        workspace.getVariables().forEach((key, var) -> {
+            Json value = sessionSettings.getVariables().get(key);
             if (value == null) {
                 if (var.getValue() != JsonNull.INSTANCE) {
                     value = var.getValue();
@@ -67,21 +90,56 @@ public abstract class SessionService {
             }
             vars.getFields().put(key, value);
         });
-        session.getAttributes().put("var", vars);
+        attributes.put("var", vars);
+        return attributes;
     }
 
     public interface WithinSessionExecutor {
-        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext);
+        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
     }
 
-    protected abstract void executeWithinSession(String wid, String sid, String execId, WithinSessionExecutor executor);
+    protected interface WithinSessionExecutorInternal {
+        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, AttributesContext attributesContext);
+    }
 
-    public Execution startExecution(final Context ctx, final String wid, final String sid, final ExecutionInstruction instruction) {
+    protected void executeWithinSession(final String wid, final String sid, final WithinSessionExecutor executor) {
+        this.executeWithinSessionInternal(wid, sid, (session, sessionExecutionContext, attributesContext) ->
+                executor.execute(session, sessionExecutionContext, new EvaluationContext() {
+                    @Override
+                    public Json get(final String key) {
+                        return attributesContext.get(key);
+                    }
+
+                    @Override
+                    public void put(final String key, final Json value) {
+                        attributesContext.put(key, value);
+                    }
+
+                    @Override
+                    public Function createFunction(final String name) {
+                        return SessionService.this.functionFactory.createFunction(name);
+                    }
+                }));
+    }
+
+    protected abstract void executeWithinSessionInternal(String wid, String sid, WithinSessionExecutorInternal executor);
+
+
+    public final void doWithinSession(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings, final WithinSessionExecutor withinSessionExecutor) {
+        final RuntimeSession session = this.startSession(workspace, sessionSettings);
+        try {
+            this.executeWithinSession(workspace.getId(), session.getId(), withinSessionExecutor);
+        } finally {
+            this.stopSession(session);
+        }
+    }
+
+    public final Execution startExecution(final Context ctx, final String wid, final String sid, final ExecutionInstruction instruction) {
         final RuntimeSession session = this.getSession(ctx, wid, sid);
         if (session.getStatus() == INACTIVE) {
             throw new ExecutionException("Session isn't active with id=" + sid);
         }
-        final Execution execution = this.executionPersistence.initExecution(wid, instruction);
+        final Execution execution = this.executionPersistence.initExecution(session.getWorkspace(), instruction, null);
         final JobKey jobKey = JobKey.jobKey(wid + "-" + sid, "executions");
         final JobDetail job = JobBuilder.newJob(SessionExecutionJob.class).withIdentity(jobKey).
                 usingJobData(SessionExecutionJob.createJobDataMap(session, execution)).
@@ -98,63 +156,18 @@ public abstract class SessionService {
         return execution;
     }
 
-    private void execute(final String wid, final String sid, final String execId) {
-        this.executeWithinSession(wid, sid, execId, (session, sessionExecutionContext) -> {
-                    this.executionPersistence.doWithinExecution(wid, execId,
-                            (instruction, resultCollector) -> {
+    public final void execute(final String wid, final String sid, final String execId) {
+        this.executeWithinSession(wid, sid, (session, sessionExecutionContext, evaluationContext) -> {
+                    this.executionPersistence.processPendingExecutionItems(wid, execId,
+                            (item, resultCollector) -> {
                                 if (session.getStatus() == INACTIVE) {
                                     throw new ExecutionException("Session isn't active with id=" + sid);
                                 }
-                                final EvaluationContext evaluationContext = new EvaluationContext() {
-                                    @Override
-                                    public Json get(final String key) {
-                                        return session.getAttributes().get(key);
-                                    }
-
-                                    @Override
-                                    public void put(final String key, final Json value) {
-                                        session.getAttributes().put(key, value);
-                                    }
-
-                                    @Override
-                                    public Function createFunction(final String name) {
-                                        return SessionService.this.functionFactory.createFunction(name);
-                                    }
-                                };
-                                log.debug("Execute {} within session={}", instruction, session);
-                                if (instruction instanceof StepExecutionInstruction) {
-                                    final StepExecutionInstruction stepInstruction = (StepExecutionInstruction) instruction;
-                                    try {
-                                        final StepExecution stepExecution = this.stepExecutionResolver.resolveStepExecution(stepInstruction.getInstruction(), session.getWorkspace());
-                                        if (stepExecution == null) {
-                                            resultCollector.collect(Execution.StepExecutionResult.builder().instruction(stepInstruction.getInstruction()).
-                                                    response(buildResponseForMissingStep(stepInstruction.getInstruction())).
-                                                    build());
-                                        } else {
-                                            resultCollector.collect(
-                                                    Execution.StepExecutionResult.builder().instruction(stepInstruction.getInstruction()).
-                                                            response(stepExecution.execute(sessionExecutionContext, evaluationContext)).
-                                                            build()
-                                            );
-                                        }
-                                    } catch (final Exception e) {
-                                        log.error("Unexpected step execution error", e);
-                                        resultCollector.collect(Execution.StepExecutionResult.builder().instruction(stepInstruction.getInstruction()).
-                                                response(StepResponse.<Json>builder().status(ERRONEOUS).
-                                                        errorMessage("Unexpected exception: " + e.getMessage()).
-                                                        build()).
-                                                build());
-                                    }
-                                }
+                                log.debug("Execute {} within session={}", item, session);
+                                this.executorDelegate.execute(session.getWorkspace(), item, sessionExecutionContext, evaluationContext, resultCollector);
                             });
                 }
         );
-    }
-
-    public static final StepResponse<Json> buildResponseForMissingStep(final String instruction) {
-        return StepResponse.<Json>builder().status(ERRONEOUS).
-                errorMessage("No step found matching the instruction '" + instruction + "'").
-                build();
     }
 
     @DisallowConcurrentExecution

@@ -1,18 +1,21 @@
 package io.stephub.runtime.service.support;
 
+import io.stephub.expression.AttributesContext;
+import io.stephub.json.Json;
 import io.stephub.runtime.model.Context;
 import io.stephub.runtime.model.RuntimeSession;
-import io.stephub.runtime.model.RuntimeSession.SessionStart;
+import io.stephub.runtime.model.RuntimeSession.SessionSettings;
 import io.stephub.runtime.model.Workspace;
-import io.stephub.runtime.service.*;
-import io.stephub.runtime.service.exception.ExecutionException;
+import io.stephub.runtime.service.ResourceNotFoundException;
+import io.stephub.runtime.service.SessionExecutionContext;
+import io.stephub.runtime.service.SessionService;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -22,14 +25,6 @@ import static io.stephub.runtime.model.RuntimeSession.SessionStatus.INACTIVE;
 @Service
 @Slf4j
 public class MemorySessionService extends SessionService {
-    @Autowired
-    private ProvidersFacade providersFacade;
-
-    @Autowired
-    private WorkspaceService workspaceService;
-
-    @Autowired
-    private WorkspaceValidator workspaceValidator;
 
     private final ExpiringMap<String, RuntimeSession> sessionStore = ExpiringMap.builder()
             .expirationListener((sessionId, s) -> {
@@ -48,22 +43,18 @@ public class MemorySessionService extends SessionService {
     }
 
     @Override
-    public RuntimeSession startSession(final Context ctx, final String wid, final SessionStart sessionStart) {
-        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
-        this.workspaceValidator.validate(workspace);
-        if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
-            throw new ExecutionException("Erroneous workspace, please correct the errors first");
-        }
+    public RuntimeSession startSession(final Workspace workspace, final SessionSettings sessionSettings, final Map<String, Json> attributes) {
         final RuntimeSession session = RuntimeSession.builder().id(UUID.randomUUID().toString()).
                 workspace(workspace).
                 status(ACTIVE).
+                attributes(attributes).
                 build();
-        this.setUpAttributes(session, sessionStart);
         this.sessionStore.put(session.getId(), session);
         log.info("Started session={}", session);
         return session;
     }
 
+    @Override
     public void stopSession(final RuntimeSession session) {
         log.info("Stopping session={}", session);
         session.setStatus(INACTIVE);
@@ -80,19 +71,32 @@ public class MemorySessionService extends SessionService {
     }
 
     @Override
-    public void executeWithinSession(final String wid, final String sid, final String execId, final WithinSessionExecutor executor) {
+    public void executeWithinSessionInternal(final String wid, final String sid, final WithinSessionExecutorInternal executor) {
         final RuntimeSession session = this.getSessionSafe(wid, sid);
-        executor.execute(session, new SessionExecutionContext() {
-            @Override
-            public void setProviderSession(final String providerName, final String sid) {
-                session.getProviderSessions().put(providerName, sid);
-            }
+        executor.execute(session,
+                new SessionExecutionContext() {
+                    @Override
+                    public void setProviderSession(final String providerName, final String sid) {
+                        session.getProviderSessions().put(providerName, sid);
+                    }
 
-            @Override
-            public String getProviderSession(final String providerName) {
-                return session.getProviderSessions().get(providerName);
-            }
-        });
+                    @Override
+                    public String getProviderSession(final String providerName) {
+                        return session.getProviderSessions().get(providerName);
+                    }
+                },
+                new AttributesContext() {
+                    @Override
+                    public Json get(final String key) {
+                        return session.getAttributes().get(key);
+                    }
+
+                    @Override
+                    public void put(final String key, final Json value) {
+                        session.getAttributes().put(key, value);
+                    }
+                }
+        );
     }
 
     private RuntimeSession getSessionSafe(final String wid, final String sid) {

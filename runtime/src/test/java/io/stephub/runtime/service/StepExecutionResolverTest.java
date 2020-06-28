@@ -10,7 +10,7 @@ import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.runtime.config.ExpressionsConfig;
 import io.stephub.runtime.model.NestedStepResponse;
 import io.stephub.runtime.model.Workspace;
-import io.stephub.runtime.model.customsteps.BasicStep;
+import io.stephub.runtime.model.customsteps.BasicStepDefinition;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,8 +46,8 @@ class StepExecutionResolverTest {
     public void testExecutionCustomStep() {
         // Given
         final Workspace workspace = Workspace.builder().
-                step(
-                        BasicStep.builder().
+                stepDefinition(
+                        BasicStepDefinition.builder().
                                 spec(
                                         StepSpec.<JsonSchema>builder().
                                                 pattern("Custom step").
@@ -86,8 +86,8 @@ class StepExecutionResolverTest {
     public void testExecutionMultipleCustomSteps() {
         // Given
         final Workspace workspace = Workspace.builder().
-                step(
-                        BasicStep.builder().
+                stepDefinition(
+                        BasicStepDefinition.builder().
                                 spec(
                                         StepSpec.<JsonSchema>builder().
                                                 pattern("Custom step 1").
@@ -97,8 +97,8 @@ class StepExecutionResolverTest {
                                 instruction("When inner provider step").
                                 build()
                 ).
-                step(
-                        BasicStep.builder().
+                stepDefinition(
+                        BasicStepDefinition.builder().
                                 spec(
                                         StepSpec.<JsonSchema>builder().
                                                 pattern("Custom step 2").
@@ -143,8 +143,8 @@ class StepExecutionResolverTest {
     public void testRecursiveSteps() {
         // Given
         final Workspace workspace = Workspace.builder().
-                step(
-                        BasicStep.builder().
+                stepDefinition(
+                        BasicStepDefinition.builder().
                                 spec(
                                         StepSpec.<JsonSchema>builder().
                                                 pattern("Custom step 1").
@@ -154,8 +154,8 @@ class StepExecutionResolverTest {
                                 instruction("When custom step 2").
                                 build()
                 ).
-                step(
-                        BasicStep.builder().
+                stepDefinition(
+                        BasicStepDefinition.builder().
                                 spec(
                                         StepSpec.<JsonSchema>builder().
                                                 pattern("Custom step 2").

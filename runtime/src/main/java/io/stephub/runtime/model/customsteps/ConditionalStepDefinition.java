@@ -22,7 +22,7 @@ import static io.stephub.json.Json.JsonType.BOOLEAN;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class ConditionalStep extends Step {
+public class ConditionalStepDefinition extends StepDefinition {
     @ExpressionValidator.Valid
     private String conditionExpression;
     private final List<String> truthyInstructions = new ArrayList<>();

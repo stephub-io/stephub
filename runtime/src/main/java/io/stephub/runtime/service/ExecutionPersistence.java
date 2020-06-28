@@ -1,25 +1,36 @@
 package io.stephub.runtime.service;
 
+import io.stephub.json.Json;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Execution;
 import io.stephub.runtime.model.ExecutionInstruction;
+import io.stephub.runtime.model.RuntimeSession;
+import io.stephub.runtime.model.Workspace;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.concurrent.CompletableFuture;
 
 public interface ExecutionPersistence {
-    Execution initExecution(String wid, ExecutionInstruction instruction);
+    Execution initExecution(Workspace workspace, ExecutionInstruction instruction, RuntimeSession.SessionSettings sessionSettings);
 
-    void doWithinExecution(String wid, String execId, WithinExecutionCommand command);
+    void processPendingExecutionItems(String wid, String execId, WithinExecutionCommand command);
+
+    Execution getExecution(String wid, String execId);
 
     @Async
     CompletableFuture<Execution> getExecution(String wid, String execId, boolean waitForCompletion);
 
 
-    public interface WithinExecutionCommand {
-        void execute(ExecutionInstruction instruction, ResultCollector resultCollector);
+    interface WithinExecutionCommand {
+        void execute(Execution.ExecutionItem item, StepExecutionFacade stepExecutionFacade);
     }
 
-    public interface ResultCollector {
-        void collect(Execution.ExecutionResult result);
+
+    interface StepExecutionFacade {
+        StepResponse<Json> doStep(Execution.StepExecutionItem item, StepExecutionItemCommand command);
+    }
+
+    interface StepExecutionItemCommand {
+        StepResponse<Json> execute();
     }
 }

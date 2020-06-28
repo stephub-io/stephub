@@ -3,7 +3,9 @@ package io.stephub.runtime.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.stephub.runtime.model.customsteps.CustomStepContainer;
-import io.stephub.runtime.model.customsteps.Step;
+import io.stephub.runtime.model.customsteps.StepDefinition;
+import io.stephub.runtime.model.gherkin.Feature;
+import io.stephub.runtime.model.gherkin.Fixture;
 import io.stephub.runtime.validation.ProviderValidator;
 import lombok.*;
 import org.springframework.validation.ObjectError;
@@ -43,11 +45,23 @@ public class Workspace implements CustomStepContainer {
 
     @Singular
     @Valid
-    private List<Step> steps = new ArrayList<>();
+    private List<StepDefinition> stepDefinitions = new ArrayList<>();
 
     @Singular
     @Valid
     private Map<@Pattern(regexp = ID_PATTERN_STR) String, Variable> variables = new HashMap<>();
+
+    @Singular
+    @Valid
+    private List<Feature> features = new ArrayList<>();
+
+    @Singular
+    @Valid
+    private List<Fixture> beforeFixtures = new ArrayList<>();
+
+    @Singular
+    @Valid
+    private List<Fixture> afterFixtures = new ArrayList<>();
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)

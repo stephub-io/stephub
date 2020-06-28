@@ -1,9 +1,14 @@
 package io.stephub.runtime.service.support;
 
+import io.stephub.json.Json;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Execution;
 import io.stephub.runtime.model.ExecutionInstruction;
+import io.stephub.runtime.model.RuntimeSession;
+import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.ExecutionPersistence;
 import io.stephub.runtime.service.exception.ExecutionException;
+import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
 import org.jetbrains.annotations.NotNull;
@@ -12,11 +17,15 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+import static io.stephub.runtime.model.Execution.ExecutionStatus.*;
+
 @Service
+@Slf4j
 public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Value("${io.stephub.execution.memory.store.size}")
     private int storeSize;
@@ -36,35 +45,63 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @Override
-    public Execution initExecution(final String wid, final ExecutionInstruction instruction) {
+    public Execution initExecution(final Workspace workspace, final ExecutionInstruction instruction, final RuntimeSession.SessionSettings sessionSettings) {
         final Execution execution = Execution.builder().
                 instruction(instruction).
                 id(UUID.randomUUID().toString()).
+                sessionSettings(sessionSettings).
                 initiatedAt(new Date()).
+                backlog(instruction.buildItems(workspace)).
                 build();
-        this.store.put(this.getStoreId(wid, execution.getId()), execution);
+        this.store.put(this.getStoreId(workspace.getId(), execution.getId()), execution);
         return execution;
     }
 
+    private Execution.ExecutionItem doLifecycleAndGetNext(final Execution execution) {
+        synchronized (execution) {
+            if (execution.getStatus() == INITIATED) {
+                log.debug("Execution={} started", execution);
+                execution.setStatus(EXECUTING);
+                execution.setStartedAt(new Date());
+            }
+            final Optional<Execution.ExecutionItem> next = execution.getBacklog().stream().
+                    filter((executionItem -> executionItem.getStatus() == INITIATED)).
+                    findFirst();
+            if (next.isPresent()) {
+                log.debug("Next item={} in execution={}", next.get(), execution);
+                return next.get();
+            }
+            execution.setStatus(COMPLETED);
+            execution.setCompletedAt(new Date());
+            log.debug("Execution={} completed", execution);
+            execution.notifyAll();
+            return null;
+        }
+    }
+
     @Override
-    public void doWithinExecution(final String wid, final String execId, final WithinExecutionCommand command) {
+    public void processPendingExecutionItems(final String wid, final String execId, final WithinExecutionCommand command) {
         final Execution execution = this.getSafeExecution(wid, execId);
-        execution.setStartedAt(new Date());
-        execution.setStatus(Execution.ExecutionStatus.EXECUTING);
-        try {
-            command.execute(execution.getInstruction(), new ResultCollector() {
-                @Override
-                public void collect(final Execution.ExecutionResult result) {
-                    execution.getResults().add(result);
+        Execution.ExecutionItem executionItem;
+        while ((executionItem = this.doLifecycleAndGetNext(execution)) != null) {
+            command.execute(executionItem, (item, stepCommand) -> {
+                item.setStatus(EXECUTING);
+                log.debug("Starting execution of step item={} of execution={}", item, execution);
+                try {
+                    final StepResponse<Json> response = stepCommand.execute();
+                    item.setResponse(response);
+                    return response;
+                } finally {
+                    item.setStatus(COMPLETED);
+                    log.debug("Completed execution of step item={} of execution={}", item, execution);
                 }
             });
-        } finally {
-            execution.setStatus(Execution.ExecutionStatus.COMPLETED);
-            execution.setCompletedAt(new Date());
-            synchronized (execution) {
-                execution.notifyAll();
-            }
         }
+    }
+
+    @Override
+    public Execution getExecution(final String wid, final String execId) {
+        return this.getSafeExecution(wid, execId);
     }
 
     @NotNull

@@ -24,7 +24,7 @@ import static io.stephub.runtime.util.ErrorMessageBeautifier.wrapJson;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class ForeachStep extends BasicStep {
+public class ForeachStepDefinition extends BasicStepDefinition {
     @ExpressionValidator.Valid
     private String itemsExpression;
     private final String indexAttributeName = "index";

@@ -17,7 +17,7 @@ import java.util.List;
 @SuperBuilder
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
-public class BasicStep extends Step {
+public class BasicStepDefinition extends StepDefinition {
     @Singular
     private List<String> instructions = new ArrayList<>();
 

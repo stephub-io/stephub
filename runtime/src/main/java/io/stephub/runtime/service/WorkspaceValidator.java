@@ -1,7 +1,7 @@
 package io.stephub.runtime.service;
 
 import io.stephub.runtime.model.Workspace;
-import io.stephub.runtime.model.customsteps.Step;
+import io.stephub.runtime.model.customsteps.StepDefinition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -22,7 +22,7 @@ public class WorkspaceValidator {
     public void validate(final Workspace workspace) {
         final BeanPropertyBindingResult result = new BeanPropertyBindingResult(workspace, "workspace");
         this.validator.validate(workspace, result);
-        this.validateSteps(result, workspace, workspace.getSteps());
+        this.validateSteps(result, workspace, workspace.getStepDefinitions());
         if (result.hasErrors()) {
             workspace.setErrors(result.getAllErrors());
         } else {
@@ -30,10 +30,10 @@ public class WorkspaceValidator {
         }
     }
 
-    private void validateSteps(final Errors errors, final Workspace workspace, final List<Step> steps) {
+    private void validateSteps(final Errors errors, final Workspace workspace, final List<StepDefinition> stepDefinitions) {
         int i = 0;
-        for (final Step step : steps) {
-            step.validate("steps[" + i + "].", errors, (instruction) ->
+        for (final StepDefinition stepDefinition : stepDefinitions) {
+            stepDefinition.validate("steps[" + i + "].", errors, (instruction) ->
                     this.stepExecutionResolver.resolveStepExecution(
                             instruction,
                             workspace

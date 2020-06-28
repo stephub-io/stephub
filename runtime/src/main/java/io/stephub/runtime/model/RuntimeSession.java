@@ -49,7 +49,7 @@ public class RuntimeSession {
     @AllArgsConstructor
     @NoArgsConstructor
     @Data
-    public static class SessionStart {
+    public static class SessionSettings {
         @NotNull
         private Map<@Pattern(regexp = ID_PATTERN_STR) String, Json> variables = new HashMap<>();
     }

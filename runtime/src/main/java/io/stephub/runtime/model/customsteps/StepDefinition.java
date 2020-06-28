@@ -12,8 +12,8 @@ import io.stephub.provider.api.model.spec.PatternType;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.runtime.model.NestedStepResponse;
 import io.stephub.runtime.service.SessionExecutionContext;
-import io.stephub.runtime.service.SessionService;
 import io.stephub.runtime.service.StepExecution;
+import io.stephub.runtime.service.executor.Executor;
 import io.stephub.runtime.validation.StepSpecValidator;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -34,15 +34,15 @@ import java.util.List;
 @JsonTypeInfo(
         use = JsonTypeInfo.Id.NAME,
         include = JsonTypeInfo.As.PROPERTY,
-        defaultImpl = BasicStep.class,
+        defaultImpl = BasicStepDefinition.class,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = BasicStep.class, name = "basic"),
-        @JsonSubTypes.Type(value = ConditionalStep.class, name = "conditional"),
-        @JsonSubTypes.Type(value = ForeachStep.class, name = "foreach")
+        @JsonSubTypes.Type(value = BasicStepDefinition.class, name = "basic"),
+        @JsonSubTypes.Type(value = ConditionalStepDefinition.class, name = "conditional"),
+        @JsonSubTypes.Type(value = ForeachStepDefinition.class, name = "foreach")
 })
 @Slf4j
-public abstract class Step implements CustomStepContainer {
+public abstract class StepDefinition implements CustomStepContainer {
     @NotNull
     @Builder.Default
     @Valid
@@ -52,11 +52,11 @@ public abstract class Step implements CustomStepContainer {
 
     @Singular
     @Valid
-    private final List<Step> steps = new ArrayList<>();
+    private final List<StepDefinition> stepDefinitions = new ArrayList<>();
 
     public void validate(final String fieldPrefix, final Errors errors, final StepExecutionResolverWrapper stepExecutionResolver) {
-        for (int i = 0; i < this.steps.size(); i++) {
-            this.steps.get(i).validate(fieldPrefix + "steps[" + i + "].", errors, stepExecutionResolver);
+        for (int i = 0; i < this.stepDefinitions.size(); i++) {
+            this.stepDefinitions.get(i).validate(fieldPrefix + "steps[" + i + "].", errors, stepExecutionResolver);
         }
     }
 
@@ -104,7 +104,7 @@ public abstract class Step implements CustomStepContainer {
         responsesBuilder.entry(NestedStepResponse.Entry.builder().
                 instruction(instruction).
                 response(
-                        SessionService.buildResponseForMissingStep(instruction)
+                        Executor.buildResponseForMissingStep(instruction)
                 ).build());
         return null;
     }
