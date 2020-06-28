@@ -17,10 +17,12 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static io.stephub.runtime.model.Execution.ExecutionStatus.*;
 
@@ -128,7 +130,14 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         return CompletableFuture.completedFuture(execution);
     }
 
+    @Override
+    public List<Execution> getExecutions(final String wid) {
+        return this.store.entrySet().stream().filter(e -> e.getKey().startsWith(wid + "/")).
+                map(e -> e.getValue()).sorted((e1, e2) -> e2.getInitiatedAt().compareTo(e1.getInitiatedAt())).
+                collect(Collectors.toList());
+    }
+
     private String getStoreId(final String wid, final String execId) {
-        return wid + "-" + execId;
+        return wid + "/" + execId;
     }
 }

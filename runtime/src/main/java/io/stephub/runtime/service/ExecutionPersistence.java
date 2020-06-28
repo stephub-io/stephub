@@ -8,6 +8,7 @@ import io.stephub.runtime.model.RuntimeSession;
 import io.stephub.runtime.model.Workspace;
 import org.springframework.scheduling.annotation.Async;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface ExecutionPersistence {
@@ -19,6 +20,8 @@ public interface ExecutionPersistence {
 
     @Async
     CompletableFuture<Execution> getExecution(String wid, String execId, boolean waitForCompletion);
+
+    List<Execution> getExecutions(String wid);
 
 
     interface WithinExecutionCommand {

@@ -14,6 +14,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.io.IOException;
+import java.util.List;
 
 @RestController
 @Slf4j
@@ -30,6 +31,13 @@ public class ExecutionController {
                                final HttpServletResponse response) throws IOException {
         final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
         response.sendRedirect("./" + execution.getId() + "?waitForCompletion=true");
+    }
+
+    @GetMapping("/workspaces/{wid}/executions")
+    @ResponseBody
+    public List<Execution> getExecutions(@ModelAttribute final Context ctx,
+                                         @PathVariable("wid") final String wid) {
+        return this.executionPersistence.getExecutions(wid);
     }
 
     @GetMapping("/workspaces/{wid}/executions/{execId}")
