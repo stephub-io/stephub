@@ -16,7 +16,7 @@ import static io.stephub.provider.api.util.Patterns.ID_PATTERN_STR;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@EqualsAndHashCode(of = {"id", "workspace"})
+@EqualsAndHashCode(of = {"id"})
 @ToString(of = {"id", "status"})
 @Builder
 public class RuntimeSession {
@@ -33,8 +33,6 @@ public class RuntimeSession {
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private String id;
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
-    private Workspace workspace;
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     private SessionStatus status;
@@ -52,5 +50,17 @@ public class RuntimeSession {
     public static class SessionSettings {
         @NotNull
         private Map<@Pattern(regexp = ID_PATTERN_STR) String, Json> variables = new HashMap<>();
+
+        public static enum ParallelizationMode {
+            FEATURE, SCENARIO;
+
+            @Override
+            @JsonValue
+            public String toString() {
+                return this.name().toLowerCase();
+            }
+        }
+
+        private ParallelizationMode parallelizationMode = ParallelizationMode.SCENARIO;
     }
 }

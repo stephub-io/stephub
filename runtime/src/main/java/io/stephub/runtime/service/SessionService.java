@@ -39,7 +39,7 @@ public abstract class SessionService {
     private ExecutionPersistence executionPersistence;
 
     @Autowired
-    private WorkspaceService workspaceService;
+    protected WorkspaceService workspaceService;
 
     @Autowired
     private WorkspaceValidator workspaceValidator;
@@ -95,16 +95,16 @@ public abstract class SessionService {
     }
 
     public interface WithinSessionExecutor {
-        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
+        void execute(Workspace workspace, RuntimeSession session, SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
     }
 
     protected interface WithinSessionExecutorInternal {
-        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, AttributesContext attributesContext);
+        void execute(Workspace workspace, RuntimeSession session, SessionExecutionContext sessionExecutionContext, AttributesContext attributesContext);
     }
 
     protected void executeWithinSession(final String wid, final String sid, final WithinSessionExecutor executor) {
-        this.executeWithinSessionInternal(wid, sid, (session, sessionExecutionContext, attributesContext) ->
-                executor.execute(session, sessionExecutionContext, new EvaluationContext() {
+        this.executeWithinSessionInternal(wid, sid, (workspace, session, sessionExecutionContext, attributesContext) ->
+                executor.execute(workspace, session, sessionExecutionContext, new EvaluationContext() {
                     @Override
                     public Json get(final String key) {
                         return attributesContext.get(key);
@@ -135,14 +135,15 @@ public abstract class SessionService {
     }
 
     public final Execution startExecution(final Context ctx, final String wid, final String sid, final ExecutionInstruction instruction) {
+        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
         final RuntimeSession session = this.getSession(ctx, wid, sid);
         if (session.getStatus() == INACTIVE) {
             throw new ExecutionException("Session isn't active with id=" + sid);
         }
-        final Execution execution = this.executionPersistence.initExecution(session.getWorkspace(), instruction, null);
+        final Execution execution = this.executionPersistence.initExecution(workspace, instruction, new RuntimeSession.SessionSettings());
         final JobKey jobKey = JobKey.jobKey(wid + "-" + sid, "executions");
         final JobDetail job = JobBuilder.newJob(SessionExecutionJob.class).withIdentity(jobKey).
-                usingJobData(SessionExecutionJob.createJobDataMap(session, execution)).
+                usingJobData(SessionExecutionJob.createJobDataMap(workspace, session, execution)).
                 build();
         try {
             this.scheduler.scheduleJob(job, Collections.singleton(
@@ -157,14 +158,14 @@ public abstract class SessionService {
     }
 
     public final void execute(final String wid, final String sid, final String execId) {
-        this.executeWithinSession(wid, sid, (session, sessionExecutionContext, evaluationContext) -> {
+        this.executeWithinSession(wid, sid, (workspace, session, sessionExecutionContext, evaluationContext) -> {
                     this.executionPersistence.processPendingExecutionItems(wid, execId,
                             (item, resultCollector) -> {
                                 if (session.getStatus() == INACTIVE) {
                                     throw new ExecutionException("Session isn't active with id=" + sid);
                                 }
                                 log.debug("Execute {} within session={}", item, session);
-                                this.executorDelegate.execute(session.getWorkspace(), item, sessionExecutionContext, evaluationContext, resultCollector);
+                                this.executorDelegate.execute(workspace, item, sessionExecutionContext, evaluationContext, resultCollector);
                             });
                 }
         );
@@ -185,10 +186,10 @@ public abstract class SessionService {
             this.sessionService.execute(wid, sid, execId);
         }
 
-        private static JobDataMap createJobDataMap(final RuntimeSession session, final Execution execution) {
+        private static JobDataMap createJobDataMap(final Workspace workspace, final RuntimeSession session, final Execution execution) {
             final JobDataMap dataMap = new JobDataMap();
             dataMap.put("sid", session.getId());
-            dataMap.put("wid", session.getWorkspace().getId());
+            dataMap.put("wid", workspace.getId());
             dataMap.put("execId", execution.getId());
             return dataMap;
         }

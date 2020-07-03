@@ -30,7 +30,7 @@ public class ExecutionController {
                                @RequestBody @Valid final Execution.ExecutionStart executionStart,
                                final HttpServletResponse response) throws IOException {
         final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
-        response.sendRedirect("./" + execution.getId() + "?waitForCompletion=true");
+        response.sendRedirect("./executions/" + execution.getId() + "?waitForCompletion=true");
     }
 
     @GetMapping("/workspaces/{wid}/executions")

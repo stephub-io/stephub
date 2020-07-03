@@ -33,5 +33,9 @@ public class MemoryWorkspaceService implements WorkspaceService {
         return workspace;
     }
 
+    @Override
+    public Workspace getWorkspaceInternal(final String wid) {
+        return this.getWorkspace(null, wid);
+    }
 
 }

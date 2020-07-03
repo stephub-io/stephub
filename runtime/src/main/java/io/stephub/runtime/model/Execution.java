@@ -1,9 +1,6 @@
 package io.stephub.runtime.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonSubTypes;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonValue;
+import com.fasterxml.jackson.annotation.*;
 import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import lombok.*;
@@ -21,10 +18,10 @@ import static io.stephub.runtime.model.Execution.ExecutionStatus.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
+@SuperBuilder
 @EqualsAndHashCode(of = "id")
 @ToString(of = "id")
-public class Execution {
+public abstract class Execution {
     public enum ExecutionStatus {
         INITIATED, EXECUTING, COMPLETED;
 
@@ -59,25 +56,35 @@ public class Execution {
     private boolean erroneous;
     private String errorMessage;
 
+    public abstract int getMaxParallelizationCount();
+
 
     @JsonTypeInfo(
             use = JsonTypeInfo.Id.NAME,
             include = JsonTypeInfo.As.PROPERTY,
             property = "type")
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = StepExecutionItem.class, name = "step")
+            @JsonSubTypes.Type(value = StepExecutionItem.class, name = "step"),
+            @JsonSubTypes.Type(value = FeatureExecutionItem.class, name = "feature"),
+            @JsonSubTypes.Type(value = ScenarioExecutionItem.class, name = "scenario")
     })
-    public interface ExecutionItem {
-        ExecutionStatus getStatus();
+    @SuperBuilder
+    @Data
+    @NoArgsConstructor
+    public static abstract class ExecutionItem {
+        private boolean erroneous;
+        private String errorMessage;
+
+        public abstract ExecutionStatus getStatus();
     }
 
     @NoArgsConstructor
     @AllArgsConstructor
     @SuperBuilder
     @Data
-    @EqualsAndHashCode(of = "id")
+    @EqualsAndHashCode(of = "id", callSuper = false)
     @ToString(of = "id")
-    public static class StepExecutionItem implements ExecutionItem {
+    public static class StepExecutionItem extends ExecutionItem {
         @Builder.Default
         private String id = UUID.randomUUID().toString();
         @Builder.Default
@@ -91,7 +98,7 @@ public class Execution {
     @SuperBuilder
     @Data
     @ToString(of = "name")
-    public static class FeatureExecutionItem implements ExecutionItem {
+    public static class FeatureExecutionItem extends ExecutionItem {
         private String name;
         private List<ScenarioExecutionItem> scenarios;
 
@@ -119,21 +126,23 @@ public class Execution {
     @SuperBuilder
     @Data
     @ToString(of = "name")
-    public static class ScenarioExecutionItem implements ExecutionItem {
+    public static class ScenarioExecutionItem extends ExecutionItem {
         private String name;
         @Singular
         private List<StepExecutionItem> steps = new ArrayList<>();
 
-        private List<FixtureExecutionItem> beforeFixtures = new ArrayList<>();
+        @Builder.Default
+        private List<FixtureExecutionWrapper> beforeFixtures = new ArrayList<>();
 
-        private List<FixtureExecutionItem> afterFixtures = new ArrayList<>();
+        @Builder.Default
+        private List<FixtureExecutionWrapper> afterFixtures = new ArrayList<>();
 
         @Override
         public ExecutionStatus getStatus() {
             final List<ExecutionStatus> statusList = new ArrayList<>();
-            statusList.addAll(this.beforeFixtures.stream().map(f -> f.getStatus()).collect(Collectors.toList()));
-            statusList.addAll(this.steps.stream().map(s -> this.getStatus()).collect(Collectors.toList()));
-            statusList.addAll(this.afterFixtures.stream().map(f -> f.getStatus()).collect(Collectors.toList()));
+            statusList.addAll(this.beforeFixtures.stream().map(FixtureExecutionWrapper::getStatus).collect(Collectors.toList()));
+            statusList.addAll(this.steps.stream().map(StepExecutionItem::getStatus).collect(Collectors.toList()));
+            statusList.addAll(this.afterFixtures.stream().map(FixtureExecutionWrapper::getStatus).collect(Collectors.toList()));
             return FeatureExecutionItem.getAggregatedStatus(statusList);
         }
     }
@@ -143,11 +152,11 @@ public class Execution {
     @SuperBuilder
     @Data
     @ToString(of = "name")
-    public static class FixtureExecutionItem implements ExecutionItem {
+    public static class FixtureExecutionWrapper {
         private String name;
         private List<StepExecutionItem> steps = new ArrayList<>();
 
-        @Override
+        @JsonProperty
         public ExecutionStatus getStatus() {
             return FeatureExecutionItem.getAggregatedStatus(
                     this.steps.stream().map(s -> s.getStatus()).collect(Collectors.toList())
@@ -164,6 +173,6 @@ public class Execution {
         @Valid
         private RuntimeSession.SessionSettings sessionSettings;
         @Min(1)
-        private final int parallelSessionCount = 1;
+        private int parallelSessionCount = 1;
     }
 }

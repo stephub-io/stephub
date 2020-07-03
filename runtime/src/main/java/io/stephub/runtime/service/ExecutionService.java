@@ -44,11 +44,12 @@ public class ExecutionService {
         }
         this.sessionService.setUpAttributes(workspace, executionStart.getSessionSettings());
         final Execution execution = this.executionPersistence.initExecution(workspace, executionStart.getInstruction(), executionStart.getSessionSettings());
-        final int sessionCount = Math.min(execution.getBacklog().size(), executionStart.getParallelSessionCount());
-        for (int i = 0; i < sessionCount; i++) {
+        final int parallelizationCount = Math.min(execution.getMaxParallelizationCount(), executionStart.getParallelSessionCount());
+        log.debug("Initializing {} parallel jobs for executing {}", parallelizationCount, execution);
+        for (int i = 0; i < parallelizationCount; i++) {
             final JobKey jobKey = JobKey.jobKey(execution.getId() + "-" + i, "executions");
-            final JobDetail job = JobBuilder.newJob(SessionExecutionJob.class).withIdentity(jobKey).
-                    usingJobData(SessionExecutionJob.createJobDataMap(workspace, execution)).
+            final JobDetail job = JobBuilder.newJob(ParallelExecutionJob.class).withIdentity(jobKey).
+                    usingJobData(ParallelExecutionJob.createJobDataMap(workspace, execution)).
                     build();
             try {
                 this.scheduler.scheduleJob(job, Collections.singleton(
@@ -63,9 +64,9 @@ public class ExecutionService {
 
     private void doExecution(final String wid, final String execId) {
         final Execution execution = this.executionPersistence.getExecution(wid, execId);
-        final Workspace workspace = this.workspaceService.getWorkspace(null, wid); // TODO
+        final Workspace workspace = this.workspaceService.getWorkspaceInternal(wid);
         this.sessionService.doWithinSession(workspace, execution.getSessionSettings(),
-                (session, sessionExecutionContext, evaluationContext) ->
+                (workspace1, session, sessionExecutionContext, evaluationContext) ->
                         this.executionPersistence.processPendingExecutionItems(wid, execId, (executionItem, resultCollector) ->
                         {
                             log.debug("Execute item={} of execution={} within session={}", executionItem, execution, session);
@@ -74,9 +75,8 @@ public class ExecutionService {
         );
     }
 
-    @DisallowConcurrentExecution
     @Slf4j
-    public static class SessionExecutionJob implements Job {
+    public static class ParallelExecutionJob implements Job {
         @Autowired
         private ExecutionService executionService;
 

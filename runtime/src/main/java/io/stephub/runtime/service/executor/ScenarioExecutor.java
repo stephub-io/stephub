@@ -33,8 +33,8 @@ public class ScenarioExecutor extends Executor<Execution.ScenarioExecutionItem> 
     }
 
 
-    private boolean executeFixtures(final Execution.ScenarioExecutionItem scenario, final List<Execution.FixtureExecutionItem> fixtures, final Workspace workspace, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final ExecutionPersistence.StepExecutionFacade stepExecutionFacade) {
-        for (final Execution.FixtureExecutionItem fixture : fixtures) {
+    private boolean executeFixtures(final Execution.ScenarioExecutionItem scenario, final List<Execution.FixtureExecutionWrapper> fixtures, final Workspace workspace, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final ExecutionPersistence.StepExecutionFacade stepExecutionFacade) {
+        for (final Execution.FixtureExecutionWrapper fixture : fixtures) {
             for (final Execution.StepExecutionItem step : fixture.getSteps()) {
                 if (!this.executeStepItem(step, workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
                     log.debug("Cancel further execution of scenario={} due to faulty step={} in fixture={} in workspace={}", scenario, step, fixture, workspace);

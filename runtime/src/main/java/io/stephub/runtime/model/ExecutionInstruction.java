@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
         property = "type")
 @JsonSubTypes({
         @JsonSubTypes.Type(value = ExecutionInstruction.StepExecutionInstruction.class, name = "step"),
-        @JsonSubTypes.Type(value = ExecutionInstruction.ScenarioExecutionInstruction.class, name = "scenario")
+        @JsonSubTypes.Type(value = ExecutionInstruction.ScenariosExecutionInstruction.class, name = "scenarios")
 })
 public abstract class ExecutionInstruction {
 
@@ -46,7 +46,7 @@ public abstract class ExecutionInstruction {
     @EqualsAndHashCode(callSuper = true)
     @Data
     @NoArgsConstructor
-    public static class ScenarioExecutionInstruction extends ExecutionInstruction {
+    public static class ScenariosExecutionInstruction extends ExecutionInstruction {
         @NotNull
         private ScenarioFilter filter = new AllScenarioFilter();
 
@@ -77,9 +77,11 @@ public abstract class ExecutionInstruction {
 
         private ScenarioExecutionItem buildScenarioItem(final Feature feature, final Scenario scenario) {
             final ScenarioExecutionItemBuilder<?, ?> builder = ScenarioExecutionItem.builder().name(scenario.getName());
-            feature.getBackground().getSteps().forEach(step -> builder.step(
-                    StepExecutionItem.builder().instruction(step).build()
-            ));
+            if (feature.getBackground()!=null) {
+                feature.getBackground().getSteps().forEach(step -> builder.step(
+                        StepExecutionItem.builder().instruction(step).build()
+                ));
+            }
             scenario.getSteps().forEach(step -> builder.step(
                     StepExecutionItem.builder().instruction(step).build()
             ));

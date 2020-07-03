@@ -13,11 +13,11 @@ import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static io.stephub.runtime.model.RuntimeSession.SessionStatus.ACTIVE;
 import static io.stephub.runtime.model.RuntimeSession.SessionStatus.INACTIVE;
@@ -39,17 +39,18 @@ public class MemorySessionService extends SessionService {
 
     @Override
     public List<RuntimeSession> getSessions(final Context ctx, final String wid) {
-        return new ArrayList<>(this.sessionStore.values());
+        return this.sessionStore.entrySet().stream().
+                filter(entry -> entry.getKey().startsWith(wid + "/")).map(Map.Entry::getValue).
+                collect(Collectors.toList());
     }
 
     @Override
     public RuntimeSession startSession(final Workspace workspace, final SessionSettings sessionSettings, final Map<String, Json> attributes) {
         final RuntimeSession session = RuntimeSession.builder().id(UUID.randomUUID().toString()).
-                workspace(workspace).
                 status(ACTIVE).
                 attributes(attributes).
                 build();
-        this.sessionStore.put(session.getId(), session);
+        this.sessionStore.put(workspace.getId() + "/" + session.getId(), session);
         log.info("Started session={}", session);
         return session;
     }
@@ -73,7 +74,8 @@ public class MemorySessionService extends SessionService {
     @Override
     public void executeWithinSessionInternal(final String wid, final String sid, final WithinSessionExecutorInternal executor) {
         final RuntimeSession session = this.getSessionSafe(wid, sid);
-        executor.execute(session,
+        final Workspace workspace = this.workspaceService.getWorkspaceInternal(wid);
+        executor.execute(workspace, session,
                 new SessionExecutionContext() {
                     @Override
                     public void setProviderSession(final String providerName, final String sid) {
@@ -100,8 +102,8 @@ public class MemorySessionService extends SessionService {
     }
 
     private RuntimeSession getSessionSafe(final String wid, final String sid) {
-        final RuntimeSession session = this.sessionStore.get(sid);
-        if (session == null || !session.getWorkspace().getId().equals(wid)) {
+        final RuntimeSession session = this.sessionStore.get(wid + "/" + sid);
+        if (session == null) {
             throw new ResourceNotFoundException("Session doesn't exist or is invalid for id=" + sid + " and workspace=" + wid);
         }
         return session;

@@ -1,13 +1,16 @@
 package io.stephub.runtime.service.support;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.runtime.model.Execution;
 import io.stephub.runtime.model.ExecutionInstruction;
 import io.stephub.runtime.model.RuntimeSession;
+import io.stephub.runtime.model.RuntimeSession.SessionSettings.ParallelizationMode;
 import io.stephub.runtime.model.Workspace;
 import io.stephub.runtime.service.ExecutionPersistence;
 import io.stephub.runtime.service.exception.ExecutionException;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
@@ -16,10 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -35,7 +35,19 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Value("${io.stephub.execution.memory.store.expirationDays}")
     private int expirationDays;
 
-    private ExpiringMap<String, Execution> store;
+    private ExpiringMap<String, MemoryExecution> store;
+
+    @SuperBuilder
+    private static class MemoryExecution extends Execution {
+        @JsonIgnore
+        private final Queue<ExecutionItem> pendingItems;
+
+        @Override
+        @JsonIgnore
+        public int getMaxParallelizationCount() {
+            return this.pendingItems.size();
+        }
+    }
 
     @PostConstruct
     public void setUp() {
@@ -48,30 +60,45 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     @Override
     public Execution initExecution(final Workspace workspace, final ExecutionInstruction instruction, final RuntimeSession.SessionSettings sessionSettings) {
-        final Execution execution = Execution.builder().
+        final List<Execution.ExecutionItem> executionItems = instruction.buildItems(workspace);
+        final Queue<Execution.ExecutionItem> pendingItems = new LinkedList<>();
+        if (sessionSettings.getParallelizationMode() == ParallelizationMode.SCENARIO) {
+            for (final Execution.ExecutionItem item : executionItems) {
+                if (item instanceof Execution.FeatureExecutionItem) {
+                    pendingItems.addAll(((Execution.FeatureExecutionItem) item).getScenarios());
+                } else {
+                    pendingItems.add(item);
+                }
+            }
+        } else {
+            pendingItems.addAll(executionItems);
+        }
+        final MemoryExecution execution = MemoryExecution.builder().
                 instruction(instruction).
                 id(UUID.randomUUID().toString()).
                 sessionSettings(sessionSettings).
                 initiatedAt(new Date()).
-                backlog(instruction.buildItems(workspace)).
+                backlog(executionItems).
+                pendingItems(pendingItems).
                 build();
         this.store.put(this.getStoreId(workspace.getId(), execution.getId()), execution);
         return execution;
     }
 
-    private Execution.ExecutionItem doLifecycleAndGetNext(final Execution execution) {
+    private Execution.ExecutionItem doLifecycleAndGetNext(final MemoryExecution execution) {
         synchronized (execution) {
             if (execution.getStatus() == INITIATED) {
                 log.debug("Execution={} started", execution);
                 execution.setStatus(EXECUTING);
                 execution.setStartedAt(new Date());
             }
-            final Optional<Execution.ExecutionItem> next = execution.getBacklog().stream().
-                    filter((executionItem -> executionItem.getStatus() == INITIATED)).
-                    findFirst();
-            if (next.isPresent()) {
-                log.debug("Next item={} in execution={}", next.get(), execution);
-                return next.get();
+            final Execution.ExecutionItem next = execution.pendingItems.poll();
+            if (next != null) {
+                log.debug("Next item={} in execution={}", next, execution);
+                return next;
+            }
+            if (execution.getBacklog().stream().anyMatch(item -> item.getStatus() != COMPLETED)) {
+                return null;
             }
             execution.setStatus(COMPLETED);
             execution.setCompletedAt(new Date());
@@ -83,21 +110,27 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     @Override
     public void processPendingExecutionItems(final String wid, final String execId, final WithinExecutionCommand command) {
-        final Execution execution = this.getSafeExecution(wid, execId);
+        final MemoryExecution execution = this.getSafeExecution(wid, execId);
         Execution.ExecutionItem executionItem;
         while ((executionItem = this.doLifecycleAndGetNext(execution)) != null) {
-            command.execute(executionItem, (item, stepCommand) -> {
-                item.setStatus(EXECUTING);
-                log.debug("Starting execution of step item={} of execution={}", item, execution);
-                try {
-                    final StepResponse<Json> response = stepCommand.execute();
-                    item.setResponse(response);
-                    return response;
-                } finally {
-                    item.setStatus(COMPLETED);
-                    log.debug("Completed execution of step item={} of execution={}", item, execution);
-                }
-            });
+            try {
+                command.execute(executionItem, (item, stepCommand) -> {
+                    item.setStatus(EXECUTING);
+                    log.debug("Starting execution of step item={} of execution={}", item, execution);
+                    try {
+                        final StepResponse<Json> response = stepCommand.execute();
+                        item.setResponse(response);
+                        return response;
+                    } finally {
+                        item.setStatus(COMPLETED);
+                        log.debug("Completed execution of step item={} of execution={}", item, execution);
+                    }
+                });
+            } catch (final Exception e) {
+                log.warn("Failed to proceed execution item={} on workspace={} and execution={}", executionItem, wid, execId, e);
+                executionItem.setErroneous(true);
+                executionItem.setErrorMessage("Failed to proceed execution due to: " + e.getMessage());
+            }
         }
     }
 
@@ -107,8 +140,8 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @NotNull
-    private Execution getSafeExecution(final String wid, final String execId) {
-        final Execution execution = this.store.get(this.getStoreId(wid, execId));
+    private MemoryExecution getSafeExecution(final String wid, final String execId) {
+        final MemoryExecution execution = this.store.get(this.getStoreId(wid, execId));
         if (execution == null) {
             throw new ExecutionException("No execution with id=" + execId + " and workspace=" + wid + " found");
         }
