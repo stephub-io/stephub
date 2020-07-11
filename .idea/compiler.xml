@@ -7,15 +7,18 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="runtime" />
-        <module name="providers.base" />
-        <module name="expression" />
         <module name="json" />
-        <module name="providers.remote-client" />
+        <module name="server.api" />
+        <module name="providers.base" />
+        <module name="cli" />
+        <module name="expression" />
         <module name="providers.remote" />
+        <module name="server.app" />
+        <module name="providers.remote-client" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="cli" target="10" />
       <module name="cucumberform" target="10" />
       <module name="expression" target="10" />
       <module name="json" target="10" />
@@ -27,7 +30,9 @@
       <module name="providers.remote-client" target="1.8" />
       <module name="providers.util" target="10" />
       <module name="providers.wiremock" target="10" />
-      <module name="runtime" target="10" />
+      <module name="server" target="10" />
+      <module name="server.api" target="10" />
+      <module name="server.app" target="10" />
     </bytecodeTargetLevel>
   </component>
 </project>

@@ -2,15 +2,16 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/cucumberform.iml" filepath="$PROJECT_DIR$/cucumberform.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cli/cli.iml" filepath="$PROJECT_DIR$/cli/cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/expression/expression.iml" filepath="$PROJECT_DIR$/expression/expression.iml" />
       <module fileurl="file://$PROJECT_DIR$/json/json.iml" filepath="$PROJECT_DIR$/json/json.iml" />
       <module fileurl="file://$PROJECT_DIR$/parent.iml" filepath="$PROJECT_DIR$/parent.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/providers.iml" filepath="$PROJECT_DIR$/providers/providers.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/base/providers.base.iml" filepath="$PROJECT_DIR$/providers/base/providers.base.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/remote/providers.remote.iml" filepath="$PROJECT_DIR$/providers/remote/providers.remote.iml" />
-      <module fileurl="file://$PROJECT_DIR$/providers/remote/target/generated-sources/openapi/providers.remote-client.iml" filepath="$PROJECT_DIR$/providers/remote/target/generated-sources/openapi/providers.remote-client.iml" />
-      <module fileurl="file://$PROJECT_DIR$/runtime/runtime.iml" filepath="$PROJECT_DIR$/runtime/runtime.iml" />
+      <module fileurl="file://$PROJECT_DIR$/server/server.iml" filepath="$PROJECT_DIR$/server/server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/server/api/server.api.iml" filepath="$PROJECT_DIR$/server/api/server.api.iml" />
+      <module fileurl="file://$PROJECT_DIR$/server/app/server.app.iml" filepath="$PROJECT_DIR$/server/app/server.app.iml" />
     </modules>
   </component>
 </project>

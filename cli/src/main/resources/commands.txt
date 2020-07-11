@@ -1,0 +1,3 @@
+stepctl execute -w abc
+
+stepctl import -w abc -f *.yml

@@ -1,0 +1,12 @@
+version: '1'
+providers:
+
+features:
+  scenarios:
+    - type: inline
+      name: Scene 1
+      steps:
+        - Given I do something
+        - Then I expect something
+    - type: file
+      file: ./scenene1.feature

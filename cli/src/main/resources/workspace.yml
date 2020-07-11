@@ -1,0 +1,27 @@
+version: '1'
+name: "abc"
+providers:
+  - name: rest-api
+    version: "> 1.0"
+    baseUrl: http://localhost:8080
+
+
+stepDefinitions:
+  - type: basic
+    spec:
+      pattern: My step
+    steps:
+      - Given I do something
+      - Then I expect something
+
+features:
+  - name: Feature 1
+    scenarios:
+      - type: inline
+        name: Scene 1
+        steps:
+          - Given I do something
+          - Then I expect something
+  - type: from-files
+    files:
+      - ./scenene1.feature

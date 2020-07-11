@@ -26,7 +26,8 @@
         <module>json</module>
         <module>expression</module>
         <module>providers</module>
-        <module>runtime</module>
+        <module>server</module>
+        <module>cli</module>
     </modules>
 
     <repositories>
