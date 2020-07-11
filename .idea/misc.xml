@@ -7,10 +7,10 @@
         <option value="$PROJECT_DIR$/json/pom.xml" />
         <option value="$PROJECT_DIR$/expression/pom.xml" />
         <option value="$PROJECT_DIR$/providers/pom.xml" />
-        <option value="$PROJECT_DIR$/runtime/pom.xml" />
         <option value="$PROJECT_DIR$/providers/base/pom.xml" />
         <option value="$PROJECT_DIR$/providers/remote/pom.xml" />
         <option value="$PROJECT_DIR$/server/app/pom.xml" />
+        <option value="$PROJECT_DIR$/server/api/pom.xml" />
       </list>
     </option>
   </component>
