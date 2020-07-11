@@ -14,7 +14,6 @@
         <module name="expression" />
         <module name="providers.remote" />
         <module name="server.app" />
-        <module name="providers.remote-client" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
@@ -27,8 +26,6 @@
       <module name="providers" target="10" />
       <module name="providers.base" target="10" />
       <module name="providers.remote" target="10" />
-      <module name="providers.remote-client" target="1.8" />
-      <module name="providers.util" target="10" />
       <module name="providers.wiremock" target="10" />
       <module name="server" target="10" />
       <module name="server.api" target="10" />

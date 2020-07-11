@@ -10,6 +10,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="server.api" />
     <orderEntry type="module" module-name="json" />
     <orderEntry type="library" name="Maven: com.networknt:json-schema-validator:1.0.40" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
