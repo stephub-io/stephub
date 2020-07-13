@@ -1,7 +1,7 @@
 FROM maven:3.6.2-jdk-11
 WORKDIR /workspace
 
-RUN mkdir json expression runtime providers providers/base providers/remote
+RUN mkdir json expression runtime providers providers/base providers/remote server server/api server/app
 
 COPY pom.xml ./
 COPY json/pom.xml ./json
