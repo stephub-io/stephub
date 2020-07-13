@@ -47,12 +47,12 @@ public class SessionController {
     }
 
     @PostMapping("/workspaces/{wid}/sessions/{sid}/execute")
-    public void executeWithinSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
-                                     @PathVariable("sid") final String sid,
-                                     @RequestBody @Valid final ExecutionInstruction instruction,
-                                     final HttpServletResponse response) throws IOException {
+    public Execution executeWithinSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
+                                          @PathVariable("sid") final String sid,
+                                          @RequestBody @Valid final ExecutionInstruction instruction,
+                                          final HttpServletResponse response) throws IOException {
         final Execution execution = this.sessionService.startExecution(ctx, wid, sid, instruction);
-        response.sendRedirect("../../executions/" + execution.getId() + "?waitForCompletion=true");
+        return execution;
     }
 
     @DeleteMapping("/workspaces/{wid}/sessions/{sid}")

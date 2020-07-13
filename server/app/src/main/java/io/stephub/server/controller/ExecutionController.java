@@ -26,11 +26,11 @@ public class ExecutionController {
     private ExecutionService executionService;
 
     @PostMapping("/workspaces/{wid}/executions")
-    public void startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
+    public Execution startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                                @RequestBody @Valid final Execution.ExecutionStart executionStart,
                                final HttpServletResponse response) throws IOException {
         final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
-        response.sendRedirect("./executions/" + execution.getId() + "?waitForCompletion=true");
+        return execution;
     }
 
     @GetMapping("/workspaces/{wid}/executions")

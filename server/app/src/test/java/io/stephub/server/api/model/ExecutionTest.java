@@ -17,7 +17,7 @@ class ExecutionTest {
     public void testFeatureStatusAggregation() throws JsonProcessingException {
         final Execution.FeatureExecutionItem feature = Execution.FeatureExecutionItem.builder().name("F1").scenarios(
                 Collections.singletonList(Execution.ScenarioExecutionItem.builder().name("S1").
-                        step(Execution.StepExecutionItem.builder().instruction("Hello").status(COMPLETED).build()).build())
+                        step(Execution.StepExecutionItem.builder().step("Hello").status(COMPLETED).build()).build())
         ).build();
         assertThat(feature.getStatus(), CoreMatchers.equalTo(COMPLETED));
     }

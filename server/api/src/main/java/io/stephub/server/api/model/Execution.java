@@ -56,6 +56,7 @@ public abstract class Execution {
     private boolean erroneous;
     private String errorMessage;
 
+    @JsonIgnore
     public abstract int getMaxParallelizationCount();
 
 
@@ -89,7 +90,7 @@ public abstract class Execution {
         private String id = UUID.randomUUID().toString();
         @Builder.Default
         private ExecutionStatus status = ExecutionStatus.INITIATED;
-        private String instruction;
+        private String step;
         private StepResponse<Json> response;
     }
 
@@ -167,12 +168,17 @@ public abstract class Execution {
     @NoArgsConstructor
     @Data
     @EqualsAndHashCode
+    @Builder
+    @AllArgsConstructor
     public static class ExecutionStart {
         @Valid
+        @NotNull
         private ExecutionInstruction instruction;
         @Valid
-        private RuntimeSession.SessionSettings sessionSettings;
+        @Builder.Default
+        private RuntimeSession.SessionSettings sessionSettings = new RuntimeSession.SessionSettings();
         @Min(1)
+        @Builder.Default
         private int parallelSessionCount = 1;
     }
 }

@@ -10,7 +10,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="server.api" />
     <orderEntry type="module" module-name="json" />
     <orderEntry type="library" name="Maven: com.networknt:json-schema-validator:1.0.40" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
@@ -46,6 +45,13 @@
     <orderEntry type="library" name="Maven: org.jetbrains.kotlin:kotlin-stdlib:1.3.71" level="project" />
     <orderEntry type="library" name="Maven: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" name="Maven: com.squareup.okhttp3:logging-interceptor:3.14.7" level="project" />
+    <orderEntry type="library" name="Maven: org.awaitility:awaitility:4.0.3" level="project" />
+    <orderEntry type="library" name="Maven: org.hamcrest:hamcrest:2.1" level="project" />
+    <orderEntry type="library" name="Maven: me.tongfei:progressbar:0.8.1" level="project" />
+    <orderEntry type="library" name="Maven: org.jline:jline:3.13.3" level="project" />
+    <orderEntry type="library" name="Maven: org.jline:jline-terminal-jansi:3.13.3" level="project" />
+    <orderEntry type="library" name="Maven: org.fusesource.jansi:jansi:1.18" level="project" />
+    <orderEntry type="library" name="Maven: org.jline:jline-terminal:3.13.3" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
@@ -79,7 +85,6 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.junit.jupiter:junit-jupiter-params:5.5.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.mockito:mockito-junit-jupiter:3.1.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.assertj:assertj-core:3.13.2" level="project" />
-    <orderEntry type="library" scope="TEST" name="Maven: org.hamcrest:hamcrest:2.1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.skyscreamer:jsonassert:1.5.0" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.vaadin.external.google:android-json:0.0.20131108.vaadin1" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.xmlunit:xmlunit-core:2.6.4" level="project" />

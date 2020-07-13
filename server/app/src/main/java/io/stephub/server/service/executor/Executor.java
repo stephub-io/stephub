@@ -26,7 +26,7 @@ public abstract class Executor<I extends Execution.ExecutionItem> {
     protected boolean executeStepItem(final Execution.StepExecutionItem stepItem, final Workspace workspace, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final ExecutionPersistence.StepExecutionFacade stepExecutionFacade) {
         final StepResponse<Json> response = stepExecutionFacade.doStep(stepItem, () -> {
             try {
-                final String stepInstruction = stepItem.getInstruction();
+                final String stepInstruction = stepItem.getStep();
                 final StepExecution stepExecution = this.stepExecutionResolver.resolveStepExecution(stepInstruction, workspace);
                 if (stepExecution == null) {
                     return buildResponseForMissingStep(stepInstruction);

@@ -25,7 +25,7 @@ public class WorkspaceClient {
     private ObjectMapper objectMapper;
 
     public Workspace findWorkspace(final ServerContext serverContext, final String workspace) {
-        log.debug("Resolving workspace={} from {}", workspace, serverContext);
+        log.info("Resolving workspace={} from {}", workspace, serverContext);
         final OkHttpClient client = this.httpClientBuilder.build();
         final Request request = new Request.Builder()
                 .get()
@@ -42,7 +42,9 @@ public class WorkspaceClient {
                 if (result.getItems().size() != 1) {
                     throw new WorkspaceNotFoundException(workspace, result);
                 }
-                return result.getItems().get(0);
+                final Workspace resolvedWorkspace = result.getItems().get(0);
+                log.info("Resolved workspace={} under id={}", workspace, resolvedWorkspace.getId());
+                return resolvedWorkspace;
             } else {
                 throw new RemoteException("Received unexpected HTTP status code (" + response.code() + ") for " + serverContext);
             }
