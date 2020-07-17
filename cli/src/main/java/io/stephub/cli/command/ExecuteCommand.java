@@ -1,7 +1,9 @@
 package io.stephub.cli.command;
 
+import com.jakewharton.fliptables.FlipTableConverters;
 import io.stephub.cli.client.ExecutionClient;
 import io.stephub.cli.client.WorkspaceClient;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.ExecutionInstruction;
 import io.stephub.server.api.model.Workspace;
@@ -13,7 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static io.stephub.server.api.model.Execution.ExecutionStatus.COMPLETED;
@@ -37,6 +41,19 @@ public class ExecuteCommand {
 
         @CommandLine.Option(names = {"-w", "--workspace"}, description = "Workspace name or id", required = true)
         protected String workspace;
+
+        protected static String formatDuration(final Duration duration) {
+            final long seconds = duration.getSeconds();
+            final long absSeconds = Math.abs(seconds);
+            final String positive = String.format(
+                    "%d:%02d:%02d.%03d",
+                    absSeconds / 3600,
+                    (absSeconds % 3600) / 60,
+                    absSeconds % 60,
+                    TimeUnit.MILLISECONDS.convert(duration.getNano(), TimeUnit.NANOSECONDS));
+            return seconds < 0 ? "-" + positive : positive;
+        }
+
     }
 
     @Component
@@ -77,7 +94,44 @@ public class ExecuteCommand {
                         count());
                 progressBar.get().close();
             }
-            log.info("Execution completed with following results: {}", execution);
+            if (execution.isErroneous()) {
+                log.error("Execution failed: {}\n{}", execution.getErrorMessage(), this.formatResult(execution));
+            } else {
+                log.info("Execution completed successfully\n{}", this.formatResult(execution));
+            }
+        }
+
+        private String formatResult(final Execution execution) {
+            final String[] headers = {"Step", "Execution", "Status", "Duration"};
+            final int c = execution.getBacklog().size();
+            final String[][] data = new String[c][];
+            for (int i = 0; i < c; i++) {
+                final Execution.StepExecutionItem sei = (Execution.StepExecutionItem) execution.getBacklog().get(i);
+                final String eStatus;
+                if (sei.isErroneous()) {
+                    eStatus = "ERRONEOUS\n" + sei.getErrorMessage();
+                } else {
+                    eStatus = sei.getStatus().toString().toUpperCase();
+                }
+                String response = "-";
+                String duration = "-";
+                if (sei.getResponse() != null) {
+                    response = sei.getResponse().getStatus().toString().toUpperCase();
+                    if (sei.getResponse().getStatus() == StepResponse.StepStatus.ERRONEOUS) {
+                        response += "\n" + sei.getResponse().getErrorMessage();
+                    }
+                    if (sei.getResponse().getDuration() != null) {
+                        duration = formatDuration(sei.getResponse().getDuration());
+                    }
+                }
+                data[i] = new String[]{
+                        sei.getStep(),
+                        eStatus,
+                        response,
+                        duration
+                };
+            }
+            return FlipTableConverters.fromObjects(headers, data);
         }
     }
 }
