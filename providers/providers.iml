@@ -13,8 +13,8 @@
     <orderEntry type="library" name="Maven: com.networknt:json-schema-validator:1.0.40" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.jcodings:jcodings:1.0.46" level="project" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.17" level="project" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.17" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.19" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.19" level="project" />
     <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.5.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.2.5.RELEASE" level="project" />

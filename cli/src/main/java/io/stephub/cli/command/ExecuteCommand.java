@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static io.stephub.server.api.model.Execution.ExecutionStatus.COMPLETED;
 import static io.stephub.server.api.model.Execution.ExecutionStatus.INITIATED;
+import static picocli.CommandLine.Help.Visibility.ALWAYS;
 
 @Component
 @CommandLine.Command(name = "execute", mixinStandardHelpOptions = true,
@@ -41,6 +42,9 @@ public class ExecuteCommand {
 
         @CommandLine.Option(names = {"-w", "--workspace"}, description = "Workspace name or id", required = true)
         protected String workspace;
+
+        @CommandLine.Option(names = {"-n"}, description = "Number of parallel execution sessions", required = true, defaultValue = "1", showDefaultValue = ALWAYS)
+        protected int parallelSessionCount;
 
         protected static String formatDuration(final Duration duration) {
             final long seconds = duration.getSeconds();
@@ -74,7 +78,7 @@ public class ExecuteCommand {
                     Execution.ExecutionStart.builder().instruction(
                             ExecutionInstruction.StepsExecutionInstruction.builder().
                                     steps(this.steps).build()
-                    ).build(),
+                    ).parallelSessionCount(this.parallelSessionCount).build(),
                     changedExecution -> {
                         if (progressBar.get() == null) {
                             progressBar.set(new ProgressBarBuilder()

@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class UtilitySteps {
     @StepMethod(pattern = "wait for {seconds} seconds", patternType = PatternType.SIMPLE, provider = BaseProvider.class)
-    public void assertTrue(@StepArgument(name = "seconds") final JsonNumber seconds) throws InterruptedException {
+    public void wait(@StepArgument(name = "seconds") final JsonNumber seconds) throws InterruptedException {
         Thread.sleep(seconds.getValue().intValue() * 1000);
     }
 }
