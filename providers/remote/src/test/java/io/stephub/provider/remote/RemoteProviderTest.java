@@ -1,5 +1,6 @@
 package io.stephub.provider.remote;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -269,6 +270,7 @@ class RemoteProviderTest {
     @BeforeEach
     public void before() {
         this.objectMapper = createObjectMapper();
+        this.objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         this.wireMockServer = new WireMockServer(options().dynamicPort());
         this.wireMockServer.start();
         configureFor("localhost", this.wireMockServer.port());

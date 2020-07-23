@@ -15,7 +15,7 @@
     <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.jcodings:jcodings:1.0.46" level="project" />
     <orderEntry type="module" module-name="server.api" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.19" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.22" level="project" />
     <orderEntry type="module" module-name="expression" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.5.RELEASE" level="project" />
