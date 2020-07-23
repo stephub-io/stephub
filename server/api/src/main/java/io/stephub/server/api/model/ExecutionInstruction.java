@@ -48,8 +48,11 @@ public abstract class ExecutionInstruction {
     @EqualsAndHashCode(callSuper = true)
     @Data
     @NoArgsConstructor
+    @Builder
+    @AllArgsConstructor
     public static class ScenariosExecutionInstruction extends ExecutionInstruction {
         @NotNull
+        @Builder.Default
         private ScenarioFilter filter = new AllScenarioFilter();
 
         @Override

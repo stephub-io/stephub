@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.MimeTypeUtils;
 
+import javax.validation.Validation;
 import java.net.URISyntaxException;
 import java.time.Duration;
 import java.util.Collections;
@@ -235,6 +236,36 @@ class RemoteProviderTest {
         );
     }
 
+    @Test
+    public void testExecStepWithInvalidResponse() throws JsonProcessingException {
+        // Given
+        final String sid = "3x3";
+        final StepResponse<Json> givenInvalidResponse = StepResponse.<Json>builder().
+                status(PASSED).
+                duration(null). // Duration MUST not be null
+                build();
+        final String serializedResponse = this.objectMapper.writeValueAsString(givenInvalidResponse);
+        log.debug("Given response: {}", serializedResponse);
+        final String url = this.baseUrlBuilder.
+                addPathSegment("sessions").
+                addPathSegment(sid).addPathSegment("execute").build().encodedPath();
+        stubFor(post(urlEqualTo(url)).
+                willReturn(
+                        aResponse().
+                                withStatus(200).
+                                withHeader(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE).
+                                withBody(serializedResponse)
+                ));
+        final StepRequest<Json> givenRequest = StepRequest.<Json>builder().id("456").
+                build();
+
+        // Call
+        final ProviderException exception = assertThrows(ProviderException.class, () -> {
+            this.provider.execute(sid, givenRequest);
+        });
+        log.debug("Expected exception", exception);
+    }
+
     @BeforeEach
     public void before() {
         this.objectMapper = createObjectMapper();
@@ -243,7 +274,9 @@ class RemoteProviderTest {
         configureFor("localhost", this.wireMockServer.port());
         this.baseUrlBuilder = HttpUrl.parse("http://localhost:" + this.wireMockServer.port() + "/myProvider").newBuilder();
         this.provider = RemoteProvider.builder().
-                baseUrl(this.baseUrlBuilder.build().toString()).build();
+                baseUrl(this.baseUrlBuilder.build().toString()).
+                validator(Validation.buildDefaultValidatorFactory().getValidator()).
+                build();
     }
 
     @AfterEach

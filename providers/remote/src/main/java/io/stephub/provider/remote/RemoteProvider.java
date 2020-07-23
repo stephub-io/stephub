@@ -16,7 +16,11 @@ import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import java.io.IOException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.stephub.json.jackson.ObjectMapperConfigurer.createObjectMapper;
 import static org.apache.commons.lang3.Validate.notBlank;
@@ -32,6 +36,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
     private final String alias;
     @Builder.Default
     private final ObjectMapper objectMapper = createObjectMapper();
+    private final Validator validator;
 
     private HttpUrl.Builder baseUrlBuilder() {
         return HttpUrl.parse(this.baseUrl).newBuilder();
@@ -100,6 +105,10 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
             if (response.isSuccessful()) {
                 final StepResponse<Json> stepResponse = this.objectMapper.readValue(response.body().byteStream(), JsonStepResponse.class);
                 log.debug("Executed step={} within session={} with response={} at {}", stepRequest, sessionId, stepResponse, this);
+                final Set<ConstraintViolation<StepResponse<Json>>> violations = this.validator.validate(stepResponse);
+                if (violations.size() != 0) {
+                    throw new ProviderException("Received invalid response from " + this + ": " + (violations.stream().map(v -> "'" + v.getPropertyPath().toString() + "' " + v.getMessage()).collect(Collectors.joining(", "))));
+                }
                 return stepResponse;
             } else {
                 throw new ProviderException("Failed to execute step at " + this + " due to bad response (" + response.code() + ")" + (StringUtils.isNotBlank(response.message()) ? ": " + response.message() : ""));

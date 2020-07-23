@@ -63,7 +63,7 @@ public abstract class StepDefinition implements CustomStepContainer {
         final long start = System.currentTimeMillis();
         try {
             final StepResponse<Json> response = this.executeInternally(sessionExecutionContext, evaluationContext, stepExecutionResolver, expressionEvaluator);
-            if (response.getDuration() == null) {
+            if (response.getDuration() == Duration.ZERO) {
                 response.setDuration(Duration.ofMillis(System.currentTimeMillis() - start));
             }
             return response;

@@ -61,9 +61,7 @@ public class NestedStepResponse extends StepResponse<Json> {
             for (final Context context : this.subResponses) {
                 for (final Entry entry : context.entries) {
                     final Duration subDuration = entry.response.getDuration();
-                    if (subDuration != null) {
                         duation = duation.plus(subDuration);
-                    }
                 }
             }
         }

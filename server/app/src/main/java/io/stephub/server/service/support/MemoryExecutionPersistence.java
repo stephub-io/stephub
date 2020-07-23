@@ -14,7 +14,6 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -139,7 +138,6 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         return this.getSafeExecution(wid, execId);
     }
 
-    @NotNull
     private MemoryExecution getSafeExecution(final String wid, final String execId) {
         final MemoryExecution execution = this.store.get(this.getStoreId(wid, execId));
         if (execution == null) {

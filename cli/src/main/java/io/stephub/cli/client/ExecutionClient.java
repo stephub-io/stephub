@@ -50,7 +50,7 @@ public class ExecutionClient {
                     log.info("Execution started with id: {}", execution.getId());
                     final AtomicReference<Execution> currentExecution = new AtomicReference<>(execution);
                     executionListener.onChange(execution);
-                    await().pollInSameThread().atMost(1, TimeUnit.HOURS).pollDelay(5, TimeUnit.SECONDS).until(() -> {
+                    await().pollInSameThread().atMost(1, TimeUnit.HOURS).pollInterval(5, TimeUnit.SECONDS).until(() -> {
                         if (currentExecution.get().getStatus() != Execution.ExecutionStatus.COMPLETED) {
                             final Execution newExecution = this.getExecution(serverContext, workspace.getId(), execution.getId());
                             if (this.getAllBacklogStatus(newExecution).equals(this.getAllBacklogStatus(currentExecution.get()))) {

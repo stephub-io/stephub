@@ -23,6 +23,7 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.Validator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +47,9 @@ public class ProvidersFacade implements StepExecutionSource {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private Validator validator;
 
     @Override
     public StepExecution resolveStepExecution(final String stepInstruction, final Workspace workspace) {
@@ -119,7 +123,9 @@ public class ProvidersFacade implements StepExecutionSource {
                     objectMapper(this.objectMapper).
                     alias(providerSpec.getName() +
                             (isNotBlank(providerSpec.getVersion()) ? ":" + providerSpec.getVersion() : "")
-                    ).build();
+                    ).
+                    validator(this.validator).
+                    build();
         }
     }
 

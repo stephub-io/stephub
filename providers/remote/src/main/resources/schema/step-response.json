@@ -3,7 +3,8 @@
   "title": "Step response",
   "type": "object",
   "required": [
-    "status"
+    "status",
+    "duration"
   ],
   "properties": {
     "status": {
