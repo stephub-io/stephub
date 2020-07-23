@@ -239,6 +239,7 @@ class RemoteProviderTest {
 
     @Test
     public void testExecStepWithInvalidResponse() throws JsonProcessingException {
+        this.objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         // Given
         final String sid = "3x3";
         final StepResponse<Json> givenInvalidResponse = StepResponse.<Json>builder().
@@ -270,7 +271,6 @@ class RemoteProviderTest {
     @BeforeEach
     public void before() {
         this.objectMapper = createObjectMapper();
-        this.objectMapper.setSerializationInclusion(JsonInclude.Include.ALWAYS);
         this.wireMockServer = new WireMockServer(options().dynamicPort());
         this.wireMockServer.start();
         configureFor("localhost", this.wireMockServer.port());
