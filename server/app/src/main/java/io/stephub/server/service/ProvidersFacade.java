@@ -24,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Validator;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -63,6 +64,7 @@ public class ProvidersFacade implements StepExecutionSource {
         return new StepExecution() {
             @Override
             public StepResponse<Json> execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
+                final long start = System.currentTimeMillis();
                 try {
                     final StepEvaluationDelegate.StepEvaluation stepEvaluation = ProvidersFacade.this.stepEvaluationDelegate.getStepEvaluation(stepMatch, evaluationContext);
                     final StepResponse<Json> response = ProvidersFacade.this.execute(
@@ -75,6 +77,7 @@ public class ProvidersFacade implements StepExecutionSource {
                 } catch (final Exception e) {
                     return StepResponse.<Json>builder().status(ERRONEOUS).
                             errorMessage(e.getMessage()).
+                            duration(Duration.ofMillis(System.currentTimeMillis() - start)).
                             build();
                 }
             }

@@ -55,17 +55,19 @@ public class NestedStepResponse extends StepResponse<Json> {
 
     @Override
     public Duration getDuration() {
-        Duration duation = super.getDuration();
-        if (duation == null) {
-            duation = Duration.ofMillis(0);
-            for (final Context context : this.subResponses) {
-                for (final Entry entry : context.entries) {
-                    final Duration subDuration = entry.response.getDuration();
-                        duation = duation.plus(subDuration);
-                }
+        Duration duation = Duration.ofMillis(0);
+        for (final Context context : this.subResponses) {
+            for (final Entry entry : context.entries) {
+                final Duration subDuration = entry.response.getDuration();
+                duation = duation.plus(subDuration);
             }
         }
         return duation;
+    }
+
+    @Override
+    public void setDuration(final Duration duration) {
+        // Ignore
     }
 
     @Override
