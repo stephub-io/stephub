@@ -21,4 +21,7 @@ public class Feature {
     @Singular
     @Valid
     private List<Scenario> scenarios = new ArrayList<>();
+
+    @Singular
+    private List<String> tags = new ArrayList<>();
 }

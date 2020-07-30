@@ -8,7 +8,10 @@ import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.Execution.FeatureExecutionItem;
 import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
 import io.stephub.server.api.model.ExecutionInstruction;
+import io.stephub.server.api.model.ExecutionInstruction.NamedFeatureFilter;
+import io.stephub.server.api.model.ExecutionInstruction.NamedScenarioFilter;
 import io.stephub.server.api.model.ExecutionInstruction.ScenariosExecutionInstruction;
+import io.stephub.server.api.model.ExecutionInstruction.TagFilter;
 import io.stephub.server.api.model.Workspace;
 import lombok.extern.slf4j.Slf4j;
 import me.tongfei.progressbar.DelegatingProgressBarConsumer;
@@ -133,7 +136,7 @@ public class ExecuteCommand {
                     if (sei.getResponse().getStatus() == StepResponse.StepStatus.ERRONEOUS) {
                         response += "\n" + sei.getResponse().getErrorMessage();
                     }
-                        duration = formatDuration(sei.getResponse().getDuration());
+                    duration = formatDuration(sei.getResponse().getDuration());
                 }
                 data[i] = new String[]{
                         sei.getStep(),
@@ -151,6 +154,31 @@ public class ExecuteCommand {
             exitCodeOnExecutionException = 34)
     @Slf4j
     public static class ExecuteScenariosCommand extends ExecuteBaseCommand implements Runnable {
+        @CommandLine.ArgGroup(exclusive = true)
+        private FilterOptions filterOptions;
+
+        private static class FilterOptions {
+            @CommandLine.Option(names = {"--scenario"}, arity = "0..*", description = "Filter by scenario name as regex pattern")
+            private List<String> filterScenarioNames;
+
+            @CommandLine.Option(names = {"--feature"}, arity = "0..*", description = "Filter by feature name as regex pattern")
+            private List<String> filterFeatureNames;
+
+            @CommandLine.Option(names = {"--tag"}, arity = "0..*", description = "Filter by tag name as regex pattern")
+            private List<String> filterTags;
+
+            ExecutionInstruction.ScenarioFilter buildFilter() {
+                if (this.filterScenarioNames != null) {
+                    return NamedScenarioFilter.builder().patterns(this.filterScenarioNames).build();
+                } else if (this.filterFeatureNames != null) {
+                    return NamedFeatureFilter.builder().patterns(this.filterFeatureNames).build();
+                } else if (this.filterTags != null) {
+                    return TagFilter.builder().patterns(this.filterTags).build();
+                }
+                throw new IllegalArgumentException("Unknown filter passed");
+            }
+        }
+
         @Override
         public void run() {
             final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace);
@@ -158,7 +186,9 @@ public class ExecuteCommand {
             final AtomicReference<ProgressBar> progressBar = new AtomicReference<>();
             final Execution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
                     Execution.ExecutionStart.builder().instruction(
-                            ScenariosExecutionInstruction.builder().build()
+                            ScenariosExecutionInstruction.builder().filter(
+                                    this.filterOptions != null ? this.filterOptions.buildFilter() : new ExecutionInstruction.AllScenarioFilter()
+                            ).build()
                     ).parallelSessionCount(this.parallelSessionCount).build(),
                     changedExecution -> {
                         final List<ScenarioExecutionItem> scenarioExecutionItems = this.getFlattedScenarios(changedExecution.getBacklog());

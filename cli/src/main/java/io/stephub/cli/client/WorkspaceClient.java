@@ -46,7 +46,7 @@ public class WorkspaceClient {
                 log.info("Resolved workspace={} under id={}", workspace, resolvedWorkspace.getId());
                 return resolvedWorkspace;
             } else {
-                throw new RemoteException("Received unexpected HTTP status code (" + response.code() + ") for " + serverContext);
+                throw new RemoteException("Received unexpected HTTP status code (" + response.code() + ") from " + serverContext);
             }
         } catch (final IOException e) {
             throw new RemoteException("Failed to communicate to " + serverContext + ": " + e.getMessage(), e);

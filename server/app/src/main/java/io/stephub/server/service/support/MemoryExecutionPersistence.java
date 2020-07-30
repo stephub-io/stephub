@@ -72,6 +72,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         } else {
             pendingItems.addAll(executionItems);
         }
+        if (pendingItems.isEmpty()) {
+            throw new ExecutionException("Expected at least one instruction to execute, but got none");
+        }
         final MemoryExecution execution = MemoryExecution.builder().
                 instruction(instruction).
                 id(UUID.randomUUID().toString()).

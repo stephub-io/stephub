@@ -75,7 +75,7 @@ public class ExecutionClient {
     }
 
     public static RemoteException buildUnexpectedStatusCodeException(final ServerContext serverContext, final Response response) throws IOException {
-        String message = "Received unexpected HTTP status code (" + response.code() + ") for " + serverContext;
+        String message = "Received unexpected HTTP status code (" + response.code() + ") from " + serverContext;
         if (response.body() != null) {
             message += "\n" + response.body().string();
         }
@@ -98,7 +98,7 @@ public class ExecutionClient {
             if (response.isSuccessful()) {
                 return this.objectMapper.readValue(response.body().byteStream(), DefaultExecution.class);
             } else {
-                throw new RemoteException("Failed to resolve execution due to unexpected HTTP status code (" + response.code() + ") for " + serverContext);
+                throw new RemoteException("Failed to resolve execution due to unexpected HTTP status code (" + response.code() + ") from " + serverContext);
             }
         } catch (final IOException e) {
             throw new RemoteException("Failed to resolve execution due to communication errors to " + serverContext + ": " + e.getMessage(), e);

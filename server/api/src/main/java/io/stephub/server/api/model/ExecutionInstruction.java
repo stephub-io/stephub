@@ -9,12 +9,17 @@ import io.stephub.server.api.model.Execution.ScenarioExecutionItem.ScenarioExecu
 import io.stephub.server.api.model.Execution.StepExecutionItem;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Scenario;
+import io.stephub.server.api.validation.ValidRegex;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @JsonTypeInfo(
@@ -53,6 +58,7 @@ public abstract class ExecutionInstruction {
     public static class ScenariosExecutionInstruction extends ExecutionInstruction {
         @NotNull
         @Builder.Default
+        @Valid
         private ScenarioFilter filter = new AllScenarioFilter();
 
         @Override
@@ -65,7 +71,7 @@ public abstract class ExecutionInstruction {
             workspace.getFeatures().forEach(
                     feature ->
                     {
-                        final List<Scenario> scenarios = feature.getScenarios().stream().filter(s -> this.filter.accept(s)).collect(Collectors.toList());
+                        final List<Scenario> scenarios = feature.getScenarios().stream().filter(s -> this.filter.accept(feature, s)).collect(Collectors.toList());
                         if (!scenarios.isEmpty()) {
                             final FeatureExecutionItem featureItem = FeatureExecutionItem.builder().name(feature.getName()).
                                     scenarios(this.buildScenarioItems(feature, scenarios)).build();
@@ -97,18 +103,83 @@ public abstract class ExecutionInstruction {
     @JsonTypeInfo(
             use = JsonTypeInfo.Id.NAME,
             include = JsonTypeInfo.As.PROPERTY,
+            defaultImpl = AllScenarioFilter.class,
             property = "type")
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = ExecutionInstruction.AllScenarioFilter.class, name = "all")
+            @JsonSubTypes.Type(value = ExecutionInstruction.AllScenarioFilter.class, name = "all"),
+            @JsonSubTypes.Type(value = ExecutionInstruction.NamedScenarioFilter.class, name = "by-scenario-name"),
+            @JsonSubTypes.Type(value = ExecutionInstruction.NamedFeatureFilter.class, name = "by-feature-name"),
+            @JsonSubTypes.Type(value = ExecutionInstruction.TagFilter.class, name = "by-tag")
     })
     public interface ScenarioFilter {
-        boolean accept(Scenario scenario);
+        boolean accept(Feature feature, Scenario scenario);
     }
 
     public static class AllScenarioFilter implements ScenarioFilter {
         @Override
-        public boolean accept(final Scenario scenario) {
+        public boolean accept(final Feature feature, final Scenario scenario) {
             return true;
+        }
+    }
+
+    @Data
+    @SuperBuilder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public abstract static class PatternFilter implements ScenarioFilter {
+        @NotEmpty
+        @Valid
+        private List<@NotNull @ValidRegex String> patterns;
+
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        private List<Pattern> compiledPatterns;
+
+        @Getter(AccessLevel.NONE)
+        @Setter(AccessLevel.NONE)
+        private int lastCompileHashCode;
+
+        protected boolean accept(final String subject) {
+            return this.getCompiledPatterns().stream().anyMatch(pattern -> pattern.matcher(subject).find());
+        }
+
+        private List<Pattern> getCompiledPatterns() {
+            if (this.compiledPatterns == null || this.lastCompileHashCode != this.patterns.hashCode()) {
+                this.compiledPatterns = this.patterns.stream().map(p -> Pattern.compile(p, Pattern.CASE_INSENSITIVE)).collect(Collectors.toList());
+                this.lastCompileHashCode = this.patterns.hashCode();
+            }
+            return this.compiledPatterns;
+        }
+    }
+
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class NamedScenarioFilter extends PatternFilter {
+
+        @Override
+        public boolean accept(final Feature feature, final Scenario scenario) {
+            return this.accept(scenario.getName());
+        }
+    }
+
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class NamedFeatureFilter extends PatternFilter {
+
+        @Override
+        public boolean accept(final Feature feature, final Scenario scenario) {
+            return this.accept(feature.getName());
+        }
+    }
+
+    @SuperBuilder
+    @NoArgsConstructor
+    public static class TagFilter extends PatternFilter {
+
+        @Override
+        public boolean accept(final Feature feature, final Scenario scenario) {
+            return feature.getTags().stream().anyMatch(this::accept) ||
+                    scenario.getTags().stream().anyMatch(this::accept);
         }
     }
 }
