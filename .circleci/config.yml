@@ -5,4 +5,9 @@ jobs:
     steps:
       - checkout
       # build the application image
-      - run: docker build -t stephub/stephub:$CIRCLE_BRANCH .
+      - run:
+          name: Build and test
+          command: docker build -t stephub/build:$CIRCLE_BRANCH .
+      - run:
+          name: Dockerize CLI app
+          command: docker build --build-arg "BUILD_IMAGE=stephub/build:$CIRCLE_BRANCH" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/cli:$CIRCLE_BRANCH ./cli

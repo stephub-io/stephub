@@ -28,8 +28,11 @@ public class ApplicationRunner implements CommandLineRunner, ExitCodeGenerator {
         final IExecutionExceptionHandler errorHandler = new IExecutionExceptionHandler() {
             @Override
             public int handleExecutionException(final Exception ex, final CommandLine commandLine, final CommandLine.ParseResult parseResult) {
-                log.debug("Command failed", ex);
-                commandLine.getErr().println(ex.getMessage());
+                if (log.isDebugEnabled()) {
+                    log.debug("Command failed", ex);
+                } else {
+                    log.error("Command failed: {}", ex.getMessage());
+                }
                 if (!(ex instanceof RuntimeException)) {
                     commandLine.usage(commandLine.getErr());
                 }
