@@ -3,7 +3,7 @@ FROM $BUILD_IMAGE as build
 WORKDIR /workspace/cli
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
-FROM openjdk:11-jdk-slim-buster
+FROM openjdk:11-jre-slim-buster
 VOLUME /tmp
 ARG DEPENDENCY=/workspace/cli/target/dependency
 COPY --from=build ${DEPENDENCY}/BOOT-INF/lib /app/lib
