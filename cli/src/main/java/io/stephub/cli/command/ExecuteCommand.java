@@ -83,7 +83,7 @@ public class ExecuteCommand {
             exitCodeOnExecutionException = 34)
     @Slf4j
     public static class ExecuteStepsCommand extends ExecuteBaseCommand implements Runnable {
-        @CommandLine.Parameters(arity = "1..*", description = "Step to execute")
+        @CommandLine.Parameters(arity = "1..*", paramLabel = "STEP", description = "Step to execute")
         private List<String> steps;
 
 

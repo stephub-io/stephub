@@ -1,24 +1,24 @@
 package io.stephub.cli.command;
 
+import io.stephub.cli.exception.CommandException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine;
 
-import java.util.List;
-import java.util.concurrent.Callable;
+import java.io.File;
 
 @Component
 @CommandLine.Command(name = "import", mixinStandardHelpOptions = true,
         exitCodeOnExecutionException = 34)
-public class ImportCommand implements Callable<Integer> {
-    @CommandLine.Option(names = "-y", description = "optional option")
-    private String y;
+@Slf4j
+public class ImportCommand extends BaseCommand implements Runnable {
 
-    @CommandLine.Parameters(description = "positional params")
-    private List<String> positionals;
+    @CommandLine.Parameters(paramLabel = "FILE",
+            description = "one ore more workspace definition files to import",
+            arity = "1..*")
+    private File[] files;
 
     @Override
-    public Integer call() {
-        System.out.printf("mycommand sub was called with -y=%s and positionals: %s%n", this.y, this.positionals);
-        return 33;
+    public void run() {
     }
 }
