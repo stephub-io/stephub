@@ -18,7 +18,7 @@ import java.util.Map;
 @EqualsAndHashCode(of = {"id"})
 @ToString(of = {"id", "status"})
 @Builder
-public class RuntimeSession {
+public class RuntimeSession implements Identifiable {
     public enum SessionStatus {
         ACTIVE,
         INACTIVE;

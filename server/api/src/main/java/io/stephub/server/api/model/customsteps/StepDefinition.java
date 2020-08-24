@@ -12,6 +12,7 @@ import io.stephub.provider.api.model.spec.PatternType;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
+import io.stephub.server.api.model.Identifiable;
 import io.stephub.server.api.model.NestedStepResponse;
 import io.stephub.server.api.validation.ValidStepSpec;
 import lombok.*;
@@ -41,7 +42,7 @@ import java.util.List;
         @JsonSubTypes.Type(value = ForeachStepDefinition.class, name = "foreach")
 })
 @Slf4j
-public abstract class StepDefinition implements CustomStepContainer {
+public abstract class StepDefinition implements CustomStepContainer, Identifiable {
     @NotNull
     @Builder.Default
     @Valid
@@ -114,4 +115,8 @@ public abstract class StepDefinition implements CustomStepContainer {
         StepExecution resolveStepExecution(String instruction);
     }
 
+    @Override
+    public String getId() {
+        return this.spec != null ? this.spec.getPatternType() + this.spec.getPattern() : null;
+    }
 }

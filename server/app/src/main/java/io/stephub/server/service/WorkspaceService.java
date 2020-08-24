@@ -14,4 +14,6 @@ public interface WorkspaceService {
     Workspace getWorkspaceInternal(String wid);
 
     List<Workspace> findWorkspaces(Context ctx, WorkspaceFinder finder);
+
+    Workspace update(Context ctx, Workspace workspace);
 }

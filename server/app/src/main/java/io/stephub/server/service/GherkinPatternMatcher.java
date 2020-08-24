@@ -9,6 +9,8 @@ import io.stephub.json.Json;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.spec.*;
 import io.stephub.server.api.model.GherkinPreferences;
+import io.stephub.server.api.model.Workspace;
+import io.stephub.server.api.model.gherkin.Feature;
 import lombok.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +30,7 @@ import static io.stephub.server.service.SimplePatternExtractor.DEFAULT_PATTERN_F
 
 @Service
 public class GherkinPatternMatcher {
-    private static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
+    public static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
     private static final Pattern SKIP_LINES_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
 
     final ExpressionEvaluator evaluator = new DefaultExpressionEvaluator();
@@ -202,7 +204,7 @@ public class GherkinPatternMatcher {
                         build());
     }
 
-    private String extractSpaceOffset(final String str, int maxOffset) {
+    public static String extractSpaceOffset(final String str, int maxOffset) {
         maxOffset = Math.min(str.length(), maxOffset);
         for (int i = 0; i < maxOffset; i++) {
             if (str.charAt(i) != ' ') {

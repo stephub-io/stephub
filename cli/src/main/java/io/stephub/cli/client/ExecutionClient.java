@@ -20,7 +20,7 @@ import static org.awaitility.Awaitility.await;
 
 @Component
 @Slf4j
-public class ExecutionClient {
+public class ExecutionClient extends BaseClient {
     @Autowired
     private OkHttpClient.Builder httpClientBuilder;
 
@@ -62,7 +62,7 @@ public class ExecutionClient {
                     });
                     return currentExecution.get();
                 } else {
-                    throw buildUnexpectedStatusCodeException(serverContext, response);
+                    throw this.buildExceptionFromInvalidStatusCode(serverContext, response);
                 }
             }
         } catch (final IOException e) {
@@ -72,14 +72,6 @@ public class ExecutionClient {
 
     private List<Execution.ExecutionStatus> getAllBacklogStatus(final Execution execution) {
         return execution.getBacklog().stream().map(Execution.ExecutionItem::getStatus).collect(Collectors.toList());
-    }
-
-    public static RemoteException buildUnexpectedStatusCodeException(final ServerContext serverContext, final Response response) throws IOException {
-        String message = "Received unexpected HTTP status code (" + response.code() + ") from " + serverContext;
-        if (response.body() != null) {
-            message += "\n" + response.body().string();
-        }
-        return new RemoteException(message);
     }
 
     private Execution getExecution(final ServerContext serverContext, final String wid, final String execId) {

@@ -16,4 +16,8 @@ import java.util.List;
 public class Scenario extends StepSequence implements Tagable {
     @Singular
     private List<String> tags = new ArrayList<>();
+
+    @Singular
+    private List<String> comments = new ArrayList<>();
+
 }

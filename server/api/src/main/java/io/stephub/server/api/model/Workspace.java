@@ -7,8 +7,9 @@ import io.stephub.server.api.model.customsteps.CustomStepContainer;
 import io.stephub.server.api.model.customsteps.StepDefinition;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Fixture;
-import io.stephub.server.api.validation.IProviderValidator;
+import io.stephub.server.api.validation.ValidProviderSpec;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.validation.ObjectError;
 
 import javax.validation.Valid;
@@ -24,10 +25,10 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Builder
+@SuperBuilder
 @EqualsAndHashCode
 @ToString(of = {"id"})
-public class Workspace implements CustomStepContainer {
+public class Workspace implements CustomStepContainer, Identifiable {
     private String id;
     @NotEmpty
     private String name;
@@ -39,7 +40,7 @@ public class Workspace implements CustomStepContainer {
 
     @Valid
     @Singular
-    private List<@IProviderValidator.Valid ProviderSpec> providers = new ArrayList<>();
+    private List<@ValidProviderSpec ProviderSpec> providers = new ArrayList<>();
 
     @Singular
     @Valid

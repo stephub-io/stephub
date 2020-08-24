@@ -1,0 +1,6 @@
+stepDefinitions:
+  - type: basic
+    spec:
+      pattern: My winning step
+    steps:
+      - Given I win

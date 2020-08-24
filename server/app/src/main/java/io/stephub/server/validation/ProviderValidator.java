@@ -22,7 +22,7 @@ public class ProviderValidator implements IProviderValidator {
             final ProviderInfo<JsonSchema> info = this.providersFacade.getProvider(providerSpec).getInfo();
             return true;
         } catch (final Exception e) {
-            cvc.buildConstraintViolationWithTemplate(e.getMessage()).addConstraintViolation().disableDefaultConstraintViolation();
+            cvc.buildConstraintViolationWithTemplate("Failed to resolve provider info: " + e.getMessage()).addConstraintViolation().disableDefaultConstraintViolation();
             return false;
         }
     }

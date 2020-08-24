@@ -19,4 +19,9 @@
             <value>io.stephub.server.validation.StepSpecValidator</value>
         </validated-by>
     </constraint-definition>
+    <constraint-definition annotation="io.stephub.server.api.validation.ValidProviderSpec">
+        <validated-by include-existing-validators="false">
+            <value>io.stephub.server.validation.ProviderValidator</value>
+        </validated-by>
+    </constraint-definition>
 </constraint-mappings>

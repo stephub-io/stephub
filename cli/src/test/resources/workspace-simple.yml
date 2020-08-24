@@ -1,8 +1,8 @@
-name: "abc"
-providers:
-  - name: rest-api
-    version: "> 1.0"
-    baseUrl: http://localhost:8080
+name: "abc2"
+#providers:
+#  - name: rest-api
+#    version: "> 1.0"
+#    baseUrl: http://localhost:8080
 
 
 stepDefinitions:
@@ -21,6 +21,3 @@ features:
         steps:
           - Given I do something
           - Then I expect something
-#  - type: from-files
-#    files:
-#      - ./scenene1.feature

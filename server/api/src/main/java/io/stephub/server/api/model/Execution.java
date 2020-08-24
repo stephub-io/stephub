@@ -21,7 +21,7 @@ import static io.stephub.server.api.model.Execution.ExecutionStatus.*;
 @SuperBuilder
 @EqualsAndHashCode(of = "id")
 @ToString(of = "id")
-public abstract class Execution {
+public abstract class Execution implements Identifiable {
     public enum ExecutionStatus {
         INITIATED, EXECUTING, COMPLETED;
 

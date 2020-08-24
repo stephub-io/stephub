@@ -15,11 +15,11 @@ import javax.validation.constraints.Pattern;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @SuperBuilder
-public class ProviderSpec extends ProviderOptions<JsonObject> {
+public class ProviderSpec extends ProviderOptions<JsonObject> implements Identifiable {
     @NotEmpty
     private String name;
 
-    @Pattern(regexp = "(>|>=|=|$)\\d+(\\.\\d+(\\.\\d+)?)?")
+    @Pattern(regexp = "\\s*(>|>=|=|$)\\s*\\d+(\\.\\d+(\\.\\d+)?)?")
     private String version;
 
     @URL
@@ -32,5 +32,10 @@ public class ProviderSpec extends ProviderOptions<JsonObject> {
             return new JsonObject();
         }
         return opt;
+    }
+
+    @Override
+    public String getId() {
+        return this.name;
     }
 }

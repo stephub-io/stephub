@@ -19,6 +19,7 @@
         <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
         <expiringmap.version>0.5.9</expiringmap.version>
         <junit-jupiter.version>5.2.0</junit-jupiter.version>
+        <org.antlr.version>4.8-1</org.antlr.version>
     </properties>
 
     <modules>
@@ -95,7 +96,6 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -124,7 +124,6 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-engine</artifactId>
-            <version>${junit-jupiter.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -144,10 +143,6 @@
             <scope>test</scope>
             <version>${spring-boot.version}</version>
             <exclusions>
-                <exclusion>
-                    <groupId>junit</groupId>
-                    <artifactId>junit</artifactId>
-                </exclusion>
                 <exclusion>
                     <groupId>org.junit.vintage</groupId>
                     <artifactId>junit-vintage-engine</artifactId>

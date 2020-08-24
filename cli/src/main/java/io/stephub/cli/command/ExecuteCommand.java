@@ -89,7 +89,7 @@ public class ExecuteCommand {
 
         @Override
         public void run() {
-            final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace);
+            final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace, true);
             log.info("Start execution of steps: {}", this.steps);
             final AtomicReference<ProgressBar> progressBar = new AtomicReference<>();
             final Execution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
@@ -181,7 +181,7 @@ public class ExecuteCommand {
 
         @Override
         public void run() {
-            final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace);
+            final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace, true);
             log.info("Start execution of scenarios");
             final AtomicReference<ProgressBar> progressBar = new AtomicReference<>();
             final Execution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
