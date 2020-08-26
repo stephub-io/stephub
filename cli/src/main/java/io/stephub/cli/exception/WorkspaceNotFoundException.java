@@ -12,4 +12,8 @@ public class WorkspaceNotFoundException extends RuntimeException {
                         ("No unique workspace with id or name '" + workspace + "' found")
         );
     }
+
+    public WorkspaceNotFoundException(final String wid) {
+        super("Workspace with id '" + wid + "' not found");
+    }
 }

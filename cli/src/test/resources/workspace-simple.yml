@@ -1,4 +1,4 @@
-name: "abc2"
+name: "abc"
 #providers:
 #  - name: rest-api
 #    version: "> 1.0"
@@ -21,3 +21,8 @@ features:
         steps:
           - Given I do something
           - Then I expect something
+
+variables:
+  var1:
+    schema:
+      type: string

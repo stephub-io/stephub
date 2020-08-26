@@ -5,7 +5,6 @@ import io.stephub.cli.exception.CommandException;
 import io.stephub.cli.model.ImportWorkspace;
 import io.stephub.server.api.model.Identifiable;
 import io.stephub.server.api.model.Variable;
-import io.stephub.server.api.model.Workspace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -89,12 +88,12 @@ public class WorkspaceYamlReader {
             target.setName(increment.getName());
         }
         if (increment.getGherkinPreferences() != null) {
-            if (increment.getGherkinPreferences().getStepOutputAssignmentSuffixes() != null) {
-                this.mergePrimitiveList(target.getGherkinPreferences().getStepOutputAssignmentSuffixes(),
-                        increment.getGherkinPreferences().getStepOutputAssignmentSuffixes());
+            if (increment.getGherkinPreferences().getAssignmentKeywords() != null) {
+                this.mergePrimitiveList(target.getGherkinPreferences().getAssignmentKeywords(),
+                        increment.getGherkinPreferences().getAssignmentKeywords());
             }
-            if (increment.getGherkinPreferences().getStepPrefixes() != null) {
-                this.mergePrimitiveList(target.getGherkinPreferences().getStepPrefixes(), increment.getGherkinPreferences().getStepPrefixes());
+            if (increment.getGherkinPreferences().getStepKeywords() != null) {
+                this.mergePrimitiveList(target.getGherkinPreferences().getStepKeywords(), increment.getGherkinPreferences().getStepKeywords());
             }
         }
         if (increment.getProviders() != null) {

@@ -85,10 +85,14 @@ public class ImportCommand extends BaseCommand implements Runnable {
                 toImport.setId(existing.getId());
                 imported = this.workspaceClient.replaceWorkspace(this.getServerContext(), toImport);
             }
-            log.info("Imported workspace successfully:\n{}", this.yamlMapper.
-                    writerWithView(ImportWorkspace.InfoView.class)
-                    .with(new DefaultPrettyPrinter())
-                    .writeValueAsString(imported));
+            log.info("Imported workspace successfully");
+            if (imported.getErrors() != null && !imported.getErrors().isEmpty()) {
+                log.warn("Note that imported workspace has errors:\n{}",
+                        this.yamlMapper.
+                                writerWithView(ImportWorkspace.InfoView.class)
+                                .with(new DefaultPrettyPrinter())
+                                .writeValueAsString(imported.getErrors()));
+            }
 
         } catch (final IOException e) {
             throw new CommandException("Failed to import workspace: " + e.getMessage());

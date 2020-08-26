@@ -30,14 +30,6 @@ public class WorkspaceClient extends BaseClient {
     public Workspace findWorkspace(final ServerContext serverContext, final String workspace, final boolean notFoundException) {
         log.info("Resolving workspace='{}' from {}", workspace, serverContext);
         final OkHttpClient client = this.httpClientBuilder.build();
-        final Workspace resolvedWorkspace = this.getWorkspace(client, serverContext, workspace, notFoundException);
-        if (resolvedWorkspace != null) {
-            log.info("Resolved workspace='{}' successfully under id={}", workspace, resolvedWorkspace.getId());
-        }
-        return resolvedWorkspace;
-    }
-
-    private Workspace getWorkspace(final OkHttpClient client, final ServerContext serverContext, final String workspace, final boolean notFoundException) {
         final Request request = new Request.Builder()
                 .get()
                 .url(serverContext.getBaseApiUrl().
@@ -57,7 +49,34 @@ public class WorkspaceClient extends BaseClient {
                         return null;
                     }
                 }
-                return result.getItems().get(0);
+                final Workspace resolvedWorkspace = result.getItems().get(0);
+                log.info("Resolved workspace='{}' successfully under id={}", workspace, resolvedWorkspace.getId());
+                return resolvedWorkspace;
+            } else {
+                throw this.buildExceptionFromInvalidStatusCode(serverContext, response);
+            }
+        } catch (final IOException e) {
+            throw new RemoteException("Failed to communicate to " + serverContext + ": " + e.getMessage(), e);
+        }
+    }
+
+    private Workspace getWorkspace(final OkHttpClient client, final ServerContext serverContext, final String wid) {
+        final Request request = new Request.Builder()
+                .get()
+                .url(serverContext.getBaseApiUrl().
+                        addPathSegment("workspaces").
+                        addPathSegment(wid).
+                        build())
+                .build();
+        try (final Response response = client.newCall(request).execute()) {
+            if (response.isSuccessful()) {
+                final Workspace resolvedWorkspace = this.objectMapper.readValue(response.body().byteStream(), Workspace.class);
+                log.debug("Resolved workspace: {}", resolvedWorkspace);
+                if (resolvedWorkspace == null) {
+                    throw new WorkspaceNotFoundException(wid);
+                }
+                log.debug("Resolved workspace: {}", resolvedWorkspace);
+                return resolvedWorkspace;
             } else {
                 throw this.buildExceptionFromInvalidStatusCode(serverContext, response);
             }
@@ -133,7 +152,7 @@ public class WorkspaceClient extends BaseClient {
                     throw new RemoteException("Failed to upload feature file '" + featureFile.getAbsolutePath() + "' to " + serverContext + ": " + e.getMessage(), e);
                 }
             }
-            return this.getWorkspace(client, serverContext, createdWorkspace.getId(), true);
+            return this.getWorkspace(client, serverContext, createdWorkspace.getId());
         }
         return createdWorkspace;
     }

@@ -1,5 +1,6 @@
 package io.stephub.cli.config.picocli;
 
+import io.stephub.cli.command.LoggingMixin;
 import io.stephub.cli.command.StepCtlMainCommand;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -29,7 +30,7 @@ public class ApplicationRunner implements CommandLineRunner, ExitCodeGenerator {
             @Override
             public int handleExecutionException(final Exception ex, final CommandLine commandLine, final CommandLine.ParseResult parseResult) {
                 if (log.isDebugEnabled()) {
-                    log.debug("Command failed", ex);
+                    log.error("Command failed", ex);
                 } else {
                     log.error("Command failed: {}", ex.getMessage());
                 }
@@ -40,7 +41,7 @@ public class ApplicationRunner implements CommandLineRunner, ExitCodeGenerator {
             }
         };
         this.exitCode = new CommandLine(this.stepCtlMainCommand, this.factory).
-                setExecutionExceptionHandler(errorHandler).execute(args);
+                setExecutionExceptionHandler(errorHandler).setExecutionStrategy(LoggingMixin::executionStrategy).execute(args);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package io.stephub.cli.command;
 
 import org.springframework.stereotype.Component;
+import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
 @Component
@@ -10,5 +11,6 @@ import picocli.CommandLine.Command;
                 ExecuteCommand.class
         })
 public class StepCtlMainCommand {
-
+        @CommandLine.Mixin
+        LoggingMixin loggingMixin;
 }

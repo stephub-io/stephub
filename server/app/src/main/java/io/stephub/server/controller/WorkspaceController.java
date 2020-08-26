@@ -48,7 +48,9 @@ public class WorkspaceController {
     @PostMapping("/workspaces")
     @ResponseBody
     public Workspace createWorkspace(@ModelAttribute final Context ctx, @Valid @RequestBody final Workspace draft) {
-        return this.workspaceService.createWorkspace(ctx, draft);
+        final Workspace workspace = this.workspaceService.createWorkspace(ctx, draft);
+        this.workspaceValidator.validate(workspace);
+        return workspace;
     }
 
     @PutMapping(value = "/workspaces/{wid}")
@@ -58,7 +60,9 @@ public class WorkspaceController {
         log.debug("Updating workspace={}", wid);
         final Workspace existingWorkspace = this.workspaceService.getWorkspace(ctx, wid);
         workspace.setId(existingWorkspace.getId());
-        return this.workspaceService.update(ctx, workspace);
+        final Workspace updated = this.workspaceService.update(ctx, workspace);
+        this.workspaceValidator.validate(updated);
+        return updated;
     }
 
     @PostMapping(value = "/workspaces/{wid}/features", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)

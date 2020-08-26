@@ -6,9 +6,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.Errors;
+import org.springframework.validation.FieldError;
 import org.springframework.validation.SmartValidator;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class WorkspaceValidator {
@@ -24,7 +26,17 @@ public class WorkspaceValidator {
         this.validator.validate(workspace, result);
         this.validateSteps(result, workspace, workspace.getStepDefinitions());
         if (result.hasErrors()) {
-            workspace.setErrors(result.getAllErrors());
+            workspace.setErrors(
+                    result.getAllErrors().stream().map(objectError ->
+                    {
+                        if (objectError instanceof FieldError) {
+                            final FieldError fe = (FieldError) objectError;
+                            return new Workspace.FieldError(fe.getField(), fe.getRejectedValue(), fe.getDefaultMessage());
+                        } else {
+                            return new Workspace.FieldError(objectError.getCode(), null, objectError.getDefaultMessage());
+                        }
+                    }).collect(Collectors.toList()));
+
         } else {
             workspace.setErrors(null);
         }
@@ -33,7 +45,7 @@ public class WorkspaceValidator {
     private void validateSteps(final Errors errors, final Workspace workspace, final List<StepDefinition> stepDefinitions) {
         int i = 0;
         for (final StepDefinition stepDefinition : stepDefinitions) {
-            stepDefinition.validate("steps[" + i + "].", errors, (instruction) ->
+            stepDefinition.validate("stepDefinitions[" + i + "].", errors, (instruction) ->
                     this.stepExecutionResolver.resolveStepExecution(
                             instruction,
                             workspace

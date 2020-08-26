@@ -1,7 +1,6 @@
 package io.stephub.server.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.stephub.provider.api.util.Patterns;
 import io.stephub.server.api.model.customsteps.CustomStepContainer;
 import io.stephub.server.api.model.customsteps.StepDefinition;
@@ -10,7 +9,6 @@ import io.stephub.server.api.model.gherkin.Fixture;
 import io.stephub.server.api.validation.ValidProviderSpec;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.springframework.validation.ObjectError;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -62,8 +60,16 @@ public class Workspace implements CustomStepContainer, Identifiable {
     @Valid
     private List<Fixture> afterFixtures = new ArrayList<>();
 
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     @JsonInclude(JsonInclude.Include.NON_NULL)
-    private List<ObjectError> errors = null;
+    private List<FieldError> errors = null;
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    public static class FieldError {
+        private String field;
+        private Object rejectedValue;
+        private String message;
+    }
 
 }

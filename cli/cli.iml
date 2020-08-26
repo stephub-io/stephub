@@ -59,6 +59,8 @@
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.11.1" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.11.1" level="project" />
     <orderEntry type="library" name="Maven: commons-io:commons-io:2.7" level="project" />
+    <orderEntry type="library" name="Maven: org.codehaus.janino:janino:3.0.6" level="project" />
+    <orderEntry type="library" name="Maven: org.codehaus.janino:commons-compiler:3.1.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: io.github.origin-energy:java-snapshot-testing-junit5:2.0.0-Beta4" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.2.3" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.2.3" level="project" />
