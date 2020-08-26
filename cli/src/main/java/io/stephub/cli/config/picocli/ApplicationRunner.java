@@ -25,20 +25,17 @@ public class ApplicationRunner implements CommandLineRunner, ExitCodeGenerator {
     }
 
     @Override
-    public void run(final String... args) throws Exception {
-        final IExecutionExceptionHandler errorHandler = new IExecutionExceptionHandler() {
-            @Override
-            public int handleExecutionException(final Exception ex, final CommandLine commandLine, final CommandLine.ParseResult parseResult) {
-                if (log.isDebugEnabled()) {
-                    log.error("Command failed", ex);
-                } else {
-                    log.error("Command failed: {}", ex.getMessage());
-                }
-                if (!(ex instanceof RuntimeException)) {
-                    commandLine.usage(commandLine.getErr());
-                }
-                return commandLine.getCommandSpec().exitCodeOnExecutionException();
+    public void run(final String... args)  {
+        final IExecutionExceptionHandler errorHandler = (ex, commandLine, parseResult) -> {
+            if (log.isDebugEnabled()) {
+                log.error("Command failed", ex);
+            } else {
+                log.error("Command failed: {}", ex.getMessage());
             }
+            if (!(ex instanceof RuntimeException)) {
+                commandLine.usage(commandLine.getErr());
+            }
+            return commandLine.getCommandSpec().exitCodeOnExecutionException();
         };
         this.exitCode = new CommandLine(this.stepCtlMainCommand, this.factory).
                 setExecutionExceptionHandler(errorHandler).setExecutionStrategy(LoggingMixin::executionStrategy).execute(args);

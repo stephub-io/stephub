@@ -40,7 +40,7 @@ import static picocli.CommandLine.Help.Visibility.ALWAYS;
                 ExecuteCommand.ExecuteScenariosCommand.class
         })
 @Slf4j
-public class ExecuteCommand {
+public class ExecuteCommand extends BaseCommand {
 
     public static class ExecuteBaseCommand extends BaseCommand {
         @Autowired
