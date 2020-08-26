@@ -1,0 +1,13 @@
+io.stephub.cli.service.WorkspaceYamlReaderTest.testFeaturesFromFile=[
+  "{\"gherkinPreferences\":{\"assignmentKeywords\":[\"- assigned to @ATTRIBUTE\"],\"stepKeywords\":[\"Given\",\"When\",\"Then\",\"But\"]},\"providers\":[],\"stepDefinitions\":[],\"variables\":{},\"features\":[],\"beforeFixtures\":[],\"afterFixtures\":[],\"featureFiles\":[\"/home/mbok/IdeaProjects/stephub4/cli/target/test-classes/features/feature1.feature\"]}"
+]
+
+
+io.stephub.cli.service.WorkspaceYamlReaderTest.testMerged=[
+  "{\"name\":\"abc\",\"gherkinPreferences\":{\"assignmentKeywords\":[\"- assigned to @ATTRIBUTE\"],\"stepKeywords\":[\"Given\",\"When\",\"Then\",\"But\"]},\"providers\":[],\"stepDefinitions\":[{\"type\":\"basic\",\"spec\":{\"pattern\":\"My step\",\"patternType\":\"simple\",\"arguments\":[],\"payload\":\"none\"},\"stepDefinitions\":[],\"steps\":[\"Given I do something\",\"Then I expect something\"],\"id\":\"simpleMy step\"},{\"type\":\"basic\",\"spec\":{\"pattern\":\"My winning step\",\"patternType\":\"simple\",\"arguments\":[],\"payload\":\"none\"},\"stepDefinitions\":[],\"steps\":[\"Given I win\"],\"id\":\"simpleMy winning step\"}],\"variables\":{\"var1\":{\"value\":null,\"schema\":{\"type\":\"string\"},\"default\":null}},\"features\":[{\"name\":\"Feature 1\",\"scenarios\":[{\"name\":\"Scene 1\",\"steps\":[\"Given I do something\",\"Then I expect something\"],\"tags\":[],\"comments\":[]}],\"tags\":[],\"comments\":[]}],\"beforeFixtures\":[],\"afterFixtures\":[],\"featureFiles\":[]}"
+]
+
+
+io.stephub.cli.service.WorkspaceYamlReaderTest.testSimple=[
+  "{\"name\":\"abc\",\"gherkinPreferences\":{\"assignmentKeywords\":[\"- assigned to @ATTRIBUTE\"],\"stepKeywords\":[\"Given\",\"When\",\"Then\",\"But\"]},\"providers\":[],\"stepDefinitions\":[{\"type\":\"basic\",\"spec\":{\"pattern\":\"My step\",\"patternType\":\"simple\",\"arguments\":[],\"payload\":\"none\"},\"stepDefinitions\":[],\"steps\":[\"Given I do something\",\"Then I expect something\"],\"id\":\"simpleMy step\"}],\"variables\":{\"var1\":{\"value\":null,\"schema\":{\"type\":\"string\"},\"default\":null}},\"features\":[{\"name\":\"Feature 1\",\"scenarios\":[{\"name\":\"Scene 1\",\"steps\":[\"Given I do something\",\"Then I expect something\"],\"tags\":[],\"comments\":[]}],\"tags\":[],\"comments\":[]}],\"beforeFixtures\":[],\"afterFixtures\":[],\"featureFiles\":[]}"
+]
