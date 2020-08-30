@@ -1,5 +1,6 @@
 package io.stephub.server.api.model.customsteps;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.stephub.expression.EvaluationContext;
@@ -116,6 +117,7 @@ public abstract class StepDefinition implements CustomStepContainer, Identifiabl
     }
 
     @Override
+    @JsonIgnore
     public String getId() {
         return this.spec != null ? this.spec.getPatternType() + this.spec.getPattern() : null;
     }
