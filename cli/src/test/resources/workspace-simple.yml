@@ -10,8 +10,6 @@ stepDefinitions:
     spec:
       pattern: My step
     steps:
-      - Given I do something
-      - Then I expect something
 
 features:
   - name: Feature 1

@@ -45,9 +45,11 @@ public class RuntimeSession implements Identifiable {
 
     @AllArgsConstructor
     @NoArgsConstructor
+    @Builder
     @Data
     public static class SessionSettings {
         @NotNull
+        @Builder.Default
         private Map<@Pattern(regexp = Patterns.ID_PATTERN_STR) String, Json> variables = new HashMap<>();
 
         public static enum ParallelizationMode {
@@ -60,6 +62,7 @@ public class RuntimeSession implements Identifiable {
             }
         }
 
+        @Builder.Default
         private ParallelizationMode parallelizationMode = ParallelizationMode.SCENARIO;
     }
 }

@@ -44,9 +44,8 @@ public class LoggingMixin {
         return getTopLevelCommandLoggingMixin(this.mixee).noColor;
     }
 
-    public static int executionStrategy(final CommandLine.ParseResult parseResult) {
+    public static void configure(final CommandLine.ParseResult parseResult) {
         getTopLevelCommandLoggingMixin(parseResult.commandSpec()).configureLoggers();
-        return new CommandLine.RunLast().execute(parseResult);
     }
 
     public void configureLoggers() {

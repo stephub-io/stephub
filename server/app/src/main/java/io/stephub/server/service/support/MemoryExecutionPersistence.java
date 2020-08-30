@@ -41,6 +41,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         @JsonIgnore
         private final Queue<ExecutionItem> pendingItems;
 
+        @JsonIgnore
+        private int uncompletedCount;
+
         @Override
         @JsonIgnore
         public int getMaxParallelizationCount() {
@@ -82,6 +85,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 initiatedAt(new Date()).
                 backlog(executionItems).
                 pendingItems(pendingItems).
+                uncompletedCount(pendingItems.size()).
                 build();
         this.store.put(this.getStoreId(workspace.getId(), execution.getId()), execution);
         return execution;
@@ -99,7 +103,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 log.debug("Next item={} in execution={}", next, execution);
                 return next;
             }
-            if (execution.getBacklog().stream().anyMatch(item -> item.getStatus() != COMPLETED)) {
+            if (execution.uncompletedCount > 0) {
                 return null;
             }
             execution.setStatus(COMPLETED);
@@ -116,22 +120,34 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         Execution.ExecutionItem executionItem;
         while ((executionItem = this.doLifecycleAndGetNext(execution)) != null) {
             try {
-                command.execute(executionItem, (item, stepCommand) -> {
-                    item.setStatus(EXECUTING);
-                    log.debug("Starting execution of step item={} of execution={}", item, execution);
-                    try {
-                        final StepResponse<Json> response = stepCommand.execute();
-                        item.setResponse(response);
-                        return response;
-                    } finally {
-                        item.setStatus(COMPLETED);
-                        log.debug("Completed execution of step item={} of execution={}", item, execution);
+                command.execute(executionItem, new StepExecutionFacade() {
+                    @Override
+                    public StepResponse<Json> doStep(final Execution.StepExecutionItem item, final StepExecutionItemCommand command) {
+                        item.setStatus(EXECUTING);
+                        log.debug("Starting execution of step item={} of execution={}", item, execution);
+                        try {
+                            final StepResponse<Json> response = command.execute();
+                            item.setResponse(response);
+                            return response;
+                        } finally {
+                            item.setStatus(COMPLETED);
+                            log.debug("Completed execution of step item={} of execution={}", item, execution);
+                        }
+                    }
+
+                    @Override
+                    public void cancelStep(final Execution.StepExecutionItem item) {
+                        item.setStatus(CANCELLED);
                     }
                 });
             } catch (final Exception e) {
                 log.warn("Failed to proceed execution item={} on workspace={} and execution={}", executionItem, wid, execId, e);
                 executionItem.setErroneous(true);
                 executionItem.setErrorMessage("Failed to proceed execution due to: " + e.getMessage());
+            } finally {
+                synchronized (execution) {
+                    execution.uncompletedCount--;
+                }
             }
         }
     }

@@ -3,6 +3,7 @@ package io.stephub.cli.command;
 import com.jakewharton.fliptables.FlipTableConverters;
 import io.stephub.cli.client.ExecutionClient;
 import io.stephub.cli.client.WorkspaceClient;
+import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.Execution.FeatureExecutionItem;
@@ -12,6 +13,7 @@ import io.stephub.server.api.model.ExecutionInstruction.NamedFeatureFilter;
 import io.stephub.server.api.model.ExecutionInstruction.NamedScenarioFilter;
 import io.stephub.server.api.model.ExecutionInstruction.ScenariosExecutionInstruction;
 import io.stephub.server.api.model.ExecutionInstruction.TagFilter;
+import io.stephub.server.api.model.RuntimeSession;
 import io.stephub.server.api.model.Workspace;
 import lombok.extern.slf4j.Slf4j;
 import me.tongfei.progressbar.DelegatingProgressBarConsumer;
@@ -23,12 +25,15 @@ import picocli.CommandLine;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static io.stephub.provider.api.model.StepResponse.StepStatus.*;
+import static io.stephub.server.api.model.Execution.ExecutionStatus.CANCELLED;
 import static io.stephub.server.api.model.Execution.ExecutionStatus.COMPLETED;
 import static picocli.CommandLine.Help.Visibility.ALWAYS;
 
@@ -55,6 +60,17 @@ public class ExecuteCommand extends BaseCommand {
         @CommandLine.Option(names = {"-n"}, description = "Number of parallel execution sessions", required = true, defaultValue = "1", showDefaultValue = ALWAYS)
         protected int parallelSessionCount;
 
+        @CommandLine.Option(names = {"-var"}, description = "Variable to set")
+        protected Map<String, Json> variables;
+
+        protected Map<String, Json> getSessionVariables() {
+            if (this.variables == null) {
+                return Collections.emptyMap();
+            } else {
+                return this.variables;
+            }
+        }
+
         protected static String formatDuration(final Duration duration) {
             final long seconds = duration.getSeconds();
             final long absSeconds = Math.abs(seconds);
@@ -76,6 +92,11 @@ public class ExecuteCommand extends BaseCommand {
             }
             return eStatus;
         }
+
+        protected boolean isDone(final Execution.ExecutionItem item) {
+            return item.getStatus() == COMPLETED || item.getStatus() == CANCELLED;
+        }
+
     }
 
     @Component
@@ -106,13 +127,13 @@ public class ExecuteCommand extends BaseCommand {
                                     .build());
                         }
                         progressBar.get().stepTo(changedExecution.getBacklog().stream().
-                                filter(executionItem -> executionItem.getStatus() == COMPLETED).
+                                filter(ExecuteStepsCommand.this::isDone).
                                 count());
                     }
             );
             if (progressBar.get() != null) {
                 progressBar.get().stepTo(execution.getBacklog().stream().
-                        filter(executionItem -> executionItem.getStatus() == COMPLETED).
+                        filter(ExecuteStepsCommand.this::isDone).
                         count());
                 progressBar.get().close();
             }
@@ -147,6 +168,7 @@ public class ExecuteCommand extends BaseCommand {
             }
             return FlipTableConverters.fromObjects(headers, data);
         }
+
     }
 
     @Component
@@ -189,7 +211,11 @@ public class ExecuteCommand extends BaseCommand {
                             ScenariosExecutionInstruction.builder().filter(
                                     this.filterOptions != null ? this.filterOptions.buildFilter() : new ExecutionInstruction.AllScenarioFilter()
                             ).build()
-                    ).parallelSessionCount(this.parallelSessionCount).build(),
+                    ).parallelSessionCount(this.parallelSessionCount).
+                            sessionSettings(RuntimeSession.SessionSettings.builder()
+                                    .variables(this.getSessionVariables())
+                                    .build()).
+                            build(),
                     changedExecution -> {
                         final List<ScenarioExecutionItem> scenarioExecutionItems = this.getFlattedScenarios(changedExecution.getBacklog());
                         if (progressBar.get() == null) {
@@ -200,13 +226,13 @@ public class ExecuteCommand extends BaseCommand {
                                     .build());
                         }
                         progressBar.get().stepTo(scenarioExecutionItems.stream().
-                                filter(item -> item.getStatus() == COMPLETED).
+                                filter(ExecuteScenariosCommand.this::isDone).
                                 count());
                     }
             );
             if (progressBar.get() != null) {
                 progressBar.get().stepTo(this.getFlattedScenarios(execution.getBacklog()).stream().
-                        filter(item -> item.getStatus() == COMPLETED).
+                        filter(ExecuteScenariosCommand.this::isDone).
                         count());
                 progressBar.get().close();
             }

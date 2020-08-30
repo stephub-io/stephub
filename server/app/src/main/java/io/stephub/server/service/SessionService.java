@@ -6,7 +6,6 @@ import io.stephub.expression.FunctionFactory;
 import io.stephub.json.Json;
 import io.stephub.json.JsonNull;
 import io.stephub.json.JsonObject;
-import io.stephub.json.schema.JsonInvalidSchemaException;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.ExecutionInstruction;
@@ -89,8 +88,9 @@ public abstract class SessionService {
                 }
             }
             try {
+                value = var.getSchema().convertFrom(value);
                 var.getSchema().accept(value);
-            } catch (final JsonInvalidSchemaException e) {
+            } catch (final Exception e) {
                 throw new ExecutionPrerequisiteException("Invalid value for variable '" + key + "': " + e.getMessage());
             }
             vars.getFields().put(key, value);

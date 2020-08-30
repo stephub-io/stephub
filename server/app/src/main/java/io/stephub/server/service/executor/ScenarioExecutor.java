@@ -16,33 +16,42 @@ public class ScenarioExecutor extends Executor<Execution.ScenarioExecutionItem> 
 
     @Override
     public void execute(final Workspace workspace, final Execution.ScenarioExecutionItem item, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final ExecutionPersistence.StepExecutionFacade stepExecutionFacade) {
-        if (!this.executeFixtures(item, item.getBeforeFixtures(), workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
+        boolean doCancel = false;
+        if (!this.executeFixtures(item, item.getBeforeFixtures(), workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade, doCancel)) {
             log.debug("Cancel further execution of scenario={} due to faulty before fixtures in workspace={}", item, workspace);
-            return;
+            doCancel = true;
         }
         for (final Execution.StepExecutionItem step : item.getSteps()) {
-            if (!this.executeStepItem(step, workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
-                log.debug("Cancel further execution of scenario={} due to faulty step={} in workspace={}", item, step, workspace);
-                return;
+            if (doCancel) {
+                stepExecutionFacade.cancelStep(step);
+            } else {
+                if (!this.executeStepItem(step, workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
+                    log.debug("Cancel further execution of scenario={} due to faulty step={} in workspace={}", item, step, workspace);
+                    doCancel = true;
+                }
             }
         }
-        if (!this.executeFixtures(item, item.getAfterFixtures(), workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
+        if (!this.executeFixtures(item, item.getAfterFixtures(), workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade, doCancel)) {
             log.debug("Cancel further execution of scenario={} due to faulty after fixtures in workspace={}", item, workspace);
-            return;
+            doCancel = true;
         }
     }
 
 
-    private boolean executeFixtures(final Execution.ScenarioExecutionItem scenario, final List<Execution.FixtureExecutionWrapper> fixtures, final Workspace workspace, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final ExecutionPersistence.StepExecutionFacade stepExecutionFacade) {
+    private boolean executeFixtures(final Execution.ScenarioExecutionItem scenario, final List<Execution.FixtureExecutionWrapper> fixtures, final Workspace workspace, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final ExecutionPersistence.StepExecutionFacade stepExecutionFacade, boolean doCancel) {
         for (final Execution.FixtureExecutionWrapper fixture : fixtures) {
             for (final Execution.StepExecutionItem step : fixture.getSteps()) {
-                if (!this.executeStepItem(step, workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
-                    log.debug("Cancel further execution of scenario={} due to faulty step={} in fixture={} in workspace={}", scenario, step, fixture, workspace);
-                    return false;
+                if (doCancel) {
+                    stepExecutionFacade.cancelStep(step);
+                } else {
+                    if (!this.executeStepItem(step, workspace, sessionExecutionContext, evaluationContext, stepExecutionFacade)) {
+                        log.debug("Cancel further execution of scenario={} due to faulty step={} in fixture={} in workspace={}", scenario, step, fixture, workspace);
+                        doCancel = true;
+                    }
                 }
             }
         }
-        return true;
+        return !doCancel;
     }
 
 }

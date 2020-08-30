@@ -31,6 +31,8 @@ public interface ExecutionPersistence {
 
     interface StepExecutionFacade {
         StepResponse<Json> doStep(Execution.StepExecutionItem item, StepExecutionItemCommand command);
+
+        void cancelStep(Execution.StepExecutionItem item);
     }
 
     interface StepExecutionItemCommand {

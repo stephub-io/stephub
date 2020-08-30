@@ -23,7 +23,7 @@ import static io.stephub.server.api.model.Execution.ExecutionStatus.*;
 @ToString(of = "id")
 public abstract class Execution implements Identifiable {
     public enum ExecutionStatus {
-        INITIATED, EXECUTING, COMPLETED;
+        INITIATED, EXECUTING, COMPLETED, CANCELLED;
 
         @Override
         @JsonValue
@@ -117,6 +117,8 @@ public abstract class Execution implements Identifiable {
                 return EXECUTING;
             } else if (agg.contains(COMPLETED)) {
                 return COMPLETED;
+            } else if (agg.contains(CANCELLED)) {
+                return CANCELLED;
             }
             return INITIATED;
         }

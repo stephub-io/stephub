@@ -41,7 +41,7 @@ public class ImportCommand extends BaseCommand implements Runnable {
             paramLabel = "file")
     private File[] files;
 
-    @CommandLine.Option(names = {"-d", "--dry-run"}, description = "Dry-run to preview import of workspace", defaultValue = "false")
+    @CommandLine.Option(names = {"--dry-run"}, description = "Dry-run to preview import of workspace", defaultValue = "false")
     private boolean dryRun;
 
     @Override
