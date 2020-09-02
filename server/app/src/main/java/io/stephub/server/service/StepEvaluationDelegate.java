@@ -7,7 +7,6 @@ import io.stephub.expression.ParseException;
 import io.stephub.expression.impl.DefaultExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.json.JsonException;
-import io.stephub.json.JsonString;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
@@ -49,12 +48,6 @@ public class StepEvaluationDelegate {
             stepRequestBuilder.dataTable(
                     this.evaluateDataTable(ec, stepMatch.getDataTable()));
         }
-        final String outputAssignmentAttribute = stepMatch.getOutputAssignmentAttribute() != null ?
-                ((JsonString) Json.JsonType.STRING.convertFrom(
-                        this.evaluateWithFallback("Output assignment attribute", ec,
-                                ValueMatch.<String>builder().spec(OUTPUT_ATTRIBUTE_SPEC).value(stepMatch.getOutputAssignmentAttribute()).build()
-                        ))).getValue()
-                : null;
         return new StepEvaluation() {
             @Override
             public StepRequest.StepRequestBuilder<Json, ?, ?> getRequestBuilder() {
@@ -63,8 +56,8 @@ public class StepEvaluationDelegate {
 
             @Override
             public void postEvaluateResponse(final StepResponse<Json> response) {
-                if (outputAssignmentAttribute != null && response.getOutput() != null) {
-                    ec.put(outputAssignmentAttribute, response.getOutput());
+                if (stepMatch.getOutputAssignment() != null && response.getOutput() != null) {
+                    StepEvaluationDelegate.this.evaluator.assign(stepMatch.getOutputAssignment().getValue(), ec, response.getOutput());
                 }
             }
         };
@@ -72,7 +65,7 @@ public class StepEvaluationDelegate {
 
     private List<Map<String, Json>> evaluateDataTable(final EvaluationContext ec, final List<Map<String, ValueMatch<String>>> dataTable) {
         return dataTable.stream().map(matchDataTable -> {
-                    Map<String, Json> row = new HashMap<>();
+                    final Map<String, Json> row = new HashMap<>();
                     matchDataTable.forEach((key, cellMatch) ->
                             row.put(key, this.evaluateWithFallback("row '" + row.size() + "' and col '" + key + "' in DataTable", ec, cellMatch))
                     );

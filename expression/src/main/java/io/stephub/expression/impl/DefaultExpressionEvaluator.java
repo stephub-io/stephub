@@ -2,6 +2,7 @@ package io.stephub.expression.impl;
 
 import io.stephub.expression.*;
 import io.stephub.expression.grammar.Parser;
+import io.stephub.expression.model.AssignableNode;
 import io.stephub.expression.model.ExprNode;
 import io.stephub.json.Json;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,8 @@ public class DefaultExpressionEvaluator implements ExpressionEvaluator {
 
     @Override
     public MatchResult match(final String expressionString) {
-        final SimpleMatchResult.SimpleMatchResultBuilder resultBuilder = SimpleMatchResult.builder();
+        final SimpleMatchResult.SimpleMatchResultBuilder resultBuilder = SimpleMatchResult.builder().
+                original(expressionString);
         try {
             resultBuilder.expr(this.parser.parse(expressionString));
         } catch (final ParseException e) {
@@ -34,11 +36,22 @@ public class DefaultExpressionEvaluator implements ExpressionEvaluator {
         return ((SimpleCompiledExpression) compiledExpression).getExpr().evaluate(ec);
     }
 
+    @Override
+    public void assign(final CompiledExpression compiledExpression, final EvaluationContext ec, final Json value) {
+        final ExprNode expr = ((SimpleCompiledExpression) compiledExpression).getExpr();
+        if (expr.getJson() instanceof AssignableNode) {
+            ((AssignableNode) expr.getJson()).assign(ec, value);
+        } else {
+            throw new EvaluationException("Not assignable expression '" + ((SimpleCompiledExpression) compiledExpression).getOriginal() + "'");
+        }
+    }
+
     @Builder
     @EqualsAndHashCode
     private static final class SimpleMatchResult implements MatchResult {
         private final ParseException parseException;
         private final ExprNode expr;
+        private final String original;
 
         @Override
         public boolean matches() {
@@ -52,7 +65,7 @@ public class DefaultExpressionEvaluator implements ExpressionEvaluator {
 
         @Override
         public CompiledExpression getCompiledExpression() {
-            return new SimpleCompiledExpression(this.expr);
+            return new SimpleCompiledExpression(this.expr, this.original);
         }
     }
 
@@ -61,5 +74,11 @@ public class DefaultExpressionEvaluator implements ExpressionEvaluator {
     @EqualsAndHashCode
     private static final class SimpleCompiledExpression implements CompiledExpression {
         private final ExprNode expr;
+        private final String original;
+
+        @Override
+        public boolean isAssignable() {
+            return this.expr.getJson() instanceof AssignableNode;
+        }
     }
 }

@@ -47,7 +47,7 @@ public class GherkinPreferences {
                     this.assignmentKeywords.stream().map(k -> {
                         final String[] parts = k.split("@ATTRIBUTE");
                         return java.util.regex.Pattern.quote(parts[0]) +
-                                "(?<" + OUTPUT_ATTRIBUTE_GROUP_NAME + ">.+)" +
+                                "(?<" + OUTPUT_ATTRIBUTE_GROUP_NAME + ">.+?)" +
                                 (parts.length > 1 ? java.util.regex.Pattern.quote(parts[1]) : "");
                     }).collect(Collectors.joining("|")));
             pattern.append(")?");

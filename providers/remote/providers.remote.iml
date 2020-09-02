@@ -96,8 +96,8 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.jboss.logging:jboss-logging:3.4.1.Final" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: com.fasterxml:classmate:1.5.1" level="project" />
     <orderEntry type="module" module-name="json" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.22" level="project" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.22" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.23" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.23" level="project" />
     <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.3.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: net.jodah:expiringmap:0.5.9" level="project" />

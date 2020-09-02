@@ -60,4 +60,7 @@ public class JsonObject extends Json {
         return str.toString();
     }
 
+    public void set(final String key, final Json value) {
+        this.fields.put(key, value);
+    }
 }

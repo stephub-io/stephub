@@ -134,7 +134,11 @@ class StepEvaluationDelegateTest {
                                                         ofType(BOOLEAN)).build()).
                                 value(this.evaluator.evaluator.match("true").getCompiledExpression())
                                 .build()
-                ).outputAssignmentAttribute("response").build(),
+                ).outputAssignment(
+                        GherkinPatternMatcher.OutputAssignmentMatch.builder().value(
+                                evaluator.evaluator.match("${response}").getCompiledExpression()
+                        ).build()
+                ).build(),
                 ec
         );
         final StepRequest<Json> step = stepEvaluation.getRequestBuilder().build();

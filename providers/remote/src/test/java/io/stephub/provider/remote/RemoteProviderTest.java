@@ -76,7 +76,7 @@ class RemoteProviderTest {
                                                 schema(JsonSchema.ofType(STRING)).
                                                 build()
                                 ).
-                                patternType(PatternType.REGEX).
+                                patternType(PatternType.SIMPLE).
                                 payload(StepSpec.PayloadType.DATA_TABLE).
                                 dataTable(
                                         DataTableSpec.<JsonSchema>builder().

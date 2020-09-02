@@ -48,4 +48,8 @@ public class JsonArray extends Json {
         final Json v = this.values.get(index);
         return v != null ? v : JsonNull.INSTANCE;
     }
+
+    public void set(final int index, final Json value) {
+        this.values.add(index, value);
+    }
 }

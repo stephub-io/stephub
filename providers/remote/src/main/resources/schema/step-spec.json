@@ -21,7 +21,6 @@
       "type": "string",
       "title": "Pattern type",
       "enum": [
-        "regex",
         "simple"
       ],
       "default": "simple"

@@ -10,6 +10,7 @@ import lombok.Singular;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,11 +24,15 @@ public class SimplePatternExtractor {
         final Matcher matcher = SIMPLE_PATTERN_ARG_PATTERN.matcher(simplePattern);
         int left = 0;
         final StringBuilder regexPattern = new StringBuilder();
+        int argCount = 0;
         while (matcher.find()) {
             if (left < matcher.start()) {
                 regexPattern.append(Pattern.quote(simplePattern.substring(left, matcher.start()) + matcher.group(1)));
             }
-            regexPattern.append("(?<" + matcher.group(2) + ">.+?)");
+            final String argName = matcher.group(2);
+            final String groupName = "a" + (argCount++);
+            extractionBuilder.argumentGroup(argName, groupName);
+            regexPattern.append("(?<" + groupName + ">.+?)");
             extractionBuilder.argument(
                     ArgumentSpec.<JsonSchema>builder().
                             name(matcher.group(2)).
@@ -48,5 +53,8 @@ public class SimplePatternExtractor {
         private final Pattern regexPattern;
         @Singular
         private final List<ArgumentSpec<JsonSchema>> arguments;
+
+        @Singular
+        private final Map<String, String> argumentGroups;
     }
 }

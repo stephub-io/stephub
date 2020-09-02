@@ -9,9 +9,8 @@ import io.stephub.json.Json;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.spec.*;
 import io.stephub.server.api.model.GherkinPreferences;
-import io.stephub.server.api.model.Workspace;
-import io.stephub.server.api.model.gherkin.Feature;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,6 +28,7 @@ import static io.stephub.server.service.SimplePatternExtractor.DEFAULT_PATTERN_F
 
 
 @Service
+@Slf4j
 public class GherkinPatternMatcher {
     public static final Pattern DOC_STRING_MARKER = Pattern.compile("(\\s*)\"\"\"\\s*");
     private static final Pattern SKIP_LINES_PATTERN = Pattern.compile("^(\\s*#.*|\\s*)$");
@@ -47,7 +47,7 @@ public class GherkinPatternMatcher {
         private final Map<String, ValueMatch<CompiledExpression>> arguments;
         private final ValueMatch<String> docString;
         private final List<Map<String, ValueMatch<String>>> dataTable;
-        private final String outputAssignmentAttribute;
+        private final OutputAssignmentMatch outputAssignment;
     }
 
 
@@ -60,15 +60,26 @@ public class GherkinPatternMatcher {
         private final ValueSpec<JsonSchema> spec;
     }
 
+    @Getter
+    @Builder
+    @EqualsAndHashCode
+    @ToString
+    public static class OutputAssignmentMatch {
+        private final CompiledExpression value;
+        private final OutputSpec<JsonSchema> spec;
+    }
+
     public StepMatch matches(final GherkinPreferences preferences, final StepSpec<JsonSchema> stepSpec, final String instruction) {
         Pattern pattern = null;
         List<ArgumentSpec<JsonSchema>> additionalArguments = null;
+        Map<String, String> argumentPatternGroups = null;
         switch (stepSpec.getPatternType()) {
             case SIMPLE:
                 final SimplePatternExtractor.Extraction simplePatternExtraction = this.simplePatternExtractor.extract(preferences, stepSpec.getPattern(), stepSpec.getOutput() != null);
                 additionalArguments = simplePatternExtraction.getArguments();
                 pattern = simplePatternExtraction.getRegexPattern();
-            case REGEX:
+                argumentPatternGroups = simplePatternExtraction.getArgumentGroups();
+            default:
                 final String[] linesRaw = instruction.split("\r?\n");
                 final List<String> effectiveLines = new ArrayList<>();
                 for (final String line : linesRaw) {
@@ -94,7 +105,11 @@ public class GherkinPatternMatcher {
                         stepSpec.getArguments().forEach(a -> arguments.put(a.getName(), a));
                     }
                     for (final ArgumentSpec<JsonSchema> a : arguments.values()) {
-                        final String argValue = matcher.group(a.getName());
+                        if (!argumentPatternGroups.containsKey(a.getName())) {
+                            log.warn("Bypass argument {} from spec not listed in the pattern '{}'", a, pattern);
+                            continue;
+                        }
+                        final String argValue = matcher.group(argumentPatternGroups.get(a.getName()));
                         final MatchResult argExprMatcher = this.evaluator.match(argValue);
                         if (!argExprMatcher.matches()) {
                             return null;
@@ -111,7 +126,16 @@ public class GherkinPatternMatcher {
                     if (stepSpec.getOutput() != null) {
                         final String outputAttribute = matcher.group(GherkinPreferences.OUTPUT_ATTRIBUTE_GROUP_NAME);
                         if (StringUtils.isNotBlank(outputAttribute)) {
-                            stepMatchBuilder.outputAssignmentAttribute(outputAttribute);
+                            final MatchResult outputExprMatcher = this.evaluator.match(outputAttribute);
+                            if (outputExprMatcher.matches()) {
+                                stepMatchBuilder.outputAssignment(
+                                        OutputAssignmentMatch.<CompiledExpression>builder().
+                                                value(outputExprMatcher.getCompiledExpression()).
+                                                spec(stepSpec.getOutput()).
+                                                build());
+                            } else {
+                                throw new ParseException("Invalid output assignment: " + outputExprMatcher.getParseException().getMessage());
+                            }
                         }
                     }
                     return stepMatchBuilder.build();
@@ -119,7 +143,6 @@ public class GherkinPatternMatcher {
                     return null;
                 }
         }
-        throw new UnsupportedOperationException("Pattern matching not implemented for type=" + stepSpec.getPatternType());
     }
 
     private void checkAndExtractPayload(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {

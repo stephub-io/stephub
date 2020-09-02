@@ -13,4 +13,6 @@ public interface ExpressionEvaluator {
     MatchResult match(String expressionString);
 
     Json evaluate(CompiledExpression compiledExpression, EvaluationContext ec);
+
+    void assign(CompiledExpression compiledExpression, EvaluationContext ec, Json value);
 }
