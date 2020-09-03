@@ -48,6 +48,7 @@ public class WorkspaceYamlReader {
 
     private void importFeatureFiles(final File from, final ImportWorkspace target, final ImportWorkspace increment) throws IOException {
         if (increment.getFeatureFiles() != null) {
+            final Path workdir = new File("./").toPath().toAbsolutePath();
             final Path base = from.getParentFile().toPath();
             for (final String sf : increment.getFeatureFiles()) {
                 log.debug("Resolving features files from {} for pattern {}", base, sf);
@@ -76,7 +77,7 @@ public class WorkspaceYamlReader {
                 }
                 for (final Path path : resolvedFeatureFiles) {
                     if (!target.getFeatureFiles().contains(path.toAbsolutePath().toString())) {
-                        target.getFeatureFiles().add(path.toAbsolutePath().toString());
+                        target.getFeatureFiles().add(workdir.relativize(path).toString());
                     }
                 }
             }
