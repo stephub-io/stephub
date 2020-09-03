@@ -58,7 +58,7 @@ public class WorkspaceYamlReader {
                 Files.walkFileTree(base, new SimpleFileVisitor<>() {
                     @Override
                     public FileVisitResult visitFile(final Path path,
-                                                     final BasicFileAttributes attrs) throws IOException {
+                                                     final BasicFileAttributes attrs) {
                         if (pathMatcher.matches(path)
                                 || path.startsWith(base) && pathMatcher.matches(base.relativize(path))) {
                             resolvedFeatureFiles.add(path);
@@ -67,8 +67,7 @@ public class WorkspaceYamlReader {
                     }
 
                     @Override
-                    public FileVisitResult visitFileFailed(final Path file, final IOException exc)
-                            throws IOException {
+                    public FileVisitResult visitFileFailed(final Path file, final IOException exc) {
                         return FileVisitResult.CONTINUE;
                     }
                 });
@@ -134,7 +133,7 @@ public class WorkspaceYamlReader {
     private <T extends Identifiable> void mergeList(final List<T> target, final List<T> source, final Consumer<T> dupplicateConsumer) {
         source.stream().filter(i ->
         {
-            target.stream().filter(a -> this.isSame(i, a)).findFirst().ifPresent(dupplicateConsumer::accept);
+            target.stream().filter(a -> this.isSame(i, a)).findFirst().ifPresent(dupplicateConsumer);
             return true;
         }).forEach(target::add);
     }
