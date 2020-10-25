@@ -1,0 +1,11 @@
+<span class="stats">
+  <span *ngIf="stats.passed" class="badge badge-success"
+    ><span *ngIf="showCount()">{{ stats.passed }} </span>passed</span
+  >
+  <span *ngIf="stats.failed" class="badge badge-danger"
+    ><span *ngIf="showCount()">{{ stats.failed }} </span>failed</span
+  >
+  <span *ngIf="stats.erroneous" class="badge badge-danger"
+    ><span *ngIf="showCount()">{{ stats.erroneous }} </span>erroneous</span
+  >
+</span>

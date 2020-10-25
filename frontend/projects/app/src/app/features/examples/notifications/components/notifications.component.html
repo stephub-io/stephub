@@ -1,0 +1,54 @@
+<div class="container" rtl>
+  <div class="row">
+    <div class="col-12">
+      <h1 class="main-heading">
+        {{ "sh.examples.notifications.title" | translate }}
+      </h1>
+    </div>
+  </div>
+
+  <div class="row item" [ngClass]="routeAnimationsElements">
+    <button mat-raised-button class="col-3 default" (click)="default()">
+      {{ "sh.examples.notifications.default.title" | translate }}
+    </button>
+    <p class="col-9">
+      {{ "sh.examples.notifications.default.description" | translate }}
+    </p>
+  </div>
+
+  <div class="row item" [ngClass]="routeAnimationsElements">
+    <button mat-raised-button class="col-3 information" (click)="info()">
+      {{ "sh.examples.notifications.info.title" | translate }}
+    </button>
+    <p class="col-9">
+      {{ "sh.examples.notifications.info.description" | translate }}
+    </p>
+  </div>
+
+  <div class="row item" [ngClass]="routeAnimationsElements">
+    <button mat-raised-button class="col-3 success" (click)="success()">
+      {{ "sh.examples.notifications.success.title" | translate }}
+    </button>
+    <p class="col-9">
+      {{ "sh.examples.notifications.success.description" | translate }}
+    </p>
+  </div>
+
+  <div class="row item" [ngClass]="routeAnimationsElements">
+    <button mat-raised-button class="col-3 warning" (click)="warn()">
+      {{ "sh.examples.notifications.warning.title" | translate }}
+    </button>
+    <p class="col-9">
+      {{ "sh.examples.notifications.warning.description" | translate }}
+    </p>
+  </div>
+
+  <div class="row item" [ngClass]="routeAnimationsElements">
+    <button mat-raised-button class="col-3 error" (click)="error()">
+      {{ "sh.examples.notifications.error.title" | translate }}
+    </button>
+    <p class="col-9">
+      {{ "sh.examples.notifications.error.description" | translate }}
+    </p>
+  </div>
+</div>

@@ -1,0 +1,166 @@
+{
+  "mappings": [
+    {
+      "request": {
+        "method": "GET",
+        "url": "/api/v1/workspaces"
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "total": 1,
+          "items": [
+            {
+              "id": "d2947504-b71d-4678-b69e-eecdd3061107",
+              "name": "abc",
+              "gherkinPreferences": {
+                "assignmentKeywords": ["- assigned to @ATTRIBUTE"],
+                "stepKeywords": ["Given", "When", "Then", "But"]
+              },
+              "providers": [],
+              "stepDefinitions": [
+                {
+                  "type": "basic",
+                  "spec": {
+                    "pattern": "My step",
+                    "patternType": "simple",
+                    "arguments": [],
+                    "payload": "none"
+                  },
+                  "stepDefinitions": [],
+                  "steps": []
+                }
+              ],
+              "variables": {
+                "var1": {
+                  "value": null,
+                  "schema": {
+                    "type": "string"
+                  },
+                  "default": null
+                }
+              },
+              "features": [
+                {
+                  "name": "Feature 1",
+                  "scenarios": [
+                    {
+                      "name": "Scene 1",
+                      "steps": [
+                        "Given I do something",
+                        "Then I expect something"
+                      ],
+                      "tags": [],
+                      "comments": []
+                    }
+                  ],
+                  "tags": [],
+                  "comments": []
+                },
+                {
+                  "name": "Abc",
+                  "scenarios": [
+                    {
+                      "name": "My first scenario",
+                      "steps": [
+                        "Given value { \"hello\": \"6\" } - assigned to ${my}",
+                        "# Comment of first step\nGiven assert that ${var.var1} equals ${my.hello}",
+                        "# Comment #1 of 2nd step\n# Comment #2 of 2nd step\nThen assert that 2 equals 2"
+                      ],
+                      "tags": [],
+                      "comments": ["Comment of scenario"]
+                    }
+                  ],
+                  "tags": [],
+                  "comments": ["Comment of feature"]
+                }
+              ],
+              "beforeFixtures": [],
+              "afterFixtures": []
+            }
+          ]
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    },
+    {
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/api/v1/workspaces/[^/]+"
+      },
+      "response": {
+        "status": 200,
+        "jsonBody": {
+          "id": "d2947504-b71d-4678-b69e-eecdd3061107",
+          "name": "abc",
+          "gherkinPreferences": {
+            "assignmentKeywords": ["- assigned to @ATTRIBUTE"],
+            "stepKeywords": ["Given", "When", "Then", "But"]
+          },
+          "providers": [],
+          "stepDefinitions": [
+            {
+              "type": "basic",
+              "spec": {
+                "pattern": "My step",
+                "patternType": "simple",
+                "arguments": [],
+                "payload": "none"
+              },
+              "stepDefinitions": [],
+              "steps": []
+            }
+          ],
+          "variables": {
+            "var1": {
+              "value": null,
+              "schema": {
+                "type": "string"
+              },
+              "default": null
+            }
+          },
+          "features": [
+            {
+              "name": "Feature 1",
+              "scenarios": [
+                {
+                  "name": "Scene 1",
+                  "steps": ["Given I do something", "Then I expect something"],
+                  "tags": [],
+                  "comments": []
+                }
+              ],
+              "tags": [],
+              "comments": []
+            },
+            {
+              "name": "Abc",
+              "scenarios": [
+                {
+                  "name": "My first scenario",
+                  "steps": [
+                    "Given value { \"hello\": \"6\" } - assigned to ${my}",
+                    "# Comment of first step\nGiven assert that ${var.var1} equals ${my.hello}",
+                    "# Comment #1 of 2nd step\n# Comment #2 of 2nd step\nThen assert that 2 equals 2"
+                  ],
+                  "tags": [],
+                  "comments": ["Comment of scenario"]
+                }
+              ],
+              "tags": [],
+              "comments": ["Comment of feature"]
+            }
+          ],
+          "beforeFixtures": [],
+          "afterFixtures": []
+        },
+        "headers": {
+          "Content-Type": "application/json"
+        }
+      }
+    }
+  ]
+}

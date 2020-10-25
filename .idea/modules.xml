@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/cli/cli.iml" filepath="$PROJECT_DIR$/cli/cli.iml" />
       <module fileurl="file://$PROJECT_DIR$/expression/expression.iml" filepath="$PROJECT_DIR$/expression/expression.iml" />
+      <module fileurl="file://$PROJECT_DIR$/frontend/frontend.iml" filepath="$PROJECT_DIR$/frontend/frontend.iml" />
       <module fileurl="file://$PROJECT_DIR$/json/json.iml" filepath="$PROJECT_DIR$/json/json.iml" />
       <module fileurl="file://$PROJECT_DIR$/parent.iml" filepath="$PROJECT_DIR$/parent.iml" />
       <module fileurl="file://$PROJECT_DIR$/providers/providers.iml" filepath="$PROJECT_DIR$/providers/providers.iml" />

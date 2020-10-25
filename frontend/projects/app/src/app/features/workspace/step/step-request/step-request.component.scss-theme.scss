@@ -1,0 +1,13 @@
+@import "~@angular/material/theming";
+
+@mixin sh-step-request-component($theme) {
+  $primary: map-get($theme, primary);
+
+  .doc-string,
+  .data-table {
+    color: mat-color($primary);
+    margin-left: 1em;
+    padding-left: 1em;
+    box-shadow: -3px 0 3px -3px mat-color($primary);
+  }
+}

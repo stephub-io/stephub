@@ -81,6 +81,11 @@ public class ProvidersFacade implements StepExecutionSource {
                             build();
                 }
             }
+
+            @Override
+            public StepSpec<JsonSchema> getStepSpec() {
+                return stepSpec;
+            }
         };
     }
 

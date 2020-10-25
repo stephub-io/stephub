@@ -1,0 +1,137 @@
+<div
+  *ngIf="workspace$.asObservable() | async as workspace"
+  [ngClass]="routeAnimationsElements"
+>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12">
+        <h1 rtl class="main-heading">{{ workspace.name }}</h1>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <mat-accordion class="items-headers-align" multi>
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span>Providers</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                <span>
+                  (0)
+                </span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span>Custom steps</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                <span>
+                  (2)
+                </span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span>Features</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                <span>
+                  (0)
+                </span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+          </mat-expansion-panel>
+
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span>Syntax preferences</span>
+              </mat-panel-title>
+              <mat-panel-description>
+                <span>
+                  Configure keywords and phrases for parsing steps
+                </span>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+            <div class="container">
+              <div class="row">
+                <div class="col-md-3">Step prefixes:</div>
+                <div class="col-md-9">
+                  <ng-container
+                    *ngTemplateOutlet="
+                      configure_keywords;
+                      context: {
+                        keywords: workspace.gherkinPreferences.stepKeywords,
+                        formControl: stepKeywordFormControl,
+                        newLabel: 'New step prefix...'
+                      }
+                    "
+                  ></ng-container>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-3">Attribute assignment suffixes:</div>
+                <div class="col-md-9">
+                  <ng-container
+                    *ngTemplateOutlet="
+                      configure_keywords;
+                      context: {
+                        keywords:
+                          workspace.gherkinPreferences.assignmentKeywords,
+                        formControl: assignmentKeywordFormControl,
+                        newLabel: 'New assignment suffix...'
+                      }
+                    "
+                  ></ng-container>
+                </div>
+              </div>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+      </div>
+    </div>
+  </div>
+
+  <ng-template
+    #configure_keywords
+    let-keywords="keywords"
+    let-formControl="formControl"
+    let-newLabel="newLabel"
+  >
+    <mat-form-field class="chip-list">
+      <mat-chip-list #chipList>
+        <mat-chip
+          *ngFor="let keyword of keywords"
+          [selectable]="false"
+          [removable]="true"
+          (removed)="removeStepKeyword(keywords, keyword)"
+          color="primary"
+          class="text-monospace"
+        >
+          {{ keyword }}
+          <fa-icon icon="minus-circle" matChipRemove></fa-icon>
+        </mat-chip>
+        <input
+          [placeholder]="newLabel"
+          class="text-monospace"
+          [formControl]="formControl"
+          [matChipInputFor]="chipList"
+          [matChipInputSeparatorKeyCodes]="separatorKeysCodes"
+          [matChipInputAddOnBlur]="true"
+          (matChipInputTokenEnd)="addStepKeyword(keywords, $event, formControl)"
+        />
+        <mat-error *ngIf="formControl && formControl.hasError('pattern')">
+          Please enter a phrase containing the '@ATTRIBUTE' placeholder
+        </mat-error>
+      </mat-chip-list>
+    </mat-form-field>
+  </ng-template>
+</div>

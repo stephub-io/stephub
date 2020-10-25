@@ -1,0 +1,15 @@
+@import "~@angular/material/theming";
+
+@mixin sh-step-abstract-component($theme) {
+  $accent: map-get($theme, accent);
+  $warn: map-get($theme, warn);
+
+  .keyword,
+  .assigment {
+    color: mat-color($accent);
+  }
+
+  .attribute {
+    color: mat-color($warn);
+  }
+}

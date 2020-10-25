@@ -1,0 +1,212 @@
+<div class="container">
+  <div *ngIf="execution$ | async as exec" [ngClass]="routeAnimationsElements">
+    <div class="row">
+      <div class="col-sm-8">
+        <mat-card>
+          <mat-card-content>
+            <div class="row">
+              <div class="col col-4">
+                Status:
+              </div>
+              <div class="col col-8">
+                <fa-icon
+                  [icon]="statusIcon(exec.status)"
+                  [spin]="statusIconSpin(exec.status)"
+                ></fa-icon>
+                {{ exec.status }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-4">
+                Started:
+              </div>
+              <div class="col col-8">
+                <span *ngIf="exec.startedAt">{{
+                  exec.startedAt | date: "medium"
+                }}</span>
+                <span *ngIf="!exec.startedAt">Starting soon</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-4">
+                Stopped:
+              </div>
+              <div class="col col-8">
+                <span *ngIf="exec.completedAt">{{
+                  exec.completedAt | date: "medium"
+                }}</span>
+                <span *ngIf="!exec.completedAt">-</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-4">Result:</div>
+              <div class="col col-8">
+                <sh-execution-stats [stats]="exec.stats"></sh-execution-stats>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+    <h3>Items</h3>
+    <div class="row">
+      <div class="col-sm-12">
+        <mat-accordion class="items-headers-align" multi>
+          <ng-container *ngFor="let item of exec.backlog">
+            <mat-expansion-panel *ngIf="getFeature(item)">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <fa-icon
+                    [icon]="getIcon(item)"
+                    [title]="getTitle(item)"
+                  ></fa-icon>
+                  <span>{{ getName(item) }}</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span>
+                    <sh-execution-stats
+                      class="indicator"
+                      [stats]="item.stats"
+                    ></sh-execution-stats>
+                    <fa-icon
+                      class="indicator"
+                      [icon]="statusIcon(item.status)"
+                      [spin]="statusIconSpin(item.status)"
+                      [title]="item.status"
+                    ></fa-icon>
+                  </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <p>
+                <mat-divider></mat-divider>
+              </p>
+              <p>
+                <span class="font-weight-bold">{{ getTitle(item) }}:</span>
+                {{ getName(item) }}
+              </p>
+              <p class="font-weight-bold">Scenarios:</p>
+              <mat-accordion
+                *ngFor="let scenario of getFeature(item).scenarios"
+                class="items-headers-align"
+                multi
+              >
+                <mat-expansion-panel>
+                  <mat-expansion-panel-header>
+                    <mat-panel-title>
+                      <fa-icon
+                        [icon]="getIcon(scenario)"
+                        [title]="getTitle(scenario)"
+                      ></fa-icon>
+                      <span>{{ getName(scenario) }}</span>
+                    </mat-panel-title>
+                    <mat-panel-description>
+                      <span>
+                        <sh-execution-stats
+                          class="indicator"
+                          [stats]="scenario.stats"
+                        ></sh-execution-stats>
+                        <fa-icon
+                          class="indicator"
+                          [icon]="statusIcon(scenario.status)"
+                          [spin]="statusIconSpin(scenario.status)"
+                          [title]="scenario.status"
+                        ></fa-icon>
+                      </span>
+                    </mat-panel-description>
+                  </mat-expansion-panel-header>
+                  <p>
+                    <mat-divider></mat-divider>
+                  </p>
+                  <p>
+                    <span class="font-weight-bold"
+                      >{{ getTitle(scenario) }} :</span
+                    >
+                    {{ getName(scenario) }}
+                  </p>
+                  <p class="font-weight-bold">Steps:</p>
+                  <mat-accordion class="items-headers-align" multi>
+                    <ng-container
+                      *ngTemplateOutlet="
+                        step_item;
+                        context: { items: scenario.steps }
+                      "
+                    ></ng-container>
+                  </mat-accordion>
+                </mat-expansion-panel>
+              </mat-accordion>
+            </mat-expansion-panel>
+            <ng-container *ngIf="getStepItem(item) as stepItem">
+              <ng-container
+                *ngTemplateOutlet="step_item; context: { items: [stepItem] }"
+              ></ng-container>
+            </ng-container>
+          </ng-container>
+        </mat-accordion>
+      </div>
+      <ng-template #step_item let-items="items">
+        <mat-expansion-panel
+          *ngFor="let step of getStepItems(items)"
+          class="mat-elevation-z0"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <fa-icon
+                [icon]="getIcon(step)"
+                [title]="getTitle(step)"
+              ></fa-icon>
+              <span>
+                <sh-step-abstract
+                  [instruction]="
+                    parseStepInstruction(step, exec?.gherkinPreferences)
+                  "
+                ></sh-step-abstract>
+              </span>
+            </mat-panel-title>
+            <mat-panel-description>
+              <div>
+                <div class="info">
+                  <sh-execution-stats
+                    class="indicator"
+                    [stats]="step.stats"
+                  ></sh-execution-stats>
+                  <span
+                    *ngIf="step.status == 'cancelled'"
+                    class="badge badge-secondary"
+                    >cancelled</span
+                  >
+                  <fa-icon
+                    class="indicator"
+                    [icon]="statusIcon(step.status)"
+                    [spin]="statusIconSpin(step.status)"
+                    [title]="step.status"
+                  ></fa-icon>
+                </div>
+                <div class="info">
+                  {{ step.response?.duration | humanizeDuration }}
+                </div>
+              </div>
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <mat-divider></mat-divider>
+          <div class="request">
+            <sh-step-request
+              [instruction]="
+                parseStepInstruction(step, exec?.gherkinPreferences)
+              "
+            >
+            </sh-step-request>
+          </div>
+          <div *ngIf="step.response && step.response?.status != 'passed'">
+            <div class="response">
+              <div class="error-message">
+                <fa-icon icon="exclamation-triangle"></fa-icon>
+                {{ step.response?.errorMessage }}
+              </div>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+        </mat-expansion-panel>
+      </ng-template>
+    </div>
+  </div>
+</div>

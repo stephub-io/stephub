@@ -1,0 +1,9 @@
+$sh-light-primary: mat-palette($mat-grey, 200, 500, 300);
+$sh-light-accent: mat-palette($mat-brown, 200);
+$sh-light-warn: mat-palette($mat-deep-orange, 200);
+
+$sh-light-theme: mat-light-theme(
+  $sh-light-primary,
+  $sh-light-accent,
+  $sh-light-warn
+);

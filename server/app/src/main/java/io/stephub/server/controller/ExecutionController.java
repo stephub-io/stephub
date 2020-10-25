@@ -1,6 +1,7 @@
 package io.stephub.server.controller;
 
 import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.rest.PageResult;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.ExecutionPersistence;
 import io.stephub.server.service.ExecutionService;
@@ -27,17 +28,18 @@ public class ExecutionController {
 
     @PostMapping("/workspaces/{wid}/executions")
     public Execution startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
-                               @RequestBody @Valid final Execution.ExecutionStart executionStart,
-                               final HttpServletResponse response) throws IOException {
+                                    @RequestBody @Valid final Execution.ExecutionStart executionStart,
+                                    final HttpServletResponse response) throws IOException {
         final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
         return execution;
     }
 
     @GetMapping("/workspaces/{wid}/executions")
     @ResponseBody
-    public List<Execution> getExecutions(@ModelAttribute final Context ctx,
-                                         @PathVariable("wid") final String wid) {
-        return this.executionPersistence.getExecutions(wid);
+    public PageResult<Execution> getExecutions(@ModelAttribute final Context ctx,
+                                               @PathVariable("wid") final String wid) {
+        final List<Execution> executions = this.executionPersistence.getExecutions(wid);
+        return PageResult.<Execution>builder().items(executions).total(executions.size()).build();
     }
 
     @GetMapping("/workspaces/{wid}/executions/{execId}")

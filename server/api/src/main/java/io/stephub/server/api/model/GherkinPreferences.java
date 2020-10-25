@@ -33,7 +33,7 @@ public class GherkinPreferences {
     @NotNull
     @Size(min = 1)
     private final List<@NotEmpty String> stepKeywords = CollectionUtils.arrayToList(new String[]{
-            "Given", "When", "Then", "But"
+            "Given", "When", "Then", "But", "And"
     });
 
     public String surround(final String stepRegexPattern, final boolean withOutput) {

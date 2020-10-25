@@ -5,8 +5,11 @@ import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.json.Json;
 import io.stephub.json.JsonArray;
 import io.stephub.json.JsonObject;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
+import io.stephub.provider.api.model.spec.StepSpec;
+import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
 import io.stephub.server.api.model.GherkinPreferences;
 import io.stephub.server.api.model.Workspace;
@@ -66,30 +69,38 @@ public class StepExecutionResolver implements StepExecutionSource {
                 final GherkinPatternMatcher.StepMatch match = StepExecutionResolver.this.patternMatcher.matches(this.gherkinPreferences, stepDefinition.getSpec(), instruction);
                 if (match != null) {
                     log.trace("Resolved for instruction={} a custom step={}", instruction, stepDefinition);
-                    return (sessionExecutionContext, evaluationContext) -> {
-                        // Check cycle
-                        if (this.stepDefinitionStack.contains(stepDefinition)) {
-                            return StepResponse.<Json>builder().status(ERRONEOUS).
-                                    errorMessage(RECURSIVE_STEP_CALL_SEQUENCE_DETECTED).build();
+                    return new StepExecution() {
+                        @Override
+                        public StepResponse<Json> execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
+                            // Check cycle
+                            if (HierarchicalResolver.this.stepDefinitionStack.contains(stepDefinition)) {
+                                return StepResponse.<Json>builder().status(ERRONEOUS).
+                                        errorMessage(RECURSIVE_STEP_CALL_SEQUENCE_DETECTED).build();
+                            }
+                            // Do step
+                            HierarchicalResolver.this.stepDefinitionStack.add(stepDefinition);
+                            try {
+                                final StepEvaluationDelegate.StepEvaluation stepEvaluation = StepExecutionResolver.this.stepEvaluationDelegate.getStepEvaluation(match, evaluationContext);
+                                final StepRequest<Json> stepRequest = stepEvaluation.getRequestBuilder().build();
+                                final StepResponse<Json> response = stepDefinition.execute(stepRequest, sessionExecutionContext,
+                                        new StepScopedEvaluationContext(evaluationContext, stepRequest),
+                                        new HierarchicalResolver(
+                                                HierarchicalResolver.this.gherkinPreferences,
+                                                HierarchicalResolver.this,
+                                                stepDefinition,
+                                                HierarchicalResolver.this.stepDefinitionStack),
+                                        StepExecutionResolver.this.expressionEvaluator
+                                );
+                                stepEvaluation.postEvaluateResponse(response);
+                                return response;
+                            } finally {
+                                HierarchicalResolver.this.stepDefinitionStack.remove(stepDefinition);
+                            }
                         }
-                        // Do step
-                        this.stepDefinitionStack.add(stepDefinition);
-                        try {
-                            final StepEvaluationDelegate.StepEvaluation stepEvaluation = StepExecutionResolver.this.stepEvaluationDelegate.getStepEvaluation(match, evaluationContext);
-                            final StepRequest<Json> stepRequest = stepEvaluation.getRequestBuilder().build();
-                            final StepResponse<Json> response = stepDefinition.execute(stepRequest, sessionExecutionContext,
-                                    new StepScopedEvaluationContext(evaluationContext, stepRequest),
-                                    new HierarchicalResolver(
-                                            this.gherkinPreferences,
-                                            this,
-                                            stepDefinition,
-                                            this.stepDefinitionStack),
-                                    StepExecutionResolver.this.expressionEvaluator
-                            );
-                            stepEvaluation.postEvaluateResponse(response);
-                            return response;
-                        } finally {
-                            this.stepDefinitionStack.remove(stepDefinition);
+
+                        @Override
+                        public StepSpec<JsonSchema> getStepSpec() {
+                            return stepDefinition.getSpec();
                         }
                     };
                 }

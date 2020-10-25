@@ -2,7 +2,9 @@ package io.stephub.server.api.model;
 
 import com.fasterxml.jackson.annotation.*;
 import io.stephub.json.Json;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepResponse;
+import io.stephub.provider.api.model.spec.StepSpec;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
@@ -49,6 +51,8 @@ public abstract class Execution implements Identifiable {
     @NotNull
     private RuntimeSession.SessionSettings sessionSettings;
 
+    private GherkinPreferences gherkinPreferences;
+
     @NotNull
     @Builder.Default
     private List<ExecutionItem> backlog = new ArrayList<>();
@@ -59,6 +63,26 @@ public abstract class Execution implements Identifiable {
     @JsonIgnore
     public abstract int getMaxParallelizationCount();
 
+    public Stats getStats() {
+        final Stats stats = new Stats();
+        this.backlog.stream().forEach(i -> stats.add(i.getStats()));
+        return stats;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    public static class Stats {
+        private int passed;
+        private int failed;
+        private int erroneous;
+
+        void add(final Stats stats) {
+            this.passed += stats.passed;
+            this.failed += stats.failed;
+            this.erroneous += stats.erroneous;
+        }
+    }
 
     @JsonTypeInfo(
             use = JsonTypeInfo.Id.NAME,
@@ -77,6 +101,8 @@ public abstract class Execution implements Identifiable {
         private String errorMessage;
 
         public abstract ExecutionStatus getStatus();
+
+        public abstract Stats getStats();
     }
 
     @NoArgsConstructor
@@ -92,6 +118,26 @@ public abstract class Execution implements Identifiable {
         private ExecutionStatus status = ExecutionStatus.INITIATED;
         private String step;
         private StepResponse<Json> response;
+        private StepSpec<JsonSchema> stepSpec;
+
+        @Override
+        public Stats getStats() {
+            final Stats stats = new Stats();
+            if (this.response != null) {
+                switch (this.response.getStatus()) {
+                    case PASSED:
+                        stats.setPassed(1);
+                        break;
+                    case FAILED:
+                        stats.setFailed(1);
+                        break;
+                    case ERRONEOUS:
+                        stats.setErroneous(1);
+                        break;
+                }
+            }
+            return stats;
+        }
     }
 
     @NoArgsConstructor
@@ -106,6 +152,15 @@ public abstract class Execution implements Identifiable {
         @Override
         public ExecutionStatus getStatus() {
             return getAggregatedStatus(this.scenarios.stream().map(s -> s.getStatus()).collect(Collectors.toList()));
+        }
+
+        @Override
+        public Stats getStats() {
+            final Stats stats = new Stats();
+            for (final ScenarioExecutionItem scenario : this.scenarios) {
+                stats.add(scenario.getStats());
+            }
+            return stats;
         }
 
         static ExecutionStatus getAggregatedStatus(final List<ExecutionStatus> statusList) {
@@ -148,6 +203,25 @@ public abstract class Execution implements Identifiable {
             statusList.addAll(this.afterFixtures.stream().map(FixtureExecutionWrapper::getStatus).collect(Collectors.toList()));
             return FeatureExecutionItem.getAggregatedStatus(statusList);
         }
+
+        @Override
+        public Stats getStats() {
+            final ExecutionStatus status = this.getStatus();
+            if (status == COMPLETED || status == CANCELLED) {
+                final Stats stepStats = new Stats();
+                this.beforeFixtures.stream().forEach(f -> stepStats.add(f.getStats()));
+                this.steps.stream().forEach(s -> stepStats.add(s.getStats()));
+                this.afterFixtures.stream().forEach(f -> stepStats.add(f.getStats()));
+                if (stepStats.erroneous > 0) {
+                    return new Stats(0, 0, 1);
+                } else if (stepStats.failed > 0) {
+                    return new Stats(0, 1, 0);
+                } else if (stepStats.passed > 0) {
+                    return new Stats(1, 0, 0);
+                }
+            }
+            return new Stats();
+        }
     }
 
     @NoArgsConstructor
@@ -164,6 +238,15 @@ public abstract class Execution implements Identifiable {
             return FeatureExecutionItem.getAggregatedStatus(
                     this.steps.stream().map(s -> s.getStatus()).collect(Collectors.toList())
             );
+        }
+
+        @JsonIgnore
+        public Stats getStats() {
+            final Stats stats = new Stats();
+            for (final StepExecutionItem step : this.steps) {
+                stats.add(step.getStats());
+            }
+            return stats;
         }
     }
 

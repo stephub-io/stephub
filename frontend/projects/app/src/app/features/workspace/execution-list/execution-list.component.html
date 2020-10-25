@@ -1,0 +1,41 @@
+<div class="container" *ngIf="(executions$ | async)?.items as executions">
+  <div class="row align-items-end" *ngIf="executions.length > 0; else empty">
+    <div
+      *ngFor="let exec of executions"
+      class="col-md-8 col-lg-8"
+      [ngClass]="routeAnimationsElements"
+    >
+      <mat-card>
+        <mat-card-title>
+          <code *ngIf="exec.erroneous" class="error">
+            Erroneous
+          </code>
+          <a [routerLink]="exec.id" *ngIf="exec.startedAt">{{
+            exec.startedAt | date: "medium"
+          }}</a>
+          <a [routerLink]="exec.id" *ngIf="!exec.startedAt">Starting soon</a>
+        </mat-card-title>
+        <mat-card-actions>
+          <span class="status">
+            <fa-icon
+              [icon]="statusIcon(exec.status)"
+              [spin]="statusIconSpin(exec.status)"
+            ></fa-icon>
+            {{ exec.status }}
+          </span>
+          <sh-execution-stats
+            class="stats"
+            [stats]="exec.stats"
+          ></sh-execution-stats>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+  <ng-template #empty>
+    <sh-empty-state
+      title="No executions so far"
+      subTitle="Start a test execution and it will show up here."
+    >
+    </sh-empty-state>
+  </ng-template>
+</div>

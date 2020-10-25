@@ -1,0 +1,32 @@
+<div class="container" *ngIf="(workspaces$ | async)?.items as workspaces">
+  <div class="row align-items-end" *ngIf="workspaces.length > 0; else empty">
+    <div
+      *ngFor="let workspace of workspaces"
+      class="col-md-8 col-lg-8"
+      [ngClass]="routeAnimationsElements"
+    >
+      <mat-card>
+        <mat-card-title>
+          <code>abc</code
+          ><a [routerLink]="workspace.id">
+            <fa-icon [icon]="['fas', 'box']"></fa-icon>
+            {{ workspace.name }}</a
+          >
+        </mat-card-title>
+        <mat-card-actions>
+          <a mat-button [routerLink]="[workspace.id, 'executions']">
+            <fa-icon [icon]="faExecutions"></fa-icon>
+            Executions
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+  <ng-template #empty>
+    <sh-empty-state
+      title="Empty workspace list"
+      subTitle="Create a workspace and it will show up here."
+    >
+    </sh-empty-state>
+  </ng-template>
+</div>

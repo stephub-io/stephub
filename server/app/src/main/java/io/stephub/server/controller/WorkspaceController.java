@@ -45,6 +45,15 @@ public class WorkspaceController {
         return workspace;
     }
 
+    @PatchMapping("/workspaces/{wid}")
+    @ResponseBody
+    public Workspace patchWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
+                                    @Valid @RequestBody final Workspace patch) {
+        final Workspace workspace = this.workspaceService.patchWorkspace(ctx, wid, patch);
+        this.workspaceValidator.validate(workspace);
+        return workspace;
+    }
+
     @PostMapping("/workspaces")
     @ResponseBody
     public Workspace createWorkspace(@ModelAttribute final Context ctx, @Valid @RequestBody final Workspace draft) {

@@ -1,0 +1,16 @@
+<span class="abstract" *ngIf="stepLine() as stepLine">
+  <span *ngFor="let part of stepLine.parts">
+    <span *ngIf="keyword(part) as keyword" class="keyword">{{
+      keyword.keyword
+    }}</span>
+    <span *ngIf="text(part) as text" class="text">{{ text.text }}</span>
+    <span *ngIf="attribute(part) as attr" class="attribute">{{
+      attr.expression
+    }}</span>
+    <span *ngIf="assigment(part) as assigment" class="assigment">
+      <span class="text">{{ assigment.left }}</span>
+      <span class="attribute">{{ assigment.attribute }}</span>
+      <span class="text">{{ assigment.right }}</span>
+    </span>
+  </span>
+</span>

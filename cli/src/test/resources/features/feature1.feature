@@ -8,4 +8,11 @@ Feature: Abc
     Given assert that ${var.var1} equals ${my.hello}
     # Comment #1 of 2nd step
     # Comment #2 of 2nd step
-    Then assert that 2 equals 2
+    When wait for 60 seconds
+    | Abc | Def |
+    | 134 | ..  |
+    Then assert that 2 equals 1
+    """
+      Hello from doc-string
+      Next line
+    """

@@ -72,3 +72,4 @@ fabric.properties
 
 # Maven
 target
+node_modules

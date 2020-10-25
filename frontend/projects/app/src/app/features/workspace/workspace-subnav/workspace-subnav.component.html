@@ -1,0 +1,31 @@
+<mat-toolbar class="workspace">
+  <mat-toolbar-row>
+    <span
+      ><fa-icon [icon]="['fas', 'box']"></fa-icon> {{ workspace.name }}</span
+    >
+  </mat-toolbar-row>
+</mat-toolbar>
+<nav mat-tab-nav-bar class="d-none d-sm-flex">
+  <a
+    mat-tab-link
+    *ngFor="let e of links"
+    [routerLink]="e.link"
+    [routerLinkActiveOptions]="{ exact: true }"
+    routerLinkActive
+    #rla="routerLinkActive"
+    [active]="rla.isActive"
+  >
+    {{ e.label | translate }}
+  </a>
+</nav>
+
+<nav class="nav-responsive d-sm-none d-flex justify-content-center">
+  <mat-select
+    [placeholder]="'sh.workspace.title' | translate"
+    [value]="'details'"
+  >
+    <mat-option *ngFor="let e of links" [value]="e" [routerLink]="e.link">
+      {{ e.label | translate }}
+    </mat-option>
+  </mat-select>
+</nav>

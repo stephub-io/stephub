@@ -1,0 +1,473 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/v1/workspaces/[^/]+/executions"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "total": 1,
+      "items": [
+        {
+          "id": "d5bff42b-7eac-42cb-97ac-cb504ae1e105",
+          "status": "initiated",
+          "initiatedAt": "2020-09-25T21:08:54.753+0000",
+          "startedAt": null,
+          "completedAt": null,
+          "instruction": {
+            "type": "scenarios",
+            "filter": {
+              "type": "by-scenario-name",
+              "patterns": ["Scen"]
+            }
+          },
+          "sessionSettings": {
+            "variables": {
+              "var1": 6
+            },
+            "parallelizationMode": "scenario"
+          },
+          "backlog": [
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Feature 1",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "Scene 1",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "e0113533-a8be-476b-843c-1eaada1ad7db",
+                      "status": "completed",
+                      "step": "Given I do something",
+                      "response": {
+                        "status": "erroneous",
+                        "duration": "PT0S",
+                        "errorMessage": "No step found matching the instruction 'Given I do something'"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "55cac6ca-1426-490b-a16b-3e449ad16918",
+                      "status": "cancelled",
+                      "step": "Then I expect something"
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            },
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Abc",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "My first scenario",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "8afd0261-f532-41d7-9133-b273a85112b9",
+                      "status": "completed",
+                      "step": "Given value { \"hello\": \"6\" } - assigned to ${my}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S",
+                        "output": {
+                          "hello": "6"
+                        }
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "0a3c44fb-f8eb-4f48-9b44-785ccf258294",
+                      "status": "completed",
+                      "step": "# Comment of first step\nGiven assert that ${var.var1} equals ${my.hello}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "fe04acd5-d966-40db-abc8-62f7a35b66df",
+                      "status": "completed",
+                      "step": "# Comment #1 of 2nd step\n# Comment #2 of 2nd step\nThen assert that 2 equals 2",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            }
+          ],
+          "erroneous": false
+        },
+        {
+          "id": "d5bff42b-7eac-42cb-97ac-cb504ae1e106",
+          "status": "executing",
+          "initiatedAt": "2020-09-25T21:08:54.753+0000",
+          "startedAt": "2020-09-25T21:08:59.753+0000",
+          "completedAt": null,
+          "instruction": {
+            "type": "scenarios",
+            "filter": {
+              "type": "by-scenario-name",
+              "patterns": ["Scen"]
+            }
+          },
+          "sessionSettings": {
+            "variables": {
+              "var1": 6
+            },
+            "parallelizationMode": "scenario"
+          },
+          "backlog": [
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Feature 1",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "Scene 1",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "e0113533-a8be-476b-843c-1eaada1ad7db",
+                      "status": "completed",
+                      "step": "Given I do something",
+                      "response": {
+                        "status": "erroneous",
+                        "duration": "PT0S",
+                        "errorMessage": "No step found matching the instruction 'Given I do something'"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "55cac6ca-1426-490b-a16b-3e449ad16918",
+                      "status": "cancelled",
+                      "step": "Then I expect something"
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            },
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Abc",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "My first scenario",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "8afd0261-f532-41d7-9133-b273a85112b9",
+                      "status": "completed",
+                      "step": "Given value { \"hello\": \"6\" } - assigned to ${my}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S",
+                        "output": {
+                          "hello": "6"
+                        }
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "0a3c44fb-f8eb-4f48-9b44-785ccf258294",
+                      "status": "completed",
+                      "step": "# Comment of first step\nGiven assert that ${var.var1} equals ${my.hello}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "fe04acd5-d966-40db-abc8-62f7a35b66df",
+                      "status": "completed",
+                      "step": "# Comment #1 of 2nd step\n# Comment #2 of 2nd step\nThen assert that 2 equals 2",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            }
+          ],
+          "erroneous": false
+        },
+        {
+          "id": "d5bff42b-7eac-42cb-97ac-cb504ae1e105",
+          "status": "cancelled",
+          "initiatedAt": "2020-09-25T21:08:54.753+0000",
+          "startedAt": "2020-09-25T21:08:55.753+0000",
+          "completedAt": "2020-09-25T21:09:54.753+0000",
+          "instruction": {
+            "type": "scenarios",
+            "filter": {
+              "type": "by-scenario-name",
+              "patterns": ["Scen"]
+            }
+          },
+          "sessionSettings": {
+            "variables": {
+              "var1": 6
+            },
+            "parallelizationMode": "scenario"
+          },
+          "backlog": [
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Feature 1",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "Scene 1",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "e0113533-a8be-476b-843c-1eaada1ad7db",
+                      "status": "completed",
+                      "step": "Given I do something",
+                      "response": {
+                        "status": "erroneous",
+                        "duration": "PT0S",
+                        "errorMessage": "No step found matching the instruction 'Given I do something'"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "55cac6ca-1426-490b-a16b-3e449ad16918",
+                      "status": "cancelled",
+                      "step": "Then I expect something"
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            },
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Abc",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "My first scenario",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "8afd0261-f532-41d7-9133-b273a85112b9",
+                      "status": "completed",
+                      "step": "Given value { \"hello\": \"6\" } - assigned to ${my}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S",
+                        "output": {
+                          "hello": "6"
+                        }
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "0a3c44fb-f8eb-4f48-9b44-785ccf258294",
+                      "status": "completed",
+                      "step": "# Comment of first step\nGiven assert that ${var.var1} equals ${my.hello}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "fe04acd5-d966-40db-abc8-62f7a35b66df",
+                      "status": "completed",
+                      "step": "# Comment #1 of 2nd step\n# Comment #2 of 2nd step\nThen assert that 2 equals 2",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            }
+          ],
+          "erroneous": false
+        },
+        {
+          "id": "d5bff42b-7eac-42cb-97ac-cb504ae1e104",
+          "status": "completed",
+          "initiatedAt": "2020-09-25T21:08:54.753+0000",
+          "startedAt": "2020-09-25T21:08:54.814+0000",
+          "completedAt": "2020-09-25T21:08:54.956+0000",
+          "instruction": {
+            "type": "scenarios",
+            "filter": {
+              "type": "by-scenario-name",
+              "patterns": ["Scen"]
+            }
+          },
+          "sessionSettings": {
+            "variables": {
+              "var1": 6
+            },
+            "parallelizationMode": "scenario"
+          },
+          "backlog": [
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Feature 1",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "Scene 1",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "e0113533-a8be-476b-843c-1eaada1ad7db",
+                      "status": "completed",
+                      "step": "Given I do something",
+                      "response": {
+                        "status": "erroneous",
+                        "duration": "PT0S",
+                        "errorMessage": "No step found matching the instruction 'Given I do something'"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "55cac6ca-1426-490b-a16b-3e449ad16918",
+                      "status": "cancelled",
+                      "step": "Then I expect something"
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            },
+            {
+              "type": "feature",
+              "erroneous": false,
+              "name": "Abc",
+              "scenarios": [
+                {
+                  "type": "scenario",
+                  "erroneous": false,
+                  "name": "My first scenario",
+                  "steps": [
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "8afd0261-f532-41d7-9133-b273a85112b9",
+                      "status": "completed",
+                      "step": "Given value { \"hello\": \"6\" } - assigned to ${my}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S",
+                        "output": {
+                          "hello": "6"
+                        }
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "0a3c44fb-f8eb-4f48-9b44-785ccf258294",
+                      "status": "completed",
+                      "step": "# Comment of first step\nGiven assert that ${var.var1} equals ${my.hello}",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    },
+                    {
+                      "type": "step",
+                      "erroneous": false,
+                      "id": "fe04acd5-d966-40db-abc8-62f7a35b66df",
+                      "status": "completed",
+                      "step": "# Comment #1 of 2nd step\n# Comment #2 of 2nd step\nThen assert that 2 equals 2",
+                      "response": {
+                        "status": "passed",
+                        "duration": "PT0S"
+                      }
+                    }
+                  ],
+                  "beforeFixtures": [],
+                  "afterFixtures": [],
+                  "status": "completed"
+                }
+              ],
+              "status": "completed"
+            }
+          ],
+          "erroneous": true
+        }
+      ]
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    }
+  }
+}

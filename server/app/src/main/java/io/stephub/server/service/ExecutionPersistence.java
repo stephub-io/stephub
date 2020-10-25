@@ -1,11 +1,15 @@
 package io.stephub.server.service;
 
 import io.stephub.json.Json;
+import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepResponse;
+import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.ExecutionInstruction;
 import io.stephub.server.api.model.RuntimeSession;
 import io.stephub.server.api.model.Workspace;
+import lombok.Builder;
+import lombok.Getter;
 import org.springframework.scheduling.annotation.Async;
 
 import java.util.List;
@@ -35,7 +39,14 @@ public interface ExecutionPersistence {
         void cancelStep(Execution.StepExecutionItem item);
     }
 
+    @Getter
+    @Builder
+    class StepExecutionResult {
+        private final StepResponse<Json> response;
+        private final StepSpec<JsonSchema> stepSpec;
+    }
+
     interface StepExecutionItemCommand {
-        StepResponse<Json> execute();
+        StepExecutionResult execute();
     }
 }

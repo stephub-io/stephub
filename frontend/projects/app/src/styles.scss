@@ -1,0 +1,67 @@
+@import "styles-variables";
+
+@import "~bootstrap/scss/bootstrap-reboot";
+@import "~bootstrap/scss/bootstrap-grid";
+@import "~bootstrap/scss/badge";
+@import "~bootstrap/scss/utilities";
+@import "~bootstrap/scss/media";
+@import "styles-reset";
+
+@import "~@angular/material/theming";
+
+@include mat-core();
+
+@import "./themes/default-theme";
+@import "./themes/light-theme";
+@import "./themes/black-theme";
+@import "./themes/nature-theme";
+
+@import "styles-reset.scss-theme";
+@import "./app/app/app.component.scss-theme";
+@import "./app/shared/big-input/big-input/big-input.component.scss-theme";
+@import "./app/features/about/about/about.component.scss-theme";
+@import "./app/features/examples/notifications/components/notifications.component.scss-theme";
+@import "./app/features/examples/todos/components/todos-container.component.scss-theme";
+@import "./app/features/examples/stock-market/components/stock-market-container.component.scss-theme";
+@import "./app/features/examples/theming/parent/parent.component.scss-theme";
+@import "./app/features/examples/theming/child/child.component.scss-theme";
+@import "./app/features/examples/examples/examples.component.scss-theme";
+@import "./app/features/workspace/step/step-abstract/step-abstract.component.scss-theme";
+@import "./app/features/workspace/step/step-request/step-request.component.scss-theme";
+@import "./app/features/workspace/execution-detail/execution-detail.component.scss-theme";
+
+@mixin custom-components-theme($theme) {
+  @include sh-styles-reset-theme($theme);
+  @include sh-app-component-theme($theme);
+  @include sh-about-component-theme($theme);
+  @include sh-big-input-component-theme($theme);
+  @include sh-notifications-component-theme($theme);
+  @include sh-todos-container-component-theme($theme);
+  @include sh-stock-market-container-component-theme($theme);
+  @include sh-parent-component-theme($theme);
+  @include sh-child-component-theme($theme);
+  @include sh-examples-component-theme($theme);
+  @include sh-step-abstract-component($theme);
+  @include sh-execution-detail-component($theme);
+  @include sh-step-request-component($theme);
+}
+
+.default-theme {
+  @include angular-material-theme($sh-theme);
+  @include custom-components-theme($sh-theme);
+}
+
+.light-theme {
+  @include angular-material-theme($sh-light-theme);
+  @include custom-components-theme($sh-light-theme);
+}
+
+.black-theme {
+  @include angular-material-theme($sh-black-theme);
+  @include custom-components-theme($sh-black-theme);
+}
+
+.nature-theme {
+  @include angular-material-theme($sh-nature-theme);
+  @include custom-components-theme($sh-nature-theme);
+}

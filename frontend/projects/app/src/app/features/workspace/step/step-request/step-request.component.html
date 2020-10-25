@@ -1,0 +1,19 @@
+<div class="request">
+  <div class="fragment" *ngFor="let fragment of instruction.fragments">
+    <sh-step-abstract
+      *ngIf="stepLine(fragment)"
+      [instruction]="instruction"
+    ></sh-step-abstract>
+    <div class="comment text-muted" *ngIf="commentLine(fragment)">
+      {{ commentLine(fragment).comment }}
+    </div>
+    <div class="doc-string" *ngIf="docString(fragment) as docString">
+      <div>"""</div>
+      <div *ngFor="let line of docString.lines">{{ line }}</div>
+      <div>"""</div>
+    </div>
+    <div class="data-table" *ngIf="dataTable(fragment) as dataTable">
+      <div *ngFor="let row of dataTable.rows">{{ row }}</div>
+    </div>
+  </div>
+</div>

@@ -76,7 +76,7 @@ public class WorkspaceYamlReader {
                 }
                 for (final Path path : resolvedFeatureFiles) {
                     if (!target.getFeatureFiles().contains(path.toAbsolutePath().toString())) {
-                        target.getFeatureFiles().add(workdir.relativize(path).toString());
+                        target.getFeatureFiles().add(path.toString());
                     }
                 }
             }

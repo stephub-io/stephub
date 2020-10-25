@@ -82,6 +82,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 instruction(instruction).
                 id(UUID.randomUUID().toString()).
                 sessionSettings(sessionSettings).
+                gherkinPreferences(workspace.getGherkinPreferences()).
                 initiatedAt(new Date()).
                 backlog(executionItems).
                 pendingItems(pendingItems).
@@ -126,9 +127,10 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                         item.setStatus(EXECUTING);
                         log.debug("Starting execution of step item={} of execution={}", item, execution);
                         try {
-                            final StepResponse<Json> response = command.execute();
-                            item.setResponse(response);
-                            return response;
+                            StepExecutionResult result = command.execute();
+                            item.setResponse(result.getResponse());
+                            item.setStepSpec(result.getStepSpec());
+                            return result.getResponse();
                         } finally {
                             item.setStatus(COMPLETED);
                             log.debug("Completed execution of step item={} of execution={}", item, execution);
