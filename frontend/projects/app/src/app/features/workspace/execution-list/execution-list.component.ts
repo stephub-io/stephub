@@ -35,7 +35,7 @@ export class ExecutionListComponent implements OnInit {
     private executionService: ExecutionService,
     private route: ActivatedRoute
   ) {
-    this.route.parent.params.subscribe((params) => {
+    this.route.parent.parent.params.subscribe((params) => {
       this.wid = params.wid;
     });
   }

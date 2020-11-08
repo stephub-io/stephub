@@ -11,7 +11,7 @@ const routes: Routes = [
   {
     path: "",
     component: WorkspaceListComponent,
-    data: { title: "sh.menu.workspaces" },
+    data: { title: "sh.menu.workspaces", breadcrumb: "Workspaces" },
   },
   {
     path: ":wid",
@@ -20,14 +20,32 @@ const routes: Routes = [
       {
         path: "",
         component: WorkspaceDetailComponent,
+        data: {
+          breadcrumb: {
+            alias: "workspace",
+          },
+        },
       },
       {
         path: "executions",
-        component: ExecutionListComponent,
-      },
-      {
-        path: "executions/:id",
-        component: ExecutionDetailComponent,
+        data: {
+          breadcrumb: "Executions",
+        },
+        children: [
+          {
+            path: "",
+            component: ExecutionListComponent,
+          },
+          {
+            path: ":id",
+            component: ExecutionDetailComponent,
+            data: {
+              breadcrumb: {
+                alias: "execution",
+              },
+            },
+          },
+        ],
       },
     ],
   },

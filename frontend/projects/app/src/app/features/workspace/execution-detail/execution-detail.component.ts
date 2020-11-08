@@ -25,12 +25,16 @@ import {
 } from "@fortawesome/free-regular-svg-icons";
 import { parse } from "../step/parser/instruction-parser";
 import { GherkinPreferences } from "../workspace/workspace.model";
+import { map } from "rxjs/operators";
+import { BreadcrumbService } from "xng-breadcrumb";
+import { DatePipe } from "@angular/common";
 
 @Component({
   selector: "sh-execution-detail",
   templateUrl: "./execution-detail.component.html",
   styleUrls: ["./execution-detail.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [DatePipe],
 })
 export class ExecutionDetailComponent implements OnInit {
   routeAnimationsElements = ROUTE_ANIMATIONS_ELEMENTS;
@@ -41,9 +45,11 @@ export class ExecutionDetailComponent implements OnInit {
 
   constructor(
     private executionService: ExecutionService,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private breadcrumbService: BreadcrumbService,
+    private datePipe: DatePipe
   ) {
-    this.route.parent.params.subscribe((params) => {
+    this.route.parent.parent.params.subscribe((params) => {
       this.wid = params.wid;
     });
     this.route.params.subscribe((params) => {
@@ -52,7 +58,17 @@ export class ExecutionDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.execution$ = this.executionService.get(this.wid, this.id);
+    this.execution$ = this.executionService.get(this.wid, this.id).pipe(
+      map((execution) => {
+        this.breadcrumbService.set(
+          "@execution",
+          execution.startedAt
+            ? this.datePipe.transform(execution.startedAt, "medium")
+            : "Starting soon"
+        );
+        return execution;
+      })
+    );
   }
 
   statusIcon(status: ExecutionStatus) {

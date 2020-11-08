@@ -1,103 +1,106 @@
-<div
-  *ngIf="workspace$.asObservable() | async as workspace"
-  [ngClass]="routeAnimationsElements"
->
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <h1 rtl class="main-heading">{{ workspace.name }}</h1>
+<div class="container">
+  <div
+    *ngIf="workspace$.asObservable() | async as workspace"
+    [ngClass]="routeAnimationsElements"
+  >
+    <div class="media">
+      <fa-icon
+        [icon]="['fas', 'box']"
+        class="heading align-self-start mr-3"
+      ></fa-icon>
+      <div class="media-body">
+        <h3 class="mt-0">{{ workspace.name }}</h3>
+        <!-- <p>...</p> -->
       </div>
     </div>
-    <div class="row">
-      <div class="col-md-12">
-        <mat-accordion class="items-headers-align" multi>
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <span>Providers</span>
-              </mat-panel-title>
-              <mat-panel-description>
-                <span>
-                  (0)
-                </span>
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-          </mat-expansion-panel>
+    <mat-tab-group>
+      <mat-tab label="Base"></mat-tab>
+      <mat-tab label="Features"></mat-tab>
+      <mat-tab label="Providers"></mat-tab>
+      <mat-tab label="Custom steps"></mat-tab>
 
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <span>Custom steps</span>
-              </mat-panel-title>
-              <mat-panel-description>
-                <span>
-                  (2)
-                </span>
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-          </mat-expansion-panel>
+      <mat-tab label="Variables ({{ keys(workspace.variables).length }})">
+        Variables for increasing re-use and flexibility in tests
+        <table
+          mat-table
+          [dataSource]="arrayOfMap(workspace.variables)"
+          class="mat-elevation-z8"
+        >
+          <tr
+            mat-header-row
+            *matHeaderRowDef="['key', 'value', 'defaultValue', 'schema']"
+          ></tr>
+          <tr
+            mat-row
+            *matRowDef="
+              let row;
+              columns: ['key', 'value', 'defaultValue', 'schema']
+            "
+          ></tr>
 
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <span>Features</span>
-              </mat-panel-title>
-              <mat-panel-description>
-                <span>
-                  (0)
-                </span>
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-          </mat-expansion-panel>
+          <ng-container matColumnDef="key">
+            <th mat-header-cell *matHeaderCellDef>Name</th>
+            <td mat-cell *matCellDef="let element">{{ element.key }}</td>
+          </ng-container>
+          <ng-container matColumnDef="value">
+            <th mat-header-cell *matHeaderCellDef>Value</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.value.value }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="defaultValue">
+            <th mat-header-cell *matHeaderCellDef>Default</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.value.defaultValue }}
+            </td>
+          </ng-container>
+          <ng-container matColumnDef="schema">
+            <th mat-header-cell *matHeaderCellDef>JSON-Schema</th>
+            <td mat-cell *matCellDef="let element">
+              {{ element.value.schema }}
+            </td>
+          </ng-container>
+        </table>
+      </mat-tab>
 
-          <mat-expansion-panel>
-            <mat-expansion-panel-header>
-              <mat-panel-title>
-                <span>Syntax preferences</span>
-              </mat-panel-title>
-              <mat-panel-description>
-                <span>
-                  Configure keywords and phrases for parsing steps
-                </span>
-              </mat-panel-description>
-            </mat-expansion-panel-header>
-            <div class="container">
-              <div class="row">
-                <div class="col-md-3">Step prefixes:</div>
-                <div class="col-md-9">
-                  <ng-container
-                    *ngTemplateOutlet="
-                      configure_keywords;
-                      context: {
-                        keywords: workspace.gherkinPreferences.stepKeywords,
-                        formControl: stepKeywordFormControl,
-                        newLabel: 'New step prefix...'
-                      }
-                    "
-                  ></ng-container>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-3">Attribute assignment suffixes:</div>
-                <div class="col-md-9">
-                  <ng-container
-                    *ngTemplateOutlet="
-                      configure_keywords;
-                      context: {
-                        keywords:
-                          workspace.gherkinPreferences.assignmentKeywords,
-                        formControl: assignmentKeywordFormControl,
-                        newLabel: 'New assignment suffix...'
-                      }
-                    "
-                  ></ng-container>
-                </div>
+      <mat-tab label="Syntax preferences">
+        <div class="tab-body">
+          <p>Keywords and phrases for parsing steps</p>
+          <div class="container">
+            <div class="row">
+              <div class="col-md-3">Step prefixes:</div>
+              <div class="col-md-9">
+                <ng-container
+                  *ngTemplateOutlet="
+                    configure_keywords;
+                    context: {
+                      keywords: workspace.gherkinPreferences.stepKeywords,
+                      formControl: stepKeywordFormControl,
+                      newLabel: 'New step prefix...'
+                    }
+                  "
+                ></ng-container>
               </div>
             </div>
-          </mat-expansion-panel>
-        </mat-accordion>
-      </div>
-    </div>
+            <div class="row">
+              <div class="col-md-3">Attribute assignment suffixes:</div>
+              <div class="col-md-9">
+                <ng-container
+                  *ngTemplateOutlet="
+                    configure_keywords;
+                    context: {
+                      keywords: workspace.gherkinPreferences.assignmentKeywords,
+                      formControl: assignmentKeywordFormControl,
+                      newLabel: 'New assignment suffix...'
+                    }
+                  "
+                ></ng-container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 
   <ng-template
@@ -111,7 +114,7 @@
         <mat-chip
           *ngFor="let keyword of keywords"
           [selectable]="false"
-          [removable]="true"
+          [removable]="editable"
           (removed)="removeStepKeyword(keywords, keyword)"
           color="primary"
           class="text-monospace"
@@ -122,6 +125,7 @@
         <input
           [placeholder]="newLabel"
           class="text-monospace"
+          [disabled]="!editable"
           [formControl]="formControl"
           [matChipInputFor]="chipList"
           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"

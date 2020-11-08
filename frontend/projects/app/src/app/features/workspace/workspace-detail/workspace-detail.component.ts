@@ -26,6 +26,7 @@ export class WorkspaceDetailComponent implements OnInit {
   id: string;
   workspace$: BehaviorSubject<Workspace> = new BehaviorSubject<Workspace>(null);
   workspace: Workspace;
+  editable = true;
 
   faExecutions = faExecutions;
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -86,13 +87,29 @@ export class WorkspaceDetailComponent implements OnInit {
   }
 
   private update() {
-    this.workspaceService
-      .patch(this.id, this.workspace)
-      .subscribe((workspace) => {
+    this.editable = false;
+    this.workspaceService.patch(this.id, this.workspace).subscribe(
+      (workspace) => {
+        this.editable = true;
         this.workspace = workspace;
         this.workspace$.next(workspace);
         this.setTitle(workspace);
         this.notificationService.success("Workspace changes were saved");
-      });
+      },
+      (error) => (this.editable = true)
+    );
+  }
+
+  keys(obj: Object): string[] {
+    return Object.keys(obj);
+  }
+
+  arrayOfMap(map: Object) {
+    return this.keys(map).map((value, index) => {
+      return {
+        key: value,
+        value: map[value],
+      };
+    });
   }
 }

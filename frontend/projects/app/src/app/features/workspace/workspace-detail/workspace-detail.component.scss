@@ -4,11 +4,24 @@
   margin-top: 20px;
 }
 
-.main-heading {
-  text-transform: uppercase;
-  margin: 0 0 20px 0;
+fa-icon.heading {
+  font-size: 2em;
 }
 
 .chip-list {
   width: 100%;
+}
+
+.items-headers-align .mat-expansion-panel-header-title,
+.items-headers-align .mat-expansion-panel-header-description {
+  flex-basis: 0;
+}
+
+.items-headers-align .mat-expansion-panel-header-description {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tab-body {
+  padding-top: 1em;
 }

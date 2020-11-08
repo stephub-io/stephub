@@ -7,13 +7,14 @@ import { WorkspaceService } from "./workspace.service";
 import { Workspace } from "./workspace.model";
 import { Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
 import { ActivatedRoute } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { environment as env } from "../../../../environments/environment";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { BreadcrumbService } from "xng-breadcrumb";
 
 @Component({
-  selector: "sh-workspace-detail",
+  selector: "sh-workspace",
   templateUrl: "./workspace.component.html",
   styleUrls: ["./workspace.component.scss"],
   animations: [routeAnimations],
@@ -25,12 +26,17 @@ export class WorkspaceComponent implements OnInit {
   id: string;
   workspace$: Observable<Workspace>;
 
-  faExecutions = faExecutions;
+  links = [];
+  isHandset$: Observable<boolean> = this.breakpointObserver
+    .observe(Breakpoints.Handset)
+    .pipe(map((result) => result.matches));
 
   constructor(
     private workspaceService: WorkspaceService,
     private route: ActivatedRoute,
-    private titleService: Title
+    private titleService: Title,
+    private breakpointObserver: BreakpointObserver,
+    private breadcrumbService: BreadcrumbService
   ) {
     this.route.params.subscribe((params) => (this.id = params.wid));
   }
@@ -39,6 +45,18 @@ export class WorkspaceComponent implements OnInit {
     this.workspace$ = this.workspaceService.get(this.id).pipe(
       map((workspace) => {
         this.titleService.setTitle(`${workspace.name} - ${env.appName}`);
+        this.links = [
+          {
+            link: ["/workspaces", workspace.id],
+            label: "Details",
+            exact: true,
+          },
+          {
+            link: ["/workspaces", workspace.id, "executions"],
+            label: "Executions",
+          },
+        ];
+        this.breadcrumbService.set("@workspace", workspace.name);
         return workspace;
       })
     );

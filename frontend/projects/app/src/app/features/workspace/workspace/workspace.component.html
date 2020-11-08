@@ -1,9 +1,66 @@
-<div
-  *ngIf="workspace$ | async as workspace"
-  [ngClass]="routeAnimationsElements"
->
-  <sh-workspace-subnav [workspace]="workspace"></sh-workspace-subnav>
-  <div [@routeAnimations]="o.isActivated && o.activatedRoute.routeConfig.path">
-    <router-outlet #o="outlet"></router-outlet>
+<div class="workspace-area-wrapper">
+  <div class="workspace-area">
+    <mat-sidenav-container
+      *ngIf="workspace$ | async as workspace"
+      [ngClass]="routeAnimationsElements"
+    >
+      <mat-sidenav
+        #sidenav
+        [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
+        [mode]="(isHandset$ | async) ? 'over' : 'side'"
+        [opened]="!(isHandset$ | async)"
+      >
+        <input #handset type="hidden" [value]="isHandset$ | async" />
+        <mat-toolbar class="workspace">
+          <mat-toolbar-row>
+            <h3>
+              <fa-icon [icon]="['fas', 'box']"></fa-icon>
+              {{ workspace.name }}
+            </h3>
+          </mat-toolbar-row>
+        </mat-toolbar>
+
+        <mat-nav-list>
+          <h2 matSubheader>Overview</h2>
+
+          <a
+            *ngFor="let item of links"
+            mat-list-item
+            [routerLink]="item.link"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+            routerLinkActive="active"
+            (click)="handset.value == 'true' && sidenav.close()"
+          >
+            {{ item.label }}
+          </a>
+        </mat-nav-list>
+      </mat-sidenav>
+
+      <mat-sidenav-content>
+        <mat-toolbar class="workspace">
+          <mat-toolbar-row>
+            <button
+              mat-icon-button
+              [class.d-none]="!(isHandset$ | async)"
+              (click)="sidenav.open()"
+            >
+              <fa-icon icon="bars"></fa-icon>
+            </button>
+            <xng-breadcrumb [separator]="iconTemplate"></xng-breadcrumb>
+            <ng-template #iconTemplate>
+              <fa-icon icon="angle-right"></fa-icon>
+            </ng-template>
+          </mat-toolbar-row>
+        </mat-toolbar>
+
+        <div
+          [@routeAnimations]="
+            o.isActivated && o.activatedRoute.routeConfig.path
+          "
+        >
+          <router-outlet #o="outlet"></router-outlet>
+        </div>
+      </mat-sidenav-content>
+    </mat-sidenav-container>
   </div>
 </div>

@@ -1,5 +1,5 @@
 # Comment of feature
-Feature: Abc
+Feature: This is the long feature name in this section
 
   # Comment of scenario
   Scenario: My first scenario

@@ -1,9 +1,8 @@
-name: "abc"
+name: "This is a workspace with a long title"
 #providers:
 #  - name: rest-api
 #    version: "> 1.0"
 #    baseUrl: http://localhost:8080
-
 
 stepDefinitions:
   - type: basic

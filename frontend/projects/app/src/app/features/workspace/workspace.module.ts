@@ -13,6 +13,8 @@ import { MatExpansionModule } from "@angular/material/expansion";
 import { ExecutionStatsComponent } from "./execution-stats/execution-stats.component";
 import { StepAbstractComponent } from "./step/step-abstract/step-abstract.component";
 import { StepRequestComponent } from "./step/step-request/step-request.component";
+import { MatTableModule } from "@angular/material/table";
+import { MatSidenavModule } from "@angular/material/sidenav";
 
 @NgModule({
   declarations: [
@@ -31,6 +33,8 @@ import { StepRequestComponent } from "./step/step-request/step-request.component
     SharedModule,
     WorkspacesRoutingModule,
     MatExpansionModule,
+    MatTableModule,
+    MatSidenavModule,
   ],
 })
 export class WorkspaceModule {}

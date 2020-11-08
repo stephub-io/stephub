@@ -1,1 +1,57 @@
 @import "../../../../styles-variables";
+
+.workspace-area-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.workspace-area {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+
+  mat-sidenav-container {
+    flex: 1 0 auto;
+    height: 100%;
+  }
+}
+
+mat-toolbar.workspace {
+  min-height: 35px;
+  font-size: 14px;
+
+  mat-toolbar-row {
+    min-height: 35px;
+    height: auto;
+    font-size: 14px;
+    white-space: normal;
+  }
+
+  h3 {
+    font-size: 14px;
+    font-weight: bolder;
+
+    fa-icon {
+      margin-right: 0.5em;
+    }
+  }
+}
+
+mat-sidenav {
+  width: 220px;
+  overflow-y: auto;
+}
+
+mat-sidenav-content {
+  overflow-y: auto;
+  padding-bottom: 2em;
+}
+
+mat-sidenav mat-nav-list a {
+  font-size: 14px;
+}

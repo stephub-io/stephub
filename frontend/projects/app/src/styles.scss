@@ -26,6 +26,7 @@
 @import "./app/features/examples/theming/parent/parent.component.scss-theme";
 @import "./app/features/examples/theming/child/child.component.scss-theme";
 @import "./app/features/examples/examples/examples.component.scss-theme";
+@import "./app/features/workspace/workspace/workspace.component.scss-theme";
 @import "./app/features/workspace/step/step-abstract/step-abstract.component.scss-theme";
 @import "./app/features/workspace/step/step-request/step-request.component.scss-theme";
 @import "./app/features/workspace/execution-detail/execution-detail.component.scss-theme";
@@ -41,6 +42,7 @@
   @include sh-parent-component-theme($theme);
   @include sh-child-component-theme($theme);
   @include sh-examples-component-theme($theme);
+  @include sh-workspace-component($theme);
   @include sh-step-abstract-component($theme);
   @include sh-execution-detail-component($theme);
   @include sh-step-request-component($theme);

@@ -40,6 +40,7 @@ import {
   faLanguage,
   faLightbulb,
   faMagic,
+  faMinusCircle,
   faPaintBrush,
   faPlus,
   faReceipt,
@@ -50,7 +51,7 @@ import {
   faTimes,
   faTrash,
   faWindowMaximize,
-  faMinusCircle,
+  faAngleRight,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -64,6 +65,7 @@ import { RtlSupportDirective } from "./rtl-support/rtl-support.directive";
 import { HumanizeDurationPipe } from "./duration/humanize-duration.pipe";
 import { TypeofPipe } from "./typeof/typeof.pipe";
 import { EmptyStateComponent } from "./empty-state/empty-state.component";
+import { BreadcrumbModule } from "xng-breadcrumb";
 
 @NgModule({
   imports: [
@@ -92,6 +94,8 @@ import { EmptyStateComponent } from "./empty-state/empty-state.component";
     NgxSkeletonLoaderModule,
 
     FontAwesomeModule,
+
+    BreadcrumbModule,
   ],
   declarations: [
     BigInputComponent,
@@ -132,6 +136,8 @@ import { EmptyStateComponent } from "./empty-state/empty-state.component";
 
     NgxSkeletonLoaderModule,
 
+    BreadcrumbModule,
+
     BigInputComponent,
     BigInputActionComponent,
     RtlSupportDirective,
@@ -167,7 +173,8 @@ export class SharedModule {
       faReceipt,
       faMagic,
       faSearchengin,
-      faMinusCircle
+      faMinusCircle,
+      faAngleRight
     );
   }
 }
