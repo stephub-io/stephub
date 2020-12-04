@@ -2,17 +2,10 @@ import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
 
 import { ROUTE_ANIMATIONS_ELEMENTS } from "../../../core/core.module";
 import { WorkspaceService } from "../workspace/workspace.service";
-import { Workspace } from "../workspace/workspace.model";
 import { ExecutionService } from "../execution.service";
 import { ExecutionsResult, ExecutionStatus } from "../execution.model";
 import { Observable } from "rxjs";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { ActivatedRoute } from "@angular/router";
-import {
-  faCheckCircle,
-  faPauseCircle,
-  faTimesCircle,
-} from "@fortawesome/free-regular-svg-icons";
 import {
   statusIcon,
   statusIconSpin,

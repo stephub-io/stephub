@@ -1,18 +1,19 @@
-import { Injectable, Injector, ErrorHandler } from "@angular/core";
+import { Injectable } from "@angular/core";
 import {
-  HttpEvent,
-  HttpInterceptor,
-  HttpHandler,
-  HttpRequest,
   HttpErrorResponse,
+  HttpEvent,
+  HttpHandler,
+  HttpInterceptor,
+  HttpRequest,
 } from "@angular/common/http";
 import { Observable } from "rxjs";
 import { tap } from "rxjs/operators";
+import { ServerError } from "./server-error.model";
 
-/** Passes HttpErrorResponse to application-wide error handler */
+/** Maps HttpErrorResponse to ServerError */
 @Injectable()
-export class HttpErrorInterceptor implements HttpInterceptor {
-  constructor(private injector: Injector) {}
+export class ServerErrorInterceptor implements HttpInterceptor {
+  constructor() {}
 
   intercept(
     request: HttpRequest<any>,
@@ -22,8 +23,7 @@ export class HttpErrorInterceptor implements HttpInterceptor {
       tap({
         error: (err: any) => {
           if (err instanceof HttpErrorResponse) {
-            const appErrorHandler = this.injector.get(ErrorHandler);
-            appErrorHandler.handleError(err);
+            throw Object.assign(new ServerError(), err.error);
           }
         },
       })

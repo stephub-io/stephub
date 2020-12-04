@@ -7,8 +7,11 @@
 
 code {
   white-space: nowrap;
-  border-radius: 10px;
-  padding: 0 8px 1px 8px;
+  font-size: 0.9em;
+}
+
+pre {
+  margin: 1em 0px;
 }
 
 .mat-menu-content {
@@ -31,4 +34,34 @@ p {
 
 .xng-breadcrumb-trail {
   font-weight: 600;
+}
+
+.hljs {
+  background: none;
+}
+
+mat-accordion .mat-expansion-panel-header-title {
+  min-width: 0;
+
+  fa-icon {
+    margin: 0 5px 0 0;
+  }
+
+  span {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+mat-accordion .mat-expansion-panel-header-description,
+mat-accordion .mat-expansion-panel-header-description div.info {
+  display: flex;
+  justify-content: flex-end;
+  white-space: nowrap;
+}
+
+button.add {
+  margin: 1em auto 0;
+  display: block;
 }

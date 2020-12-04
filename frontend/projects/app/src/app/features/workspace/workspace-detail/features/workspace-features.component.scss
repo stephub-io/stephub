@@ -1,0 +1,65 @@
+@import "../../../../../styles-variables";
+
+.step-sequence {
+  width: 100%;
+  overflow-x: auto;
+
+  table {
+    width: 100%;
+
+    tr:first-child td {
+      border-top: 1px solid #e0e0e0;
+    }
+  }
+}
+
+td.mat-column-action {
+  padding-right: 0 !important;
+}
+
+th.mat-column-step,
+td.mat-column-step {
+  padding-right: 1em;
+  padding-left: 0 !important;
+}
+
+td.mat-column-drag {
+  width: 15px !important;
+  padding: 0 5px !important;
+  cursor: move;
+
+  fa-icon {
+    margin: auto;
+  }
+}
+
+// Drag & drop for steps
+.cdk-drag-preview {
+  td.mat-column-action {
+    display: none;
+  }
+
+  td {
+    border: none;
+  }
+}
+
+.cdk-drag-placeholder {
+  opacity: 0;
+}
+
+.feature-action,
+.scenario-action,
+.step-action {
+  visibility: hidden;
+  opacity: 0;
+  transition: visibility 0s 0.25s, opacity 0.25s linear;
+}
+
+.active-feature .feature-action,
+.active-scenario .scenario-action,
+.active-step .step-action {
+  visibility: visible;
+  opacity: 1;
+  transition: opacity 0.5s linear;
+}

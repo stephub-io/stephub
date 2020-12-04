@@ -7,6 +7,10 @@ import { CoreModule } from "./core/core.module";
 
 import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app/app.component";
+import { HIGHLIGHT_OPTIONS } from "ngx-highlightjs";
+import { ACE_CONFIG, AceConfigInterface } from "ngx-ace-wrapper";
+
+const DEFAULT_ACE_CONFIG: AceConfigInterface = {};
 
 @NgModule({
   imports: [
@@ -23,5 +27,21 @@ import { AppComponent } from "./app/app.component";
   ],
   declarations: [AppComponent],
   bootstrap: [AppComponent],
+  providers: [
+    {
+      provide: HIGHLIGHT_OPTIONS,
+      useValue: {
+        coreLibraryLoader: () => import("highlight.js/lib/core"),
+        lineNumbersLoader: () => import("highlightjs-line-numbers.js"), // Optional, only if you want the line numbers
+        languages: {
+          json: () => import("highlight.js/lib/languages/json"),
+        },
+      },
+    },
+    {
+      provide: ACE_CONFIG,
+      useValue: DEFAULT_ACE_CONFIG,
+    },
+  ],
 })
 export class AppModule {}

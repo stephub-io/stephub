@@ -5,14 +5,16 @@ import {
   ROUTE_ANIMATIONS_ELEMENTS,
 } from "../../../core/core.module";
 import { WorkspaceService } from "../workspace/workspace.service";
-import { Workspace } from "../workspace/workspace.model";
-import { BehaviorSubject } from "rxjs";
+import { Variable, Workspace } from "../workspace/workspace.model";
+import { BehaviorSubject, Observable } from "rxjs";
 import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
 import { ActivatedRoute } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { environment as env } from "../../../../environments/environment";
 import { MatChipInputEvent } from "@angular/material/chips";
 import { FormControl, Validators } from "@angular/forms";
+import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
+import { VariableDialogComponent } from "./variable-dialog/variable-dialog.component";
 
 @Component({
   selector: "sh-workspace-detail",
@@ -27,6 +29,7 @@ export class WorkspaceDetailComponent implements OnInit {
   workspace$: BehaviorSubject<Workspace> = new BehaviorSubject<Workspace>(null);
   workspace: Workspace;
   editable = true;
+  variablesMap;
 
   faExecutions = faExecutions;
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -39,18 +42,24 @@ export class WorkspaceDetailComponent implements OnInit {
     private workspaceService: WorkspaceService,
     private route: ActivatedRoute,
     private titleService: Title,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private dialog: MatDialog
   ) {
     this.route.params.subscribe((params) => (this.id = params.wid));
   }
 
   ngOnInit() {
     this.workspaceService.get(this.id).subscribe((workspace) => {
-      this.workspace = workspace;
       this.workspace$.next(workspace);
-      this.setTitle(workspace);
+      this.onWorkspaceInit(workspace);
       return workspace;
     });
+  }
+
+  private onWorkspaceInit(workspace: Workspace) {
+    this.workspace = workspace;
+    this.setTitle(workspace);
+    this.variablesMap = this.arrayOfMap(workspace.variables);
   }
 
   private setTitle(workspace: Workspace) {
@@ -69,7 +78,7 @@ export class WorkspaceDetailComponent implements OnInit {
     }
     if ((value || "").trim()) {
       keywords.push(value.trim());
-      this.update();
+      this.patchGherkinPreferences();
     }
 
     // Reset the input value
@@ -82,22 +91,33 @@ export class WorkspaceDetailComponent implements OnInit {
     const index = keywords.indexOf(keyword);
     if (index >= 0) {
       keywords.splice(index, 1);
-      this.update();
+      this.patchGherkinPreferences();
     }
   }
 
-  private update() {
+  private patchGherkinPreferences() {
+    return this.patch({
+      gherkinPreferences: this.workspace.gherkinPreferences,
+    } as Workspace).subscribe();
+  }
+
+  private patch(patch: Workspace): Observable<Workspace> {
     this.editable = false;
-    this.workspaceService.patch(this.id, this.workspace).subscribe(
-      (workspace) => {
-        this.editable = true;
-        this.workspace = workspace;
-        this.workspace$.next(workspace);
-        this.setTitle(workspace);
-        this.notificationService.success("Workspace changes were saved");
-      },
-      (error) => (this.editable = true)
-    );
+    return new Observable((observer) => {
+      this.workspaceService.patch(this.id, patch).subscribe(
+        (workspace) => {
+          this.editable = true;
+          this.workspace$.next(workspace);
+          this.onWorkspaceInit(workspace);
+          this.notificationService.success("Workspace changes were saved");
+          observer.next(workspace);
+        },
+        (error) => {
+          this.editable = true;
+          observer.error(error);
+        }
+      );
+    });
   }
 
   keys(obj: Object): string[] {
@@ -111,5 +131,42 @@ export class WorkspaceDetailComponent implements OnInit {
         value: map[value],
       };
     });
+  }
+
+  editVariable(name: string, variable: Variable) {
+    const dialogConfig = new MatDialogConfig();
+    // dialogConfig.disableClose = true;
+    dialogConfig.autoFocus = true;
+    let dialogRef;
+
+    dialogConfig.data = {
+      name: name,
+      variable: variable,
+      saveCallback: (data) => {
+        const newVars = Object.assign({}, this.workspace.variables);
+        delete newVars[name];
+        newVars[data.name] = data.variable;
+        return this.patch({
+          variables: newVars,
+        } as Workspace);
+      },
+    };
+    dialogConfig.width = "50%";
+
+    dialogRef = this.dialog.open(VariableDialogComponent, dialogConfig);
+  }
+
+  deleteVariable(key: string) {
+    const newVars = Object.assign({}, this.workspace.variables);
+    delete newVars[key];
+    return this.patch({
+      variables: newVars,
+    } as Workspace).subscribe();
+  }
+
+  addVariable() {
+    this.editVariable("", {
+      schema: { type: "string" },
+    } as Variable);
   }
 }

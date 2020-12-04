@@ -64,6 +64,8 @@
     "bootstrap": "^4.5.0",
     "browser-detect": "^0.2.28",
     "humanize-duration": "^3.24.0",
+    "ngx-ace-wrapper": "^10.0.1",
+    "ngx-highlightjs": "^4.1.2",
     "ngx-skeleton-loader": "^2.4.4",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",

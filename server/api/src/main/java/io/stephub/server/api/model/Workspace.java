@@ -65,6 +65,7 @@ public class Workspace implements CustomStepContainer, Identifiable {
 
     @NoArgsConstructor
     @AllArgsConstructor
+    @EqualsAndHashCode
     @Data
     public static class FieldError {
         private String field;

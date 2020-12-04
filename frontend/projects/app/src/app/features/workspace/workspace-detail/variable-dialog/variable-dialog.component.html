@@ -1,0 +1,111 @@
+<h1 mat-dialog-title>Variable</h1>
+<mat-dialog-content [formGroup]="form">
+  <div class="row">
+    <div class="col-md-12">
+      <mat-form-field appearance="fill">
+        <mat-label>Name</mat-label>
+        <input matInput [formControl]="nameField" placeholder="var" required />
+        <mat-error *ngIf="nameField.errors?.required">Required input</mat-error>
+        <mat-error *ngIf="nameField.errors?.pattern"
+          >Must match regex <code>[a-zA-Z_][a-zA-Z0-9_]*</code>
+        </mat-error>
+        <mat-error *ngIf="nameField.errors?.server">{{
+          nameField.errors.server
+        }}</mat-error>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <mat-form-field appearance="fill">
+        <mat-label>JSON type</mat-label>
+        <mat-select [(value)]="schemaType" (selectionChange)="changeType()">
+          <mat-option value="string">String</mat-option>
+          <mat-option value="number">Number</mat-option>
+          <mat-option value="boolean">Boolean</mat-option>
+          <mat-option value="any">Any</mat-option>
+          <mat-option value="custom">Custom JSON schema</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group">
+        <div class="form-group">
+          <label
+            *ngIf="
+              schemaType == 'any' || schemaType == 'custom';
+              then jsonLabel;
+              else defaultLabel
+            "
+          ></label>
+          <ng-template #jsonLabel>Default JSON value:</ng-template>
+          <ng-template #defaultLabel>Default value:</ng-template>
+          <mat-form-field appearance="fill" *ngIf="schemaType == 'string'">
+            <mat-label>String value</mat-label>
+            <input
+              matInput
+              [formControl]="valueField"
+              type="text"
+              placeholder="some string"
+            />
+          </mat-form-field>
+          <mat-form-field appearance="fill" *ngIf="schemaType == 'number'">
+            <mat-label>Number value</mat-label>
+            <input
+              matInput
+              [formControl]="valueField"
+              type="number"
+              placeholder="E.g. 7575"
+            />
+          </mat-form-field>
+          <mat-radio-group
+            *ngIf="schemaType == 'boolean'"
+            [formControl]="valueField"
+          >
+            <mat-radio-button [value]="true">true</mat-radio-button>
+            <mat-radio-button [value]="false">false</mat-radio-button>
+          </mat-radio-group>
+          <ace
+            [mode]="'json'"
+            [theme]="'github'"
+            [(value)]="aceValue"
+            *ngIf="schemaType == 'custom' || schemaType == 'any'"
+          ></ace>
+          <div class="invalid-feedback" *ngIf="valueField.errors?.server">
+            {{ valueField.errors.server }}
+          </div>
+          <div class="invalid-feedback" *ngIf="valueField.errors?.required">
+            Required value
+          </div>
+          <div class="invalid-feedback" *ngIf="valueField.errors?.json">
+            Invalid JSON
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <div class="form-group" *ngIf="schemaType == 'custom'">
+        <label>Custom JSON Schema:</label>
+        <ace [mode]="'json'" [theme]="'github'" [(value)]="schemaString"></ace>
+        <mat-error *ngIf="schemaField.errors?.server">{{
+          schemaField.errors.server
+        }}</mat-error>
+      </div>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="close()">Close</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="save()"
+    [disabled]="form.invalid"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

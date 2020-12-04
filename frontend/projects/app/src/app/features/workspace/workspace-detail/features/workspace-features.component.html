@@ -1,0 +1,125 @@
+<mat-accordion
+  class="items-headers-align"
+  multi
+  *ngFor="let feature of workspace.features"
+>
+  <mat-expansion-panel hover-class="active-feature">
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
+        <span>{{ feature.name }}</span>
+      </mat-panel-title>
+      <mat-panel-description>
+        <span>
+          tbd
+        </span>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <p>
+      <mat-divider></mat-divider>
+    </p>
+    <div class="d-md-flex">
+      <p class="mr-auto">
+        <span class="font-weight-bold">Feature:</span>
+        {{ feature.name }}
+      </p>
+      <button mat-icon-button color="accent" class="action feature-action">
+        <fa-icon icon="edit"></fa-icon>
+      </button>
+      <button mat-icon-button color="warn" class="action feature-action">
+        <fa-icon icon="trash"></fa-icon>
+      </button>
+    </div>
+    <p class="font-weight-bold">Scenarios:</p>
+    <mat-accordion
+      *ngFor="let scenario of feature.scenarios"
+      class="items-headers-align"
+      multi
+    >
+      <mat-expansion-panel hover-class="active-scenario">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
+            <span>{{ scenario.name }}</span>
+          </mat-panel-title>
+          <mat-panel-description>
+            <span>
+              tbd
+            </span>
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        <p>
+          <mat-divider></mat-divider>
+        </p>
+        <div class="d-md-flex">
+          <p class="mr-auto">
+            <span class="font-weight-bold">Scenario:</span>
+            {{ scenario.name }}
+          </p>
+          <button mat-icon-button color="accent" class="action scenario-action">
+            <fa-icon icon="edit"></fa-icon>
+          </button>
+          <button mat-icon-button color="warn" class="action scenario-action">
+            <fa-icon icon="trash"></fa-icon>
+          </button>
+        </div>
+        <p class="font-weight-bold">Steps:</p>
+        <ng-container
+          *ngTemplateOutlet="stepSequence; context: { sequence: scenario }"
+        >
+        </ng-container>
+      </mat-expansion-panel>
+    </mat-accordion>
+    <button
+      mat-mini-fab
+      color="primary"
+      class="add feature-action"
+      title="Add scenario"
+    >
+      <fa-icon icon="plus"></fa-icon>
+    </button>
+  </mat-expansion-panel>
+</mat-accordion>
+<button mat-mini-fab color="primary" class="add" title="Add feature">
+  <fa-icon icon="plus"></fa-icon>
+</button>
+
+<ng-template #stepSequence let-sequence="sequence">
+  <div class="step-sequence">
+    <table
+      mat-table
+      cdkDropList
+      [dataSource]="sequence.steps"
+      class="mat-elevation-z8"
+    >
+      <tr
+        mat-row
+        cdkDrag
+        *matRowDef="let row; columns: ['drag', 'step', 'action']"
+        hover-class="active-step"
+      ></tr>
+
+      <ng-container matColumnDef="drag" sticky>
+        <td mat-cell *matCellDef="let element">
+          <fa-icon icon="grip-vertical"></fa-icon>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="step">
+        <td mat-cell *matCellDef="let element">
+          <pre><code>{{ element }}</code></pre>
+        </td>
+      </ng-container>
+      <ng-container matColumnDef="action" stickyEnd>
+        <td mat-cell *matCellDef="let element" align="right">
+          <button mat-icon-button color="accent" class="step-action">
+            <fa-icon icon="edit"></fa-icon>
+          </button>
+          <button mat-icon-button color="warn" class="step-action">
+            <fa-icon icon="trash"></fa-icon>
+          </button>
+        </td>
+      </ng-container>
+    </table>
+  </div>
+</ng-template>

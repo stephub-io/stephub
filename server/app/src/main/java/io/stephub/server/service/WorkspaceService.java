@@ -17,5 +17,4 @@ public interface WorkspaceService {
 
     Workspace update(Context ctx, Workspace workspace);
 
-    Workspace patchWorkspace(Context ctx, String wid, Workspace patch);
 }

@@ -44,27 +44,6 @@ mat-card {
   }
 }
 
-.items-headers-align .mat-expansion-panel-header-title {
-  min-width: 0;
-
-  fa-icon {
-    margin: 0 5px 0 0;
-  }
-
-  span {
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-}
-
-.items-headers-align .mat-expansion-panel-header-description,
-.items-headers-align .mat-expansion-panel-header-description div.info {
-  display: flex;
-  justify-content: flex-end;
-  white-space: nowrap;
-}
-
 .indicator {
   margin: 0 0 0 5px;
 }

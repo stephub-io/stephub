@@ -1,0 +1,22 @@
+@import "../../../../../styles-variables";
+
+ace {
+  height: 110px;
+  margin-bottom: 1em;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.mat-radio-button {
+  margin-left: 16px;
+}
+
+mat-dialog-content {
+  padding-bottom: 1em;
+}
+
+.invalid-feedback {
+  display: block;
+}

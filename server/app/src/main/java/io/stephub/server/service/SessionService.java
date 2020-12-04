@@ -4,7 +4,6 @@ import io.stephub.expression.AttributesContext;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.FunctionFactory;
 import io.stephub.json.Json;
-import io.stephub.json.JsonNull;
 import io.stephub.json.JsonObject;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.model.Execution;
@@ -81,11 +80,7 @@ public abstract class SessionService {
         workspace.getVariables().forEach((key, var) -> {
             Json value = sessionSettings.getVariables().get(key);
             if (value == null) {
-                if (var.getValue() != JsonNull.INSTANCE) {
-                    value = var.getValue();
-                } else {
-                    value = var.getDefaultValue();
-                }
+                value = var.getDefaultValue();
             }
             try {
                 value = var.getSchema().convertFrom(value);

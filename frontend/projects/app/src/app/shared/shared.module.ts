@@ -29,6 +29,7 @@ import {
   FontAwesomeModule,
 } from "@fortawesome/angular-fontawesome";
 import {
+  faAngleRight,
   faBook,
   faBox,
   faCaretDown,
@@ -37,6 +38,7 @@ import {
   faEdit,
   faExclamationTriangle,
   faFilter,
+  faGripVertical,
   faLanguage,
   faLightbulb,
   faMagic,
@@ -51,7 +53,6 @@ import {
   faTimes,
   faTrash,
   faWindowMaximize,
-  faAngleRight,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -64,8 +65,13 @@ import { BigInputActionComponent } from "./big-input/big-input-action/big-input-
 import { RtlSupportDirective } from "./rtl-support/rtl-support.directive";
 import { HumanizeDurationPipe } from "./duration/humanize-duration.pipe";
 import { TypeofPipe } from "./typeof/typeof.pipe";
-import { EmptyStateComponent } from "./empty-state/empty-state.component";
+import { JsonViewComponent } from "./json-view/json-view.component";
 import { BreadcrumbModule } from "xng-breadcrumb";
+import { HighlightModule } from "ngx-highlightjs";
+import { EmptyStateComponent } from "./empty-state/empty-state.component";
+import { AceModule } from "ngx-ace-wrapper";
+import { JsonSchemaViewComponent } from "./json-schema-view/json--schema-view.component";
+import { HoverClassDirective } from "./hover/hover-class.directive";
 
 @NgModule({
   imports: [
@@ -96,6 +102,8 @@ import { BreadcrumbModule } from "xng-breadcrumb";
     FontAwesomeModule,
 
     BreadcrumbModule,
+    HighlightModule,
+    AceModule,
   ],
   declarations: [
     BigInputComponent,
@@ -104,6 +112,9 @@ import { BreadcrumbModule } from "xng-breadcrumb";
     HumanizeDurationPipe,
     TypeofPipe,
     EmptyStateComponent,
+    JsonViewComponent,
+    JsonSchemaViewComponent,
+    HoverClassDirective,
   ],
   exports: [
     CommonModule,
@@ -137,6 +148,8 @@ import { BreadcrumbModule } from "xng-breadcrumb";
     NgxSkeletonLoaderModule,
 
     BreadcrumbModule,
+    HighlightModule,
+    AceModule,
 
     BigInputComponent,
     BigInputActionComponent,
@@ -144,6 +157,9 @@ import { BreadcrumbModule } from "xng-breadcrumb";
     HumanizeDurationPipe,
     TypeofPipe,
     EmptyStateComponent,
+    JsonViewComponent,
+    JsonSchemaViewComponent,
+    HoverClassDirective,
   ],
 })
 export class SharedModule {
@@ -174,7 +190,8 @@ export class SharedModule {
       faMagic,
       faSearchengin,
       faMinusCircle,
-      faAngleRight
+      faAngleRight,
+      faGripVertical
     );
   }
 }

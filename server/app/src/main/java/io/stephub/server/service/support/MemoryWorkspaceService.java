@@ -51,38 +51,6 @@ public class MemoryWorkspaceService implements WorkspaceService {
         return workspace;
     }
 
-    @Override
-    public Workspace patchWorkspace(final Context ctx, final String wid, final Workspace patch) {
-        final Workspace workspace = this.getWorkspace(ctx, wid);
-        if (workspace != null) {
-            if (patch.getGherkinPreferences() != null) {
-                workspace.setGherkinPreferences(patch.getGherkinPreferences());
-            }
-            if (patch.getName() != null) {
-                workspace.setName(patch.getName());
-            }
-            if (patch.getVariables() != null) {
-                workspace.setVariables(patch.getVariables());
-            }
-            if (patch.getBeforeFixtures() != null) {
-                workspace.setBeforeFixtures(patch.getBeforeFixtures());
-            }
-            if (patch.getAfterFixtures() != null) {
-                workspace.setAfterFixtures(patch.getAfterFixtures());
-            }
-            if (patch.getProviders() != null) {
-                workspace.setProviders(patch.getProviders());
-            }
-            if (patch.getStepDefinitions() != null) {
-                workspace.setStepDefinitions(patch.getStepDefinitions());
-            }
-            if (patch.getFeatures() != null) {
-                workspace.setFeatures(patch.getFeatures());
-            }
-        }
-        return workspace;
-    }
-
     private boolean matches(final Workspace workspace, final WorkspaceFinder finder) {
         if (StringUtils.isNotBlank(finder.getWorkspace())) {
             return finder.getWorkspace().equals(workspace.getId()) || finder.getWorkspace().equals(workspace.getName());

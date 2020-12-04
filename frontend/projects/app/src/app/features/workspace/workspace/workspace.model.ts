@@ -1,6 +1,7 @@
 export interface Workspace {
   id: string;
   name: string;
+  features: Feature[];
   gherkinPreferences: GherkinPreferences;
   variables: VariableMap;
 }
@@ -15,7 +16,6 @@ export interface VariableMap {
 }
 
 export interface Variable {
-  value: any;
   defaultValue: any;
   description: string;
   schema: object;
@@ -24,4 +24,19 @@ export interface Variable {
 export interface GherkinPreferences {
   assignmentKeywords: string[];
   stepKeywords: string[];
+}
+
+export interface Annotatable {
+  tags?: string[];
+  comments?: string[];
+}
+
+export interface Scenario extends Annotatable {
+  name: string;
+  steps?: string[];
+}
+
+export interface Feature extends Annotatable {
+  name: string;
+  scenarios?: Scenario[];
 }

@@ -5,6 +5,7 @@
 @import "~bootstrap/scss/badge";
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/media";
+@import "~bootstrap/scss/forms";
 @import "styles-reset";
 
 @import "~@angular/material/theming";
@@ -30,6 +31,7 @@
 @import "./app/features/workspace/step/step-abstract/step-abstract.component.scss-theme";
 @import "./app/features/workspace/step/step-request/step-request.component.scss-theme";
 @import "./app/features/workspace/execution-detail/execution-detail.component.scss-theme";
+@import "~highlight.js/styles/github.css";
 
 @mixin custom-components-theme($theme) {
   @include sh-styles-reset-theme($theme);

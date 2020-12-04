@@ -15,6 +15,12 @@ import { StepAbstractComponent } from "./step/step-abstract/step-abstract.compon
 import { StepRequestComponent } from "./step/step-request/step-request.component";
 import { MatTableModule } from "@angular/material/table";
 import { MatSidenavModule } from "@angular/material/sidenav";
+import { MatDialogModule } from "@angular/material/dialog";
+import { VariableDialogComponent } from "./workspace-detail/variable-dialog/variable-dialog.component";
+import { MatSelectModule } from "@angular/material/select";
+import { MatRadioModule } from "@angular/material/radio";
+import { WorkspaceFeaturesComponent } from "./workspace-detail/features/workspace-features.component";
+import { DragDropModule } from "@angular/cdk/drag-drop";
 
 @NgModule({
   declarations: [
@@ -27,6 +33,8 @@ import { MatSidenavModule } from "@angular/material/sidenav";
     ExecutionStatsComponent,
     StepAbstractComponent,
     StepRequestComponent,
+    VariableDialogComponent,
+    WorkspaceFeaturesComponent,
   ],
   imports: [
     CommonModule,
@@ -35,6 +43,10 @@ import { MatSidenavModule } from "@angular/material/sidenav";
     MatExpansionModule,
     MatTableModule,
     MatSidenavModule,
+    MatDialogModule,
+    MatSelectModule,
+    MatRadioModule,
+    DragDropModule,
   ],
 })
 export class WorkspaceModule {}

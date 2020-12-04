@@ -1,5 +1,6 @@
 package io.stephub.server.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.rest.PageResult;
@@ -10,10 +11,15 @@ import io.stephub.server.service.WorkspaceService;
 import io.stephub.server.service.WorkspaceValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindException;
+import org.springframework.validation.SmartValidator;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.TEXT_PLAIN_VALUE;
@@ -29,6 +35,12 @@ public class WorkspaceController {
 
     @Autowired
     private FeatureParser featureParser;
+
+    @Autowired
+    private SmartValidator validator;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @GetMapping("/workspaces")
     @ResponseBody
@@ -48,9 +60,23 @@ public class WorkspaceController {
     @PatchMapping("/workspaces/{wid}")
     @ResponseBody
     public Workspace patchWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
-                                    @Valid @RequestBody final Workspace patch) {
-        final Workspace workspace = this.workspaceService.patchWorkspace(ctx, wid, patch);
-        this.workspaceValidator.validate(workspace);
+                                    @RequestBody final Map<String, Object> patch) throws BindException, IOException {
+        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
+        final BeanPropertyBindingResult beforePatchResult = new BeanPropertyBindingResult(workspace, "workspace");
+        this.validator.validate(workspace, beforePatchResult);
+        this.objectMapper.readerForUpdating(workspace).readValue(this.objectMapper.valueToTree(patch).traverse());
+        final BeanPropertyBindingResult afterPatchResult = new BeanPropertyBindingResult(workspace, "workspace");
+        this.validator.validate(workspace, afterPatchResult);
+        final BeanPropertyBindingResult filteredResult = new BeanPropertyBindingResult(patch, "workspace");
+        if (afterPatchResult.getAllErrors() != null) {
+            afterPatchResult.getAllErrors().stream().filter(objectError -> beforePatchResult == null || !beforePatchResult.getAllErrors().contains(objectError))
+                    .forEach(filteredResult::addError);
+            if (filteredResult.hasErrors()) {
+                throw new BindException(filteredResult);
+            }
+        }
+        final Workspace updatedWorkspace = this.workspaceService.update(ctx, workspace);
+        this.workspaceValidator.validate(updatedWorkspace);
         return workspace;
     }
 
