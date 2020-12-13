@@ -35,6 +35,7 @@ import {
   faCaretDown,
   faCaretUp,
   faCheck,
+  faCheckCircle,
   faEdit,
   faExclamationTriangle,
   faFilter,
@@ -51,6 +52,7 @@ import {
   faStream,
   faTasks,
   faTimes,
+  faTimesCircle,
   faTrash,
   faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
@@ -72,6 +74,7 @@ import { EmptyStateComponent } from "./empty-state/empty-state.component";
 import { AceModule } from "ngx-ace-wrapper";
 import { JsonSchemaViewComponent } from "./json-schema-view/json--schema-view.component";
 import { HoverClassDirective } from "./hover/hover-class.directive";
+import { FocusDirective } from "./focus/focus.directive";
 
 @NgModule({
   imports: [
@@ -115,6 +118,7 @@ import { HoverClassDirective } from "./hover/hover-class.directive";
     JsonViewComponent,
     JsonSchemaViewComponent,
     HoverClassDirective,
+    FocusDirective,
   ],
   exports: [
     CommonModule,
@@ -160,6 +164,7 @@ import { HoverClassDirective } from "./hover/hover-class.directive";
     JsonViewComponent,
     JsonSchemaViewComponent,
     HoverClassDirective,
+    FocusDirective,
   ],
 })
 export class SharedModule {
@@ -191,7 +196,9 @@ export class SharedModule {
       faSearchengin,
       faMinusCircle,
       faAngleRight,
-      faGripVertical
+      faGripVertical,
+      faCheckCircle,
+      faTimesCircle
     );
   }
 }

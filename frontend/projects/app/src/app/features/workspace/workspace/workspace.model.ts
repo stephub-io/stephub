@@ -31,12 +31,16 @@ export interface Annotatable {
   comments?: string[];
 }
 
-export interface Scenario extends Annotatable {
-  name: string;
+export interface StepSequence {
   steps?: string[];
+}
+
+export interface Scenario extends Annotatable, StepSequence {
+  name: string;
 }
 
 export interface Feature extends Annotatable {
   name: string;
+  background?: StepSequence;
   scenarios?: Scenario[];
 }

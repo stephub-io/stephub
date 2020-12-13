@@ -1,5 +1,9 @@
 @import "../../../../../styles-variables";
 
+mat-expansion-panel {
+  margin-bottom: 1em !important;
+}
+
 .step-sequence {
   width: 100%;
   overflow-x: auto;
@@ -26,10 +30,13 @@ td.mat-column-step {
 td.mat-column-drag {
   width: 15px !important;
   padding: 0 5px !important;
-  cursor: move;
 
   fa-icon {
     margin: auto;
+  }
+
+  .drag-handle {
+    cursor: move;
   }
 }
 
@@ -62,4 +69,17 @@ td.mat-column-drag {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.5s linear;
+}
+
+mat-form-field.step {
+  width: 100%;
+  line-height: normal;
+
+  textarea.mat-input-element {
+    padding: 0;
+    margin: 0;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+      "Courier New", monospace;
+    font-size: 0.9em;
+  }
 }

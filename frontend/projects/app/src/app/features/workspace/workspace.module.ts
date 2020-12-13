@@ -21,6 +21,7 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatRadioModule } from "@angular/material/radio";
 import { WorkspaceFeaturesComponent } from "./workspace-detail/features/workspace-features.component";
 import { DragDropModule } from "@angular/cdk/drag-drop";
+import { StepViewComponent } from "./step/step-view/step-view.component";
 
 @NgModule({
   declarations: [
@@ -35,6 +36,7 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
     StepRequestComponent,
     VariableDialogComponent,
     WorkspaceFeaturesComponent,
+    StepViewComponent,
   ],
   imports: [
     CommonModule,

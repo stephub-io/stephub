@@ -65,7 +65,10 @@
         </div>
         <p class="font-weight-bold">Steps:</p>
         <ng-container
-          *ngTemplateOutlet="stepSequence; context: { sequence: scenario }"
+          *ngTemplateOutlet="
+            stepSequence;
+            context: { sequence: scenario, editRows: [], editRowsData: [] }
+          "
         >
         </ng-container>
       </mat-expansion-panel>
@@ -84,39 +87,119 @@
   <fa-icon icon="plus"></fa-icon>
 </button>
 
-<ng-template #stepSequence let-sequence="sequence">
+<ng-template
+  #stepSequence
+  let-sequence="sequence"
+  let-editRows="editRows"
+  let-editRowsData="editRowsData"
+>
   <div class="step-sequence">
+    <input type="hidden" #dragDisabled value="1" />
+    <input type="hidden" #newStep value="" />
     <table
       mat-table
       cdkDropList
+      (cdkDropListDropped)="onStepDrop(sequence, $event)"
       [dataSource]="sequence.steps"
+      [cdkDropListData]="sequence.steps"
       class="mat-elevation-z8"
     >
       <tr
         mat-row
-        cdkDrag
         *matRowDef="let row; columns: ['drag', 'step', 'action']"
+        cdkDrag
+        [cdkDragData]="row"
+        [cdkDragDisabled]="dragDisabled.value == '1'"
+        (cdkDragReleased)="dragDisabled.value = '1'"
         hover-class="active-step"
       ></tr>
-
+      <tr
+        mat-footer-row
+        *matFooterRowDef="['drag', 'step', 'action']"
+        hover-class="active-step"
+      ></tr>
       <ng-container matColumnDef="drag" sticky>
         <td mat-cell *matCellDef="let element">
-          <fa-icon icon="grip-vertical"></fa-icon>
+          <fa-icon
+            cdkDragHandle
+            class="drag-handle"
+            (touchstart)="dragDisabled.value = '0'"
+            (touchend)="dragDisabled.value = '1'"
+            (mousedown)="dragDisabled.value = '0'"
+            (mouseup)="dragDisabled.value = '1'"
+            icon="grip-vertical"
+          ></fa-icon>
+        </td>
+        <td mat-footer-cell *matFooterCellDef>
+          <fa-icon icon="plus"></fa-icon>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="step">
-        <td mat-cell *matCellDef="let element">
-          <pre><code>{{ element }}</code></pre>
+        <td mat-cell *matCellDef="let element; let i = index" #row>
+          <sh-step-view
+            *ngIf="!editRows[i]"
+            [step]="element"
+            [gherkinPreferences]="workspace.gherkinPreferences"
+            (click)="editStep(sequence, editRows, editRowsData, i)"
+          >
+          </sh-step-view>
+          <mat-form-field class="step" *ngIf="editRows[i]">
+            <textarea
+              #stepEdit
+              matInput
+              cdkTextareaAutosize
+              [focus]="true"
+              cdkAutosizeMinRows="1"
+              [(ngModel)]="editRowsData[i]"
+              (blur)="saveStep(sequence, editRows, editRowsData, i)"
+              (keydown.enter)="
+                saveStepOnEnter($event, sequence, editRows, editRowsData, i)
+              "
+            ></textarea>
+          </mat-form-field>
+        </td>
+        <td mat-footer-cell *matFooterCellDef>
+          <mat-form-field class="step">
+            <mat-label>New step</mat-label>
+            <textarea
+              matInput
+              cdkTextareaAutosize
+              cdkAutosizeMinRows="1"
+              [(ngModel)]="newStep.value"
+              (keydown.enter)="addStepOnEnter($event, sequence, newStep)"
+            ></textarea>
+          </mat-form-field>
         </td>
       </ng-container>
       <ng-container matColumnDef="action" stickyEnd>
-        <td mat-cell *matCellDef="let element" align="right">
-          <button mat-icon-button color="accent" class="step-action">
-            <fa-icon icon="edit"></fa-icon>
-          </button>
-          <button mat-icon-button color="warn" class="step-action">
+        <td mat-cell *matCellDef="let element; let i = index" align="right">
+          <button
+            mat-icon-button
+            color="warn"
+            class="step-action"
+            *ngIf="!editRows[i]"
+            (click)="deleteStep(sequence, i)"
+          >
             <fa-icon icon="trash"></fa-icon>
+          </button>
+        </td>
+        <td mat-footer-cell *matFooterCellDef align="right">
+          <button
+            mat-icon-button
+            color="accent"
+            class="step-action"
+            (click)="addStep(sequence, newStep)"
+            [disabled]="newStep.value.trim().length == 0"
+          >
+            <fa-icon icon="check-circle"></fa-icon>
+          </button>
+          <button
+            mat-icon-button
+            class="step-action"
+            (click)="newStep.value = ''"
+          >
+            <fa-icon icon="times-circle"></fa-icon>
           </button>
         </td>
       </ng-container>
