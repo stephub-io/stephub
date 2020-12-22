@@ -1,0 +1,34 @@
+<div
+  class="inline-edit row"
+  *ngIf="mode$ | async as m"
+  [ngClass]="{ edit: m == 'edit', view: m != 'edit' }"
+>
+  <div class="indicator">
+    <fa-icon icon="edit"></fa-icon>
+  </div>
+  <div class="wrapper col" *ngIf="m == 'edit'">
+    <ng-container
+      *ngTemplateOutlet="editModeTpl.tpl; context: { $implicit: formControl }"
+    ></ng-container>
+  </div>
+  <div class="wrapper col" *ngIf="m != 'edit'">
+    <ng-container *ngTemplateOutlet="viewModeTpl.tpl"></ng-container>
+  </div>
+  <div class="actions shadow-sm bg-white rounded btn-group btn-group-sm">
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="doSave($event)"
+      [disabled]="formControl?.errors"
+    >
+      <fa-icon icon="check-circle"></fa-icon>
+    </button>
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="doCancel($event)"
+    >
+      <fa-icon icon="times-circle"></fa-icon>
+    </button>
+  </div>
+</div>

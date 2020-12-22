@@ -75,6 +75,11 @@ import { AceModule } from "ngx-ace-wrapper";
 import { JsonSchemaViewComponent } from "./json-schema-view/json--schema-view.component";
 import { HoverClassDirective } from "./hover/hover-class.directive";
 import { FocusDirective } from "./focus/focus.directive";
+import { InlineEditComponent } from "./inline-edit/inline-edit.component";
+import { InlineEditDirective } from "./inline-edit/inline-edit.directive";
+import { InlineViewDirective } from "./inline-edit/inline-view.directive";
+import { SaveOnEnterDirective } from "./inline-edit/save-on-enter.directive";
+import { CancelOnEscDirective } from "./inline-edit/cancel-on-esc.directive";
 
 @NgModule({
   imports: [
@@ -119,6 +124,11 @@ import { FocusDirective } from "./focus/focus.directive";
     JsonSchemaViewComponent,
     HoverClassDirective,
     FocusDirective,
+    InlineEditComponent,
+    InlineEditDirective,
+    InlineViewDirective,
+    SaveOnEnterDirective,
+    CancelOnEscDirective,
   ],
   exports: [
     CommonModule,
@@ -165,6 +175,11 @@ import { FocusDirective } from "./focus/focus.directive";
     JsonSchemaViewComponent,
     HoverClassDirective,
     FocusDirective,
+    InlineEditComponent,
+    InlineEditDirective,
+    InlineViewDirective,
+    SaveOnEnterDirective,
+    CancelOnEscDirective,
   ],
 })
 export class SharedModule {

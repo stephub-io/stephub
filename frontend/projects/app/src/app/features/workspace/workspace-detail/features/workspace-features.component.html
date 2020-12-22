@@ -9,20 +9,49 @@
         <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
         <span>{{ feature.name }}</span>
       </mat-panel-title>
-      <mat-panel-description>
-        <span>
-          tbd
-        </span>
-      </mat-panel-description>
     </mat-expansion-panel-header>
     <p>
       <mat-divider></mat-divider>
     </p>
-    <div class="d-md-flex">
-      <p class="mr-auto">
-        <span class="font-weight-bold">Feature:</span>
-        {{ feature.name }}
-      </p>
+    <div class="d-md-flex777">
+      <div class="mr-auto77 inline-meta">
+        <div class="row">
+          <div class="col font-weight-bold">Feature:</div>
+          <div class="col-9">
+            <sh-inline-edit
+              [value]="feature.name"
+              [validator]="validatorRequired"
+              (save)="feature.name = $event"
+            >
+              <ng-template inlineView>{{ feature.name }}</ng-template>
+              <ng-template inlineEdit let-fc>
+                <mat-form-field class="full">
+                  <input
+                    matInput
+                    [formControl]="fc"
+                    type="text"
+                    placeholder="Name"
+                    [focus]="true"
+                    saveOnEnter
+                    cancelOnEsc
+                  />
+                  <mat-error *ngIf="fc.errors?.required"
+                    >Required input</mat-error
+                  >
+                </mat-form-field>
+              </ng-template>
+            </sh-inline-edit>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold">Comments:</div>
+          <div class="col-9"></div>
+        </div>
+        <div class="row">
+          <div class="col font-weight-bold">Tags:</div>
+          <div class="col-9"></div>
+        </div>
+      </div>
       <button mat-icon-button color="accent" class="action feature-action">
         <fa-icon icon="edit"></fa-icon>
       </button>
@@ -30,6 +59,29 @@
         <fa-icon icon="trash"></fa-icon>
       </button>
     </div>
+    <p class="font-weight-bold">Background:</p>
+
+    <mat-accordion class="items-headers-align">
+      <mat-expansion-panel hover-class="active-scenario">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <span>Background steps</span>
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <ng-container
+          *ngTemplateOutlet="
+            stepSequence;
+            context: {
+              sequence: feature.background,
+              editRows: [],
+              editRowsData: []
+            }
+          "
+        >
+        </ng-container>
+      </mat-expansion-panel>
+    </mat-accordion>
+
     <p class="font-weight-bold">Scenarios:</p>
     <mat-accordion
       *ngFor="let scenario of feature.scenarios"
@@ -42,11 +94,6 @@
             <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
             <span>{{ scenario.name }}</span>
           </mat-panel-title>
-          <mat-panel-description>
-            <span>
-              tbd
-            </span>
-          </mat-panel-description>
         </mat-expansion-panel-header>
         <p>
           <mat-divider></mat-divider>
@@ -100,8 +147,8 @@
       mat-table
       cdkDropList
       (cdkDropListDropped)="onStepDrop(sequence, $event)"
-      [dataSource]="sequence.steps"
-      [cdkDropListData]="sequence.steps"
+      [dataSource]="sequence?.steps"
+      [cdkDropListData]="sequence?.steps"
       class="mat-elevation-z8"
     >
       <tr

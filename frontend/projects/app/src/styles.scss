@@ -6,6 +6,8 @@
 @import "~bootstrap/scss/utilities";
 @import "~bootstrap/scss/media";
 @import "~bootstrap/scss/forms";
+@import "~bootstrap/scss/buttons";
+@import "~bootstrap/scss/button-group";
 @import "styles-reset";
 
 @import "~@angular/material/theming";
@@ -31,6 +33,7 @@
 @import "./app/features/workspace/step/step-abstract/step-abstract.component.scss-theme";
 @import "./app/features/workspace/step/step-request/step-request.component.scss-theme";
 @import "./app/features/workspace/execution-detail/execution-detail.component.scss-theme";
+@import "./app/shared/inline-edit/inline-edit.component.scss-theme";
 @import "~highlight.js/styles/github.css";
 
 @mixin custom-components-theme($theme) {
@@ -48,6 +51,7 @@
   @include sh-step-abstract-component($theme);
   @include sh-execution-detail-component($theme);
   @include sh-step-request-component($theme);
+  @include sh-inline-edit-component($theme);
 }
 
 .default-theme {
