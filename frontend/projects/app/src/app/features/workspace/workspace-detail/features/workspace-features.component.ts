@@ -16,7 +16,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { MatInput } from "@angular/material/input";
-import { FormControl, Validators } from "@angular/forms";
+import { Validators } from "@angular/forms";
 
 @Component({
   selector: "sh-workspace-features",
@@ -88,43 +88,8 @@ export class WorkspaceFeaturesComponent {
     }
   }
 
-  saveStep(
-    sequence: StepSequence,
-    editRows: boolean[],
-    editRowsData: string[],
-    index: number
-  ) {
-    sequence.steps[index] = editRowsData[index];
+  saveStep(sequence: StepSequence, index: number, newValue: string) {
+    sequence.steps[index] = newValue;
     sequence.steps = [...sequence.steps];
-    editRows[index] = false;
-  }
-
-  saveStepOnEnter(
-    event: KeyboardEvent,
-    sequence: StepSequence,
-    editRows: boolean[],
-    editRowsData: string[],
-    index: number
-  ) {
-    if (!event.shiftKey && editRowsData[index].indexOf("\n") < 0) {
-      this.saveStep(sequence, editRows, editRowsData, index);
-      event.preventDefault();
-    }
-  }
-
-  editStep(
-    sequence: StepSequence,
-    editRows: boolean[],
-    editRowsData: string[],
-    index: number
-  ) {
-    editRowsData[index] = sequence.steps[index];
-    editRows[index] = true;
-  }
-
-  createFormControl(value: any): FormControl {
-    let fc = new FormControl();
-    fc.setValue(value);
-    return fc;
   }
 }

@@ -6,25 +6,43 @@ mat-expansion-panel {
 
 .step-sequence {
   width: 100%;
-  overflow-x: auto;
 
   table {
     width: 100%;
+    box-shadow: none;
+    table-layout: fixed;
 
     tr:first-child td {
       border-top: 1px solid #e0e0e0;
     }
   }
+
+  .mat-icon-button {
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+  }
 }
 
 td.mat-column-action {
+  width: 28px;
   padding-right: 0 !important;
 }
 
 th.mat-column-step,
 td.mat-column-step {
-  padding-right: 1em;
+  padding-right: 0;
   padding-left: 0 !important;
+
+  sh-inline-edit {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  textarea {
+    white-space: pre;
+  }
 }
 
 td.mat-column-drag {
@@ -87,4 +105,9 @@ mat-form-field.step {
 .inline-meta .row {
   margin-bottom: 5px;
   margin-top: 5px;
+}
+
+.step-sequence sh-inline-edit sh-step-view {
+  display: block;
+  overflow-x: auto;
 }

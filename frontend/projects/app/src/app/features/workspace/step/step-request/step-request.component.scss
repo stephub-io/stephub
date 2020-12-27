@@ -3,12 +3,11 @@
 .request {
   font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
-  overflow-x: auto;
 }
 
 .fragment .comment,
 .fragment .doc-string,
 .fragment .data-table {
   font-size: 0.9em;
-  white-space: pre-wrap;
+  white-space: pre;
 }

@@ -1,38 +1,36 @@
 @import "projects/app/src/styles-variables";
 
 .inline-edit {
-  position: relative;
-  .col {
-    padding-left: 0;
+  display: flex;
+  flex-wrap: wrap;
+
+  .wrapper {
+    flex-basis: 0;
+    flex-grow: 1;
+    min-width: 0;
+    max-width: 100%;
     margin: auto;
   }
-  .indicator {
-    flex: 0 0 16px;
-    cursor: pointer;
-    padding: 2px 4px;
-    margin-left: 3px;
-    width: 16px;
-    visibility: hidden;
-  }
+
   .actions {
-    z-index: 100;
-    display: none;
-    position: absolute;
-    right: 15px;
-    bottom: -25px;
-    width: 54px;
-    height: 25px;
+    flex: 0 0 52px;
+    margin: auto;
+    padding-left: 4px;
 
     button {
       padding: 2px;
-      width: 21px;
-      height: 19px;
+      width: 24px;
+      height: 24px;
+      line-height: 24px;
+    }
+
+    .indicator {
+      cursor: pointer;
+      padding: 2px;
+      width: 24px;
+      visibility: hidden;
     }
   }
-}
-
-.inline-edit.edit .actions {
-  display: block !important;
 }
 
 .inline-edit.view:hover .indicator {

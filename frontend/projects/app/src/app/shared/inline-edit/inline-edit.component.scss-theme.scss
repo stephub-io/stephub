@@ -1,11 +1,9 @@
 @import "~@angular/material/theming";
 
 @mixin sh-inline-edit-component($theme) {
-  $foreground: map-get($theme, foreground);
-  $background: map-get($theme, background);
+  $accent: map-get($theme, accent);
 
   .inline-edit .indicator {
-    color: mat-color($background);
-    background-color: mat-color($background, default-contrast);
+    color: mat-color($accent);
   }
 }

@@ -72,9 +72,7 @@
           *ngTemplateOutlet="
             stepSequence;
             context: {
-              sequence: feature.background,
-              editRows: [],
-              editRowsData: []
+              sequence: feature.background
             }
           "
         >
@@ -112,10 +110,7 @@
         </div>
         <p class="font-weight-bold">Steps:</p>
         <ng-container
-          *ngTemplateOutlet="
-            stepSequence;
-            context: { sequence: scenario, editRows: [], editRowsData: [] }
-          "
+          *ngTemplateOutlet="stepSequence; context: { sequence: scenario }"
         >
         </ng-container>
       </mat-expansion-panel>
@@ -134,12 +129,7 @@
   <fa-icon icon="plus"></fa-icon>
 </button>
 
-<ng-template
-  #stepSequence
-  let-sequence="sequence"
-  let-editRows="editRows"
-  let-editRowsData="editRowsData"
->
+<ng-template #stepSequence let-sequence="sequence">
   <div class="step-sequence">
     <input type="hidden" #dragDisabled value="1" />
     <input type="hidden" #newStep value="" />
@@ -165,7 +155,7 @@
         *matFooterRowDef="['drag', 'step', 'action']"
         hover-class="active-step"
       ></tr>
-      <ng-container matColumnDef="drag" sticky>
+      <ng-container matColumnDef="drag">
         <td mat-cell *matCellDef="let element">
           <fa-icon
             cdkDragHandle
@@ -184,27 +174,33 @@
 
       <ng-container matColumnDef="step">
         <td mat-cell *matCellDef="let element; let i = index" #row>
-          <sh-step-view
-            *ngIf="!editRows[i]"
-            [step]="element"
-            [gherkinPreferences]="workspace.gherkinPreferences"
-            (click)="editStep(sequence, editRows, editRowsData, i)"
+          <sh-inline-edit
+            [value]="element"
+            [validator]="validatorRequired"
+            (save)="saveStep(sequence, i, $event)"
           >
-          </sh-step-view>
-          <mat-form-field class="step" *ngIf="editRows[i]">
-            <textarea
-              #stepEdit
-              matInput
-              cdkTextareaAutosize
-              [focus]="true"
-              cdkAutosizeMinRows="1"
-              [(ngModel)]="editRowsData[i]"
-              (blur)="saveStep(sequence, editRows, editRowsData, i)"
-              (keydown.enter)="
-                saveStepOnEnter($event, sequence, editRows, editRowsData, i)
-              "
-            ></textarea>
-          </mat-form-field>
+            <ng-template inlineView>
+              <sh-step-view
+                [step]="element"
+                [gherkinPreferences]="workspace.gherkinPreferences"
+              >
+              </sh-step-view>
+            </ng-template>
+            <ng-template inlineEdit let-fc>
+              <mat-form-field class="step">
+                <textarea
+                  [formControl]="fc"
+                  #stepEdit
+                  matInput
+                  cdkTextareaAutosize
+                  [focus]="true"
+                  saveOnEnter
+                  cancelOnEsc
+                  cdkAutosizeMinRows="1"
+                ></textarea>
+              </mat-form-field>
+            </ng-template>
+          </sh-inline-edit>
         </td>
         <td mat-footer-cell *matFooterCellDef>
           <mat-form-field class="step">
@@ -219,13 +215,12 @@
           </mat-form-field>
         </td>
       </ng-container>
-      <ng-container matColumnDef="action" stickyEnd>
+      <ng-container matColumnDef="action">
         <td mat-cell *matCellDef="let element; let i = index" align="right">
           <button
             mat-icon-button
             color="warn"
             class="step-action"
-            *ngIf="!editRows[i]"
             (click)="deleteStep(sequence, i)"
           >
             <fa-icon icon="trash"></fa-icon>

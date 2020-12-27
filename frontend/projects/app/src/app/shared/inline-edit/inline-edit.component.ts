@@ -25,6 +25,8 @@ import { FormControl, ValidatorFn } from "@angular/forms";
 export class InlineEditComponent implements OnInit {
   @Output() save = new EventEmitter();
   @Output() cancel = new EventEmitter();
+  @Output() onEdit = new EventEmitter();
+  @Output() onView = new EventEmitter();
   @ContentChild(InlineViewDirective) viewModeTpl: InlineViewDirective;
   @ContentChild(InlineEditDirective) editModeTpl: InlineEditDirective;
   @Input() value: any;
@@ -37,6 +39,7 @@ export class InlineEditComponent implements OnInit {
   editMode$ = this.editMode.asObservable();
 
   formControl: FormControl;
+  lastHandledViewEvent: MouseEvent;
 
   constructor(private host: ElementRef) {}
 
@@ -51,6 +54,7 @@ export class InlineEditComponent implements OnInit {
     } else {
       this.cancel.next();
     }
+    this.onView.next();
     this.mode.next("view");
   }
 
@@ -63,17 +67,22 @@ export class InlineEditComponent implements OnInit {
       .pipe(untilDestroyed(this))
       .subscribe((event: MouseEvent) => {
         if (this.mode.value != "edit") {
-          event.stopPropagation();
+          this.lastHandledViewEvent = event;
           this.formControl = new FormControl(this.value, this.validator);
           this.mode.next("edit");
           this.editMode.next(true);
+          this.onEdit.next();
         }
       });
   }
 
   private editModeHandler() {
     const clickOutside$ = fromEvent(document, "click").pipe(
-      filter(({ target }) => this.element.contains(target) === false),
+      filter(
+        (event: MouseEvent) =>
+          this.element.contains(event.target) === false &&
+          event != this.lastHandledViewEvent
+      ),
       take(1)
     );
 
