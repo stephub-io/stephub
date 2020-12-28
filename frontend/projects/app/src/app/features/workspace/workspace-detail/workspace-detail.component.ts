@@ -37,6 +37,7 @@ export class WorkspaceDetailComponent implements OnInit {
   assignmentKeywordFormControl = new FormControl("", [
     Validators.pattern(/@ATTRIBUTE/),
   ]);
+  validatorRequired = Validators.required;
 
   constructor(
     private workspaceService: WorkspaceService,

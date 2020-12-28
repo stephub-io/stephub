@@ -8,7 +8,12 @@ import {
 import "brace";
 import "brace/mode/json";
 import "brace/theme/github";
-import { StepSequence, Workspace } from "../../workspace/workspace.model";
+import {
+  Feature,
+  Scenario,
+  StepSequence,
+  Workspace,
+} from "../../workspace/workspace.model";
 import {
   faMagic,
   faReceipt,
@@ -34,6 +39,7 @@ export class WorkspaceFeaturesComponent {
   @ViewChildren("stepEdit") stepEditFields: QueryList<MatInput>;
 
   validatorRequired = Validators.required;
+  validatorTagsLine = Validators.pattern(/^(\s*@[^#@\s]+(\s+@[^#@\s]+)*\s*)?$/);
 
   constructor() {}
 
@@ -91,5 +97,40 @@ export class WorkspaceFeaturesComponent {
   saveStep(sequence: StepSequence, index: number, newValue: string) {
     sequence.steps[index] = newValue;
     sequence.steps = [...sequence.steps];
+  }
+
+  splitTags(tagsString: string) {
+    if (tagsString.trim().length > 0) {
+      return tagsString.trim().split(/\s+/);
+    } else {
+      return [];
+    }
+  }
+
+  deleteFeature(fi: number) {
+    this.workspace.features.splice(fi, 1);
+    this.workspace.features = [...this.workspace.features];
+  }
+
+  deleteScenario(feature: Feature, si: number) {
+    feature.scenarios.splice(si, 1);
+    feature.scenarios = [...feature.scenarios];
+  }
+
+  addScenario(feature: Feature) {
+    feature.scenarios.push({
+      name: "New scenario",
+      steps: [],
+    } as Scenario);
+  }
+
+  addFeature() {
+    this.workspace.features.push({
+      name: "New feature",
+      scenarios: [],
+      background: {
+        steps: [],
+      },
+    } as Feature);
   }
 }

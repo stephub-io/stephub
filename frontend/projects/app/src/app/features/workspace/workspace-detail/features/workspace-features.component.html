@@ -1,7 +1,7 @@
 <mat-accordion
   class="items-headers-align"
   multi
-  *ngFor="let feature of workspace.features"
+  *ngFor="let feature of workspace.features; let fi = index"
 >
   <mat-expansion-panel hover-class="active-feature">
     <mat-expansion-panel-header>
@@ -9,12 +9,22 @@
         <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
         <span>{{ feature.name }}</span>
       </mat-panel-title>
+      <mat-panel-description>
+        <button
+          mat-icon-button
+          color="warn"
+          class="action feature-action"
+          (click)="deleteFeature(fi)"
+        >
+          <fa-icon icon="trash"></fa-icon>
+        </button>
+      </mat-panel-description>
     </mat-expansion-panel-header>
     <p>
       <mat-divider></mat-divider>
     </p>
-    <div class="d-md-flex777">
-      <div class="mr-auto77 inline-meta">
+    <div>
+      <div class="inline-meta">
         <div class="row">
           <div class="col font-weight-bold">Feature:</div>
           <div class="col-9">
@@ -36,28 +46,21 @@
                     cancelOnEsc
                   />
                   <mat-error *ngIf="fc.errors?.required"
-                    >Required input</mat-error
-                  >
+                    >Required input
+                  </mat-error>
                 </mat-form-field>
               </ng-template>
             </sh-inline-edit>
           </div>
         </div>
-        <div class="row">
-          <div class="col font-weight-bold">Comments:</div>
-          <div class="col-9"></div>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">Tags:</div>
-          <div class="col-9"></div>
-        </div>
+        <ng-container
+          *ngTemplateOutlet="
+            annotationRows;
+            context: { annotationContext: feature }
+          "
+        >
+        </ng-container>
       </div>
-      <button mat-icon-button color="accent" class="action feature-action">
-        <fa-icon icon="edit"></fa-icon>
-      </button>
-      <button mat-icon-button color="warn" class="action feature-action">
-        <fa-icon icon="trash"></fa-icon>
-      </button>
     </div>
     <p class="font-weight-bold">Background:</p>
 
@@ -82,7 +85,7 @@
 
     <p class="font-weight-bold">Scenarios:</p>
     <mat-accordion
-      *ngFor="let scenario of feature.scenarios"
+      *ngFor="let scenario of feature.scenarios; let si = index"
       class="items-headers-align"
       multi
     >
@@ -92,21 +95,58 @@
             <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
             <span>{{ scenario.name }}</span>
           </mat-panel-title>
+          <mat-panel-description>
+            <button
+              mat-icon-button
+              color="warn"
+              class="action scenario-action"
+              (click)="deleteScenario(feature, si)"
+            >
+              <fa-icon icon="trash"></fa-icon>
+            </button>
+          </mat-panel-description>
         </mat-expansion-panel-header>
         <p>
           <mat-divider></mat-divider>
         </p>
-        <div class="d-md-flex">
-          <p class="mr-auto">
-            <span class="font-weight-bold">Scenario:</span>
-            {{ scenario.name }}
-          </p>
-          <button mat-icon-button color="accent" class="action scenario-action">
-            <fa-icon icon="edit"></fa-icon>
-          </button>
-          <button mat-icon-button color="warn" class="action scenario-action">
-            <fa-icon icon="trash"></fa-icon>
-          </button>
+        <div>
+          <div class="inline-meta">
+            <div class="row">
+              <div class="col font-weight-bold">Scenario:</div>
+              <div class="col-9">
+                <sh-inline-edit
+                  [value]="scenario.name"
+                  [validator]="validatorRequired"
+                  (save)="scenario.name = $event"
+                >
+                  <ng-template inlineView>{{ scenario.name }}</ng-template>
+                  <ng-template inlineEdit let-fc>
+                    <mat-form-field class="full">
+                      <input
+                        matInput
+                        [formControl]="fc"
+                        type="text"
+                        placeholder="Name"
+                        [focus]="true"
+                        saveOnEnter
+                        cancelOnEsc
+                      />
+                      <mat-error *ngIf="fc.errors?.required"
+                        >Required input
+                      </mat-error>
+                    </mat-form-field>
+                  </ng-template>
+                </sh-inline-edit>
+              </div>
+            </div>
+            <ng-container
+              *ngTemplateOutlet="
+                annotationRows;
+                context: { annotationContext: scenario }
+              "
+            >
+            </ng-container>
+          </div>
         </div>
         <p class="font-weight-bold">Steps:</p>
         <ng-container
@@ -120,12 +160,19 @@
       color="primary"
       class="add feature-action"
       title="Add scenario"
+      (click)="addScenario(feature)"
     >
       <fa-icon icon="plus"></fa-icon>
     </button>
   </mat-expansion-panel>
 </mat-accordion>
-<button mat-mini-fab color="primary" class="add" title="Add feature">
+<button
+  mat-mini-fab
+  color="primary"
+  class="add"
+  title="Add feature"
+  (click)="addFeature()"
+>
   <fa-icon icon="plus"></fa-icon>
 </button>
 
@@ -246,5 +293,69 @@
         </td>
       </ng-container>
     </table>
+  </div>
+</ng-template>
+
+<ng-template #annotationRows let-annotationContext="annotationContext">
+  <div class="row">
+    <div class="col font-weight-bold">Comments:</div>
+    <div class="col-9 comments">
+      <sh-inline-edit
+        [value]="annotationContext.comments?.join('\n')"
+        (save)="annotationContext.comments = $event.split('\n')"
+      >
+        <ng-template inlineView>{{
+          annotationContext.comments?.join("\n")
+        }}</ng-template>
+        <ng-template inlineEdit let-fc>
+          <mat-form-field class="full">
+            <textarea
+              [formControl]="fc"
+              placeholder="Comments"
+              matInput
+              cdkTextareaAutosize
+              [focus]="true"
+              saveOnEnter
+              cancelOnEsc
+              cdkAutosizeMinRows="1"
+            ></textarea>
+          </mat-form-field>
+        </ng-template>
+      </sh-inline-edit>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col font-weight-bold">Tags:</div>
+    <div class="col-9">
+      <sh-inline-edit
+        [value]="annotationContext.tags?.join(' ')"
+        (save)="annotationContext.tags = splitTags($event)"
+        [validator]="validatorTagsLine"
+      >
+        <ng-template inlineView>
+          <mat-chip-list>
+            <mat-chip *ngFor="let tag of annotationContext.tags">{{
+              tag
+            }}</mat-chip>
+          </mat-chip-list>
+        </ng-template>
+        <ng-template inlineEdit let-fc>
+          <mat-form-field class="full">
+            <input
+              matInput
+              [formControl]="fc"
+              type="text"
+              placeholder="Tags"
+              [focus]="true"
+              saveOnEnter
+              cancelOnEsc
+            />
+            <mat-error *ngIf="fc.errors?.pattern"
+              >Tags are separated by space with a leading @
+            </mat-error>
+          </mat-form-field>
+        </ng-template>
+      </sh-inline-edit>
+    </div>
   </div>
 </ng-template>

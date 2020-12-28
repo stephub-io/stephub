@@ -9,12 +9,31 @@
         class="heading align-self-start mr-3"
       ></fa-icon>
       <div class="media-body">
-        <h3 class="mt-0">{{ workspace.name }}</h3>
-        <!-- <p>...</p> -->
+        <sh-inline-edit
+          [value]="workspace.name"
+          [validator]="validatorRequired"
+          (save)="workspace.name = $event"
+        >
+          <ng-template inlineView>
+            <h3 class="mt-0">{{ workspace.name }}</h3>
+          </ng-template>
+          <ng-template inlineEdit let-fc>
+            <mat-form-field class="full">
+              <mat-label>Name</mat-label>
+              <input
+                [formControl]="fc"
+                matInput
+                [focus]="true"
+                saveOnEnter
+                cancelOnEsc
+              />
+              <mat-error *ngIf="fc.errors?.required">Required input </mat-error>
+            </mat-form-field>
+          </ng-template>
+        </sh-inline-edit>
       </div>
     </div>
     <mat-tab-group>
-      <mat-tab label="Base"></mat-tab>
       <mat-tab label="Features">
         <div class="tab-body">
           <sh-workspace-features
