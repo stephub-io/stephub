@@ -45,6 +45,7 @@ import {
   faMagic,
   faMinusCircle,
   faPaintBrush,
+  faPlay,
   faPlus,
   faReceipt,
   faRocket,
@@ -213,7 +214,8 @@ export class SharedModule {
       faAngleRight,
       faGripVertical,
       faCheckCircle,
-      faTimesCircle
+      faTimesCircle,
+      faPlay
     );
   }
 }

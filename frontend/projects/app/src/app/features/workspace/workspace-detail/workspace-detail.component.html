@@ -13,6 +13,7 @@
           [value]="workspace.name"
           [validator]="validatorRequired"
           (save)="workspace.name = $event"
+          [editable]="editMode"
         >
           <ng-template inlineView>
             <h3 class="mt-0">{{ workspace.name }}</h3>
@@ -27,10 +28,21 @@
                 saveOnEnter
                 cancelOnEsc
               />
-              <mat-error *ngIf="fc.errors?.required">Required input </mat-error>
+              <mat-error *ngIf="fc.errors?.required">Required input</mat-error>
             </mat-form-field>
           </ng-template>
         </sh-inline-edit>
+        <div class="main-actions">
+          <mat-slide-toggle [(ngModel)]="editMode">
+            Edit mode
+          </mat-slide-toggle>
+          <button mat-stroked-button color="accent">
+            <fa-icon icon="play"></fa-icon> Execute
+          </button>
+          <button *ngIf="editMode" mat-stroked-button color="warn">
+            <fa-icon icon="trash"></fa-icon> Delete
+          </button>
+        </div>
       </div>
     </div>
     <mat-tab-group>
@@ -38,6 +50,7 @@
         <div class="tab-body">
           <sh-workspace-features
             [workspace]="workspace"
+            [editMode]="editMode"
           ></sh-workspace-features>
         </div>
       </mat-tab>
@@ -151,6 +164,25 @@
         </div>
       </mat-tab>
     </mat-tab-group>
+    <div
+      *ngIf="editMode && isDirty()"
+      [@inOutAnimation]
+      class="workspace-dirty-actions"
+    >
+      <button
+        mat-raised-button
+        color="primary"
+        [disabled]="!editable"
+        (click)="saveWorkspaceChanges()"
+      >
+        <fa-icon icon="check-circle"></fa-icon>
+        save
+      </button>
+      <button mat-stroked-button (click)="discardWorkspaceChanges()">
+        <fa-icon icon="times-circle"></fa-icon>
+        cancel
+      </button>
+    </div>
   </div>
 
   <ng-template

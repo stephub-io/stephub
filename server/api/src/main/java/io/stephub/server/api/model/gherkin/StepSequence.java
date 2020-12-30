@@ -15,17 +15,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class StepSequence implements Identifiable {
-    @NotNull
-    private String name;
+public class StepSequence {
 
     @NotNull
     @Singular
     private List<String> steps;
 
-    @Override
-    @JsonIgnore
-    public String getId() {
-        return this.getName();
-    }
 }

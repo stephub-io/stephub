@@ -35,6 +35,7 @@ export class WorkspaceFeaturesComponent {
   stepIcon = faMagic;
 
   @Input() workspace: Workspace;
+  @Input() editMode = false;
 
   @ViewChildren("stepEdit") stepEditFields: QueryList<MatInput>;
 
@@ -42,27 +43,6 @@ export class WorkspaceFeaturesComponent {
   validatorTagsLine = Validators.pattern(/^(\s*@[^#@\s]+(\s+@[^#@\s]+)*\s*)?$/);
 
   constructor() {}
-
-  ngOnInit() {
-    if (!this.workspace.features) {
-      this.workspace.features = [];
-    }
-    this.workspace.features.forEach((feature) => {
-      if (!feature.background) {
-        feature.background = {
-          steps: [],
-        };
-      }
-      if (!feature.scenarios) {
-        feature.scenarios = [];
-      }
-      feature.scenarios.forEach((scenario) => {
-        if (!scenario.steps) {
-          scenario.steps = [];
-        }
-      });
-    });
-  }
 
   onStepDrop(sequence: StepSequence, event: CdkDragDrop<string[]>) {
     moveItemInArray(sequence.steps, event.previousIndex, event.currentIndex);
@@ -133,4 +113,25 @@ export class WorkspaceFeaturesComponent {
       },
     } as Feature);
   }
+}
+
+export function initFeatures(workspace: Workspace) {
+  if (!workspace.features) {
+    workspace.features = [];
+  }
+  workspace.features.forEach((feature) => {
+    if (!feature.background) {
+      feature.background = {
+        steps: [],
+      };
+    }
+    if (!feature.scenarios) {
+      feature.scenarios = [];
+    }
+    feature.scenarios.forEach((scenario) => {
+      if (!scenario.steps) {
+        scenario.steps = [];
+      }
+    });
+  });
 }

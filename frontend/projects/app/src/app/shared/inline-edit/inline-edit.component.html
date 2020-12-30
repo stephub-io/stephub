@@ -12,7 +12,7 @@
     <ng-container *ngTemplateOutlet="viewModeTpl.tpl"></ng-container>
   </div>
   <div class="actions">
-    <div class="indicator" *ngIf="m != 'edit'">
+    <div class="indicator" *ngIf="editable && m != 'edit'">
       <fa-icon icon="edit"></fa-icon>
     </div>
     <button

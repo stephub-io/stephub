@@ -3,32 +3,34 @@
   multi
   *ngFor="let feature of workspace.features; let fi = index"
 >
-  <mat-expansion-panel hover-class="active-feature">
+  <mat-expansion-panel #featurePanel>
     <mat-expansion-panel-header>
       <mat-panel-title>
         <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
         <span>{{ feature.name }}</span>
       </mat-panel-title>
-      <mat-panel-description>
-        <button
-          mat-icon-button
-          color="warn"
-          class="action feature-action"
-          (click)="deleteFeature(fi)"
-        >
-          <fa-icon icon="trash"></fa-icon>
-        </button>
-      </mat-panel-description>
     </mat-expansion-panel-header>
-    <p>
-      <mat-divider></mat-divider>
-    </p>
+    <mat-divider></mat-divider>
     <div>
       <div class="inline-meta">
+        <div class="section-actions">
+          <button mat-icon-button color="accent">
+            <fa-icon icon="play"></fa-icon>
+          </button>
+          <button
+            *ngIf="editMode"
+            mat-icon-button
+            color="warn"
+            (click)="deleteFeature(fi)"
+          >
+            <fa-icon icon="trash"></fa-icon>
+          </button>
+        </div>
         <div class="row">
           <div class="col font-weight-bold">Feature:</div>
           <div class="col-9">
             <sh-inline-edit
+              [editable]="editMode"
               [value]="feature.name"
               [validator]="validatorRequired"
               (save)="feature.name = $event"
@@ -65,7 +67,7 @@
     <p class="font-weight-bold">Background:</p>
 
     <mat-accordion class="items-headers-align">
-      <mat-expansion-panel hover-class="active-scenario">
+      <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>
             <span>Background steps</span>
@@ -89,32 +91,34 @@
       class="items-headers-align"
       multi
     >
-      <mat-expansion-panel hover-class="active-scenario">
+      <mat-expansion-panel>
         <mat-expansion-panel-header>
           <mat-panel-title>
             <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
             <span>{{ scenario.name }}</span>
           </mat-panel-title>
-          <mat-panel-description>
-            <button
-              mat-icon-button
-              color="warn"
-              class="action scenario-action"
-              (click)="deleteScenario(feature, si)"
-            >
-              <fa-icon icon="trash"></fa-icon>
-            </button>
-          </mat-panel-description>
         </mat-expansion-panel-header>
-        <p>
-          <mat-divider></mat-divider>
-        </p>
+        <mat-divider></mat-divider>
         <div>
           <div class="inline-meta">
+            <div class="section-actions">
+              <button mat-icon-button color="accent">
+                <fa-icon icon="play"></fa-icon>
+              </button>
+              <button
+                *ngIf="editMode"
+                mat-icon-button
+                color="warn"
+                (click)="deleteScenario(feature, si)"
+              >
+                <fa-icon icon="trash"></fa-icon>
+              </button>
+            </div>
             <div class="row">
               <div class="col font-weight-bold">Scenario:</div>
               <div class="col-9">
                 <sh-inline-edit
+                  [editable]="editMode"
                   [value]="scenario.name"
                   [validator]="validatorRequired"
                   (save)="scenario.name = $event"
@@ -156,8 +160,9 @@
       </mat-expansion-panel>
     </mat-accordion>
     <button
+      *ngIf="editMode"
       mat-mini-fab
-      color="primary"
+      color="accent"
       class="add feature-action"
       title="Add scenario"
       (click)="addScenario(feature)"
@@ -167,8 +172,9 @@
   </mat-expansion-panel>
 </mat-accordion>
 <button
+  *ngIf="editMode"
   mat-mini-fab
-  color="primary"
+  color="accent"
   class="add"
   title="Add feature"
   (click)="addFeature()"
@@ -193,7 +199,7 @@
         *matRowDef="let row; columns: ['drag', 'step', 'action']"
         cdkDrag
         [cdkDragData]="row"
-        [cdkDragDisabled]="dragDisabled.value == '1'"
+        [cdkDragDisabled]="!editMode || dragDisabled.value == '1'"
         (cdkDragReleased)="dragDisabled.value = '1'"
         hover-class="active-step"
       ></tr>
@@ -215,13 +221,16 @@
           ></fa-icon>
         </td>
         <td mat-footer-cell *matFooterCellDef>
-          <fa-icon icon="plus"></fa-icon>
+          <div *ngIf="editMode">
+            <fa-icon icon="plus"></fa-icon>
+          </div>
         </td>
       </ng-container>
 
       <ng-container matColumnDef="step">
         <td mat-cell *matCellDef="let element; let i = index" #row>
           <sh-inline-edit
+            [editable]="editMode"
             [value]="element"
             [validator]="validatorRequired"
             (save)="saveStep(sequence, i, $event)"
@@ -250,21 +259,24 @@
           </sh-inline-edit>
         </td>
         <td mat-footer-cell *matFooterCellDef>
-          <mat-form-field class="step">
-            <mat-label>New step</mat-label>
-            <textarea
-              matInput
-              cdkTextareaAutosize
-              cdkAutosizeMinRows="1"
-              [(ngModel)]="newStep.value"
-              (keydown.enter)="addStepOnEnter($event, sequence, newStep)"
-            ></textarea>
-          </mat-form-field>
+          <div *ngIf="editMode">
+            <mat-form-field class="step">
+              <mat-label>New step</mat-label>
+              <textarea
+                matInput
+                cdkTextareaAutosize
+                cdkAutosizeMinRows="1"
+                [(ngModel)]="newStep.value"
+                (keydown.enter)="addStepOnEnter($event, sequence, newStep)"
+              ></textarea>
+            </mat-form-field>
+          </div>
         </td>
       </ng-container>
       <ng-container matColumnDef="action">
         <td mat-cell *matCellDef="let element; let i = index" align="right">
           <button
+            *ngIf="editMode"
             mat-icon-button
             color="warn"
             class="step-action"
@@ -274,22 +286,24 @@
           </button>
         </td>
         <td mat-footer-cell *matFooterCellDef align="right">
-          <button
-            mat-icon-button
-            color="accent"
-            class="step-action"
-            (click)="addStep(sequence, newStep)"
-            [disabled]="newStep.value.trim().length == 0"
-          >
-            <fa-icon icon="check-circle"></fa-icon>
-          </button>
-          <button
-            mat-icon-button
-            class="step-action"
-            (click)="newStep.value = ''"
-          >
-            <fa-icon icon="times-circle"></fa-icon>
-          </button>
+          <div *ngIf="editMode">
+            <button
+              mat-icon-button
+              color="accent"
+              class="step-action"
+              (click)="addStep(sequence, newStep)"
+              [disabled]="newStep.value.trim().length == 0"
+            >
+              <fa-icon icon="check-circle"></fa-icon>
+            </button>
+            <button
+              mat-icon-button
+              class="step-action"
+              (click)="newStep.value = ''"
+            >
+              <fa-icon icon="times-circle"></fa-icon>
+            </button>
+          </div>
         </td>
       </ng-container>
     </table>
@@ -301,6 +315,7 @@
     <div class="col font-weight-bold">Comments:</div>
     <div class="col-9 comments">
       <sh-inline-edit
+        [editable]="editMode"
         [value]="annotationContext.comments?.join('\n')"
         (save)="annotationContext.comments = $event.split('\n')"
       >
@@ -328,6 +343,7 @@
     <div class="col font-weight-bold">Tags:</div>
     <div class="col-9">
       <sh-inline-edit
+        [editable]="editMode"
         [value]="annotationContext.tags?.join(' ')"
         (save)="annotationContext.tags = splitTags($event)"
         [validator]="validatorTagsLine"

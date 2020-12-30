@@ -17,6 +17,10 @@ export class WorkspaceService {
     return this.http.get<Workspace>(`/api/v1/workspaces/${id}`);
   }
 
+  update(id: string, workspace: Workspace) {
+    return this.http.put<Workspace>(`/api/v1/workspaces/${id}`, workspace);
+  }
+
   patch(id: string, patch: Workspace) {
     return this.http.patch<Workspace>(`/api/v1/workspaces/${id}`, patch);
   }

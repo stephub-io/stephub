@@ -1,0 +1,9 @@
+@import "~@angular/material/theming";
+
+@mixin sh-workspace-detail-component($theme) {
+  $foreground: map-get($theme, foreground);
+
+  .workspace-dirty-actions {
+    background: rgba(mat-color($foreground, text), 0.5);
+  }
+}
