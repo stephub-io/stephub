@@ -14,7 +14,7 @@ import { environment as env } from "../../../../environments/environment";
 import { MatChipInputEvent } from "@angular/material/chips";
 import { FormControl, Validators } from "@angular/forms";
 import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
-import { VariableDialogComponent } from "./variable-dialog/variable-dialog.component";
+import { VariableDialogComponent } from "../variable-dialog/variable-dialog.component";
 import * as deepEqual from "fast-deep-equal";
 import { initFeatures } from "./features/workspace-features.component";
 import { ServerError } from "../../../core/server-error/server-error.model";

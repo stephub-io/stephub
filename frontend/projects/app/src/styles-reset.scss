@@ -70,3 +70,21 @@ button.add {
 mat-form-field.full {
   width: 100%;
 }
+
+.fab-create {
+  position: relative;
+  button,
+  a {
+    position: absolute;
+    right: 0;
+    top: -40px;
+  }
+}
+
+fa-icon.heading {
+  font-size: 2em;
+}
+
+.container {
+  margin-top: 20px;
+}

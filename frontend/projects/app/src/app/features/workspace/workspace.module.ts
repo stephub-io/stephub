@@ -16,12 +16,15 @@ import { StepRequestComponent } from "./step/step-request/step-request.component
 import { MatTableModule } from "@angular/material/table";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatDialogModule } from "@angular/material/dialog";
-import { VariableDialogComponent } from "./workspace-detail/variable-dialog/variable-dialog.component";
+import { VariableDialogComponent } from "./variable-dialog/variable-dialog.component";
 import { MatSelectModule } from "@angular/material/select";
 import { MatRadioModule } from "@angular/material/radio";
 import { WorkspaceFeaturesComponent } from "./workspace-detail/features/workspace-features.component";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { StepViewComponent } from "./step/step-view/step-view.component";
+import { ExecutionNewComponent } from "./execution-new/execution-new.component";
+import { MatStepperModule } from "@angular/material/stepper";
+import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
 
 @NgModule({
   declarations: [
@@ -37,6 +40,7 @@ import { StepViewComponent } from "./step/step-view/step-view.component";
     VariableDialogComponent,
     WorkspaceFeaturesComponent,
     StepViewComponent,
+    ExecutionNewComponent,
   ],
   imports: [
     CommonModule,
@@ -49,6 +53,13 @@ import { StepViewComponent } from "./step/step-view/step-view.component";
     MatSelectModule,
     MatRadioModule,
     DragDropModule,
+    MatStepperModule,
+  ],
+  providers: [
+    {
+      provide: STEPPER_GLOBAL_OPTIONS,
+      useValue: { displayDefaultIndicatorType: false },
+    },
   ],
 })
 export class WorkspaceModule {}

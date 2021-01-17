@@ -51,20 +51,36 @@
   .error-notification-overlay {
     color: mat-color($warn, default-contrast);
     background-color: mat-color($warn);
+
+    .mat-simple-snackbar-action {
+      color: mat-color($warn, default-contrast);
+    }
   }
 
   .info-notification-overlay {
     color: mat-color($accent, default-contrast);
     background-color: mat-color($accent);
+
+    .mat-simple-snackbar-action {
+      color: mat-color($accent, default-contrast);
+    }
   }
 
   .success-notification-overlay {
     color: mat-color($success-colors, default-contrast);
     background-color: mat-color($success-colors);
+
+    .mat-simple-snackbar-action {
+      color: mat-color($success-colors, default-contrast);
+    }
   }
 
   .warning-notification-overlay {
     color: mat-color($warning-colors, default-contrast);
     background-color: mat-color($warning-colors);
+
+    .mat-simple-snackbar-action {
+      color: mat-color($warning-colors, default-contrast);
+    }
   }
 }

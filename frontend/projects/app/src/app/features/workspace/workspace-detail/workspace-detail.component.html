@@ -36,9 +36,9 @@
           <mat-slide-toggle [(ngModel)]="editMode">
             Edit mode
           </mat-slide-toggle>
-          <button mat-stroked-button color="accent">
+          <a mat-stroked-button color="accent" routerLink="executions/new">
             <fa-icon icon="play"></fa-icon> Execute
-          </button>
+          </a>
           <button *ngIf="editMode" mat-stroked-button color="warn">
             <fa-icon icon="trash"></fa-icon> Delete
           </button>
@@ -46,7 +46,7 @@
       </div>
     </div>
     <mat-tab-group>
-      <mat-tab label="Features">
+      <mat-tab label="Tests">
         <div class="tab-body">
           <sh-workspace-features
             [workspace]="workspace"

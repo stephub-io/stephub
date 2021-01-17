@@ -36,7 +36,10 @@ import {
   faCaretUp,
   faCheck,
   faCheckCircle,
+  faDollarSign,
   faEdit,
+  faEraser,
+  faExclamationCircle,
   faExclamationTriangle,
   faFilter,
   faGripVertical,
@@ -49,6 +52,7 @@ import {
   faPlus,
   faReceipt,
   faRocket,
+  faSlidersH,
   faSquare,
   faStream,
   faTasks,
@@ -81,6 +85,7 @@ import { InlineEditDirective } from "./inline-edit/inline-edit.directive";
 import { InlineViewDirective } from "./inline-edit/inline-view.directive";
 import { SaveOnEnterDirective } from "./inline-edit/save-on-enter.directive";
 import { CancelOnEscDirective } from "./inline-edit/cancel-on-esc.directive";
+import { ServerFieldErrorComponent } from "./server-field-error/server-field-error.component";
 
 @NgModule({
   imports: [
@@ -130,6 +135,7 @@ import { CancelOnEscDirective } from "./inline-edit/cancel-on-esc.directive";
     InlineViewDirective,
     SaveOnEnterDirective,
     CancelOnEscDirective,
+    ServerFieldErrorComponent,
   ],
   exports: [
     CommonModule,
@@ -181,6 +187,7 @@ import { CancelOnEscDirective } from "./inline-edit/cancel-on-esc.directive";
     InlineViewDirective,
     SaveOnEnterDirective,
     CancelOnEscDirective,
+    ServerFieldErrorComponent,
   ],
 })
 export class SharedModule {
@@ -215,7 +222,12 @@ export class SharedModule {
       faGripVertical,
       faCheckCircle,
       faTimesCircle,
-      faPlay
+      faPlay,
+      faDollarSign,
+      faSlidersH,
+      faFilter,
+      faEraser,
+      faExclamationCircle
     );
   }
 }

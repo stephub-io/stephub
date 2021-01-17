@@ -1,4 +1,4 @@
-@import "../../../../../styles-variables";
+@import "projects/app/src/styles-variables";
 
 ace {
   height: 110px;
@@ -19,4 +19,8 @@ mat-dialog-content {
 
 .invalid-feedback {
   display: block;
+}
+
+.form-group.value {
+  text-transform: capitalize;
 }

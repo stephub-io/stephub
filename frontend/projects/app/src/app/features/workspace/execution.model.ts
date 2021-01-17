@@ -55,3 +55,35 @@ export interface ExecutionsResult {
   total: number;
   items: Execution[];
 }
+
+export interface ExecutionStart {
+  instruction: ExecutionInstruction;
+  sessionSettings: SessionSettings;
+  parallelSessionCount?: number;
+}
+
+export interface ExecutionInstruction {
+  type: string;
+}
+
+export interface ScenariosExecutionInstruction extends ExecutionInstruction {
+  filter: ScenarioFilter;
+}
+
+export interface ScenarioFilter {
+  type: string;
+}
+
+export interface SessionSettings {
+  variables: VariableMap;
+  parallelizationMode: ParallelizationMode.scenario;
+}
+
+export interface VariableMap {
+  [key: string]: any;
+}
+
+export enum ParallelizationMode {
+  feature = "feature",
+  scenario = "scenario",
+}

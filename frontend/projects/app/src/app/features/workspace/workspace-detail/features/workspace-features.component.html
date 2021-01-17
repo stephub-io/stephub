@@ -3,7 +3,7 @@
   multi
   *ngFor="let feature of workspace.features; let fi = index"
 >
-  <mat-expansion-panel #featurePanel>
+  <mat-expansion-panel>
     <mat-expansion-panel-header>
       <mat-panel-title>
         <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
@@ -163,7 +163,7 @@
       *ngIf="editMode"
       mat-mini-fab
       color="accent"
-      class="add feature-action"
+      class="add"
       title="Add scenario"
       (click)="addScenario(feature)"
     >

@@ -5,7 +5,7 @@ import {
   FormGroup,
   Validators,
 } from "@angular/forms";
-import { Variable } from "../../workspace/workspace.model";
+import { Variable } from "../workspace/workspace.model";
 import { MAT_DIALOG_DATA, MatDialogRef } from "@angular/material/dialog";
 import "brace";
 import "brace/mode/json";
@@ -13,8 +13,8 @@ import "brace/theme/github";
 import {
   getSchemaType,
   JsonSchemaType,
-} from "../../../../shared/json-schema-view/json--schema-view.component";
-import { ServerError } from "../../../../core/server-error/server-error.model";
+} from "../../../shared/json-schema-view/json--schema-view.component";
+import { ServerError } from "../../../core/server-error/server-error.model";
 import { Observable } from "rxjs";
 
 @Component({
@@ -34,6 +34,7 @@ export class VariableDialogComponent {
 
   valueField = new FormControl("", []);
   valueJsonStr: string;
+  valueNull: boolean;
 
   schema: object;
   schemaString: string;
@@ -47,8 +48,9 @@ export class VariableDialogComponent {
   ];
   schemaField = new FormControl("", []);
 
-  private saveCallback: (data) => Observable<any>;
+  private readonly saveCallback: (data) => Observable<any>;
   private readonly name: string;
+  readonly mode = VariableDialogMode.full;
 
   constructor(
     private fb: FormBuilder,
@@ -58,15 +60,18 @@ export class VariableDialogComponent {
     this.variable = data.variable;
     this.name = data.name;
     this.saveCallback = data.saveCallback;
-
+    this.mode = data.mode ? data.mode : VariableDialogMode.full;
     this.form = fb.group([this.nameField, this.valueField, this.schemaField]);
-  }
-
-  ngOnInit() {
     this.nameField.setValue(this.name);
     this.schemaType = getSchemaType(this.variable.schema);
     this.schemaString = JSON.stringify(this.variable.schema, null, 2);
-    this.applyFromValue(this.variable.defaultValue);
+    const value =
+      this.mode == VariableDialogMode.full
+        ? this.variable.defaultValue
+        : data.value;
+    this.applyFromValue(value);
+    this.valueNull = value == null;
+    this.changeValueNull();
     this.updateValueValidator();
   }
 
@@ -130,29 +135,49 @@ export class VariableDialogComponent {
   }
 
   save() {
-    this.saveCallback({
-      name: this.nameField.value,
-      variable: {
-        schema: this.buildSchema(),
-        defaultValue: this.valueField.value,
-      } as Variable,
-    }).subscribe(
-      () => {
-        this.close();
-      },
-      (error) => {
-        if (error instanceof ServerError && error.status == 400) {
-          console.log("Bad request", error);
-          const prefix = "variables[" + this.nameField.value + "]";
-          error.propagateFieldErrors(prefix, this.nameField);
-          error.propagateFieldErrors(prefix + ".defaultValue", this.valueField);
-          error.propagateFieldErrors(prefix + ".schema", this.schemaField);
-          this.form.markAllAsTouched();
-        } else {
-          throw error;
+    let data;
+    const value = this.valueNull ? null : this.valueField.value;
+    if ((this.mode as VariableDialogMode) == VariableDialogMode.value) {
+      this.dialogRef.close(
+        (data = {
+          value: value,
+        })
+      );
+      return;
+    } else {
+      data = {
+        name: this.nameField.value,
+        variable: {
+          schema: this.buildSchema(),
+          defaultValue: value,
+        } as Variable,
+      };
+    }
+    const subject = this.saveCallback(data);
+    if (subject) {
+      subject.subscribe(
+        () => {
+          this.close();
+        },
+        (error) => {
+          if (error instanceof ServerError && error.status == 400) {
+            console.log("Bad request", error);
+            const prefix = "variables[" + this.nameField.value + "]";
+            error.propagateFieldErrors(prefix, this.nameField);
+            error.propagateFieldErrors(
+              prefix + ".defaultValue",
+              this.valueField
+            );
+            error.propagateFieldErrors(prefix + ".schema", this.schemaField);
+            this.form.markAllAsTouched();
+          } else {
+            throw error;
+          }
         }
-      }
-    );
+      );
+    } else {
+      this.close();
+    }
   }
 
   close() {
@@ -176,4 +201,17 @@ export class VariableDialogComponent {
         this.valueField.setValidators([Validators.required]);
     }
   }
+
+  changeValueNull() {
+    if (this.valueNull) {
+      this.valueField.disable();
+    } else {
+      this.valueField.enable();
+    }
+  }
+}
+
+export enum VariableDialogMode {
+  full = "full",
+  value = "value",
 }

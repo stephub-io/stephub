@@ -1,0 +1,39 @@
+@import "../../../../styles-variables";
+
+form {
+  padding-top: 15px;
+
+  button.step {
+    margin-top: 15px;
+  }
+}
+
+form > .row + .row {
+  padding-top: 15px;
+}
+
+.vertical {
+  display: flex;
+  flex-direction: column;
+}
+
+.radio-button {
+  margin: 5px;
+}
+
+table.variables {
+  width: 100%;
+  margin: 1rem 0;
+
+  tr.overridden .mat-column-defaultValue {
+    text-decoration: line-through;
+  }
+
+  .mat-column-action {
+    white-space: nowrap;
+  }
+}
+
+mat-slider {
+  width: 100%;
+}

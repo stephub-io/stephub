@@ -35,6 +35,8 @@
 @import "./app/features/workspace/execution-detail/execution-detail.component.scss-theme";
 @import "./app/shared/inline-edit/inline-edit.component.scss-theme";
 @import "./app/features/workspace/workspace-detail/workspace-detail.component.scss-theme";
+@import "./app/features/workspace/execution-new/execution-new.component.scss-theme";
+@import "./app/shared/server-field-error/server-field-error.component.scss-theme";
 @import "~highlight.js/styles/github.css";
 
 @mixin custom-components-theme($theme) {
@@ -54,6 +56,8 @@
   @include sh-step-request-component($theme);
   @include sh-inline-edit-component($theme);
   @include sh-workspace-detail-component($theme);
+  @include sh-execution-new-component($theme);
+  @include sh-server-field-error-component($theme);
 }
 
 .default-theme {

@@ -1,0 +1,9 @@
+@import "~@angular/material/theming";
+
+@mixin sh-server-field-error-component($theme) {
+  $warn: map-get($theme, warn);
+
+  .validation-errors {
+    color: mat-color($warn);
+  }
+}

@@ -1,0 +1,220 @@
+<div class="container">
+  <div
+    *ngIf="workspace$.asObservable() | async as workspace"
+    [ngClass]="routeAnimationsElements"
+  >
+    <div class="media">
+      <fa-icon
+        [icon]="faExecutions"
+        class="heading align-self-start mr-3"
+      ></fa-icon>
+      <div class="media-body">
+        <h3>Start a new test execution</h3>
+      </div>
+    </div>
+    <mat-vertical-stepper [linear]="false" #stepper>
+      <mat-step [stepControl]="selectionFormGroup" label="Test selection">
+        <form [formGroup]="selectionFormGroup">
+          <mat-radio-group
+            formControlName="type"
+            class="vertical"
+            [(ngModel)]="selectionType"
+          >
+            <mat-radio-button class="radio-button" value="all">
+              All
+            </mat-radio-button>
+          </mat-radio-group>
+          <div>
+            <button
+              mat-raised-button
+              matStepperNext
+              color="primary"
+              class="step"
+            >
+              Next
+            </button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step [stepControl]="varFormGroup">
+        <ng-template matStepLabel>
+          Variables
+          <sh-server-field-error
+            path="sessionSettings.variables"
+            [fieldErrors]="fieldErrors$ | async"
+            displayType="indicator"
+          ></sh-server-field-error>
+        </ng-template>
+        <form [formGroup]="varFormGroup">
+          <div *ngIf="keys(workspace.variables).length; else noVars">
+            <table
+              mat-table
+              [dataSource]="variableKeys$ | async"
+              class="mat-elevation-z8 variables"
+            >
+              <tr
+                mat-header-row
+                *matHeaderRowDef="[
+                  'key',
+                  'schema',
+                  'defaultValue',
+                  'value',
+                  'action'
+                ]"
+              ></tr>
+              <tr
+                mat-row
+                *matRowDef="
+                  let row;
+                  columns: ['key', 'schema', 'defaultValue', 'value', 'action']
+                "
+                [ngClass]="isVariableSet(row) ? 'overridden' : 'default'"
+              ></tr>
+
+              <ng-container matColumnDef="key">
+                <th mat-header-cell *matHeaderCellDef>Name</th>
+                <td mat-cell *matCellDef="let element">
+                  <pre><code>{{ element }}</code></pre>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="schema">
+                <th mat-header-cell *matHeaderCellDef>JSON-Schema</th>
+                <td mat-cell *matCellDef="let element">
+                  <sh-json-schema-view
+                    [schema]="workspace.variables[element].schema"
+                  ></sh-json-schema-view>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="defaultValue">
+                <th mat-header-cell *matHeaderCellDef>Default value</th>
+                <td mat-cell *matCellDef="let element">
+                  <sh-json-view
+                    [json]="workspace.variables[element].defaultValue"
+                  ></sh-json-view>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="value">
+                <th mat-header-cell *matHeaderCellDef>Overridden value</th>
+                <td mat-cell *matCellDef="let element">
+                  <sh-json-view
+                    *ngIf="isVariableSet(element); else defaultValue"
+                    [json]="executionStart.sessionSettings.variables[element]"
+                  ></sh-json-view>
+                  <ng-template #defaultValue>-</ng-template>
+                  <sh-server-field-error
+                    path="sessionSettings.variables[{{ element }}]"
+                  ></sh-server-field-error>
+                </td>
+              </ng-container>
+              <ng-container matColumnDef="action">
+                <th mat-header-cell *matHeaderCellDef>Actions</th>
+                <td mat-cell *matCellDef="let element">
+                  <button
+                    mat-icon-button
+                    color="accent"
+                    title="Override value"
+                    (click)="setVariable(element)"
+                  >
+                    <fa-icon icon="edit"></fa-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    color="warn"
+                    title="Erase overridden value to default"
+                    *ngIf="isVariableSet(element)"
+                    (click)="eraseVariable(element)"
+                  >
+                    <fa-icon icon="eraser"></fa-icon>
+                  </button>
+                </td>
+              </ng-container>
+            </table>
+          </div>
+          <ng-template #noVars>
+            <p>No variables defined on workspace level</p>
+          </ng-template>
+          <div>
+            <button
+              mat-raised-button
+              matStepperNext
+              color="primary"
+              class="step"
+            >
+              Next
+            </button>
+          </div>
+        </form>
+      </mat-step>
+      <mat-step [stepControl]="settingsFormGroup">
+        <ng-template matStepLabel>
+          Additional settings
+          <sh-server-field-error
+            [path]="['parallelSessionCount']"
+            [fieldErrors]="fieldErrors$ | async"
+            displayType="indicator"
+          ></sh-server-field-error>
+        </ng-template>
+        <form [formGroup]="settingsFormGroup">
+          <div class="row">
+            <div class="col">
+              <label>Parallelize execution per</label>
+              <mat-radio-group
+                formControlName="parallelizationMode"
+                class="vertical"
+                [(ngModel)]="executionStart.sessionSettings.parallelizationMode"
+                (change)="changedParallelizationMode()"
+              >
+                <mat-radio-button class="radio-button" value="scenario">
+                  scenario
+                </mat-radio-button>
+                <mat-radio-button class="radio-button" value="feature">
+                  feature
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              <label>Number of parallel executions</label>
+              <div class="row">
+                <div class="col-2">
+                  <input
+                    class="form-control"
+                    min="1"
+                    [max]="maxParallelSessionCount()"
+                    formControlName="parallelSessionCount"
+                    type="number"
+                    [(ngModel)]="executionStart.parallelSessionCount"
+                  />
+                </div>
+                <div class="col-10">
+                  <mat-slider
+                    min="1"
+                    [max]="maxParallelSessionCount()"
+                    formControlName="parallelSessionCount"
+                    [(ngModel)]="executionStart.parallelSessionCount"
+                  ></mat-slider>
+                </div>
+              </div>
+              <sh-server-field-error
+                [path]="['parallelSessionCount']"
+                [fieldErrors]="fieldErrors$ | async"
+              ></sh-server-field-error>
+            </div>
+          </div>
+          <div>
+            <button
+              mat-raised-button
+              matStepperNext
+              color="primary"
+              (click)="start()"
+              class="step"
+            >
+              Start
+            </button>
+          </div>
+        </form>
+      </mat-step>
+    </mat-vertical-stepper>
+  </div>
+</div>
