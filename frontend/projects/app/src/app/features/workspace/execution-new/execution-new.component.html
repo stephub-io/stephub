@@ -12,24 +12,56 @@
         <h3>Start a new test execution</h3>
       </div>
     </div>
+    <sh-error-state
+      text="Execution not possible due to errors on workspace level!
+                Please fix the errors first."
+      *ngIf="workspaceHasErrors()"
+    ></sh-error-state>
     <mat-vertical-stepper [linear]="false" #stepper>
       <mat-step [stepControl]="selectionFormGroup" label="Test selection">
         <form [formGroup]="selectionFormGroup">
-          <mat-radio-group
-            formControlName="type"
-            class="vertical"
-            [(ngModel)]="selectionType"
-          >
-            <mat-radio-button class="radio-button" value="all">
-              All
-            </mat-radio-button>
-          </mat-radio-group>
+          <div class="row">
+            <div class="col">
+              <mat-radio-group
+                formControlName="type"
+                class="vertical"
+                [(ngModel)]="selectionType"
+              >
+                <mat-radio-button class="radio-button" value="all">
+                  All
+                </mat-radio-button>
+                <mat-radio-button class="radio-button" value="filter-tag">
+                  Filtered by tag
+                </mat-radio-button>
+                <mat-radio-button class="radio-button" value="filter-scenario">
+                  Filtered by scenario
+                </mat-radio-button>
+                <mat-radio-button class="radio-button" value="filter-feature">
+                  Filtered by feature
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+          </div>
+          <div class="row" *ngIf="selectionType == 'filter-scenario'">
+            <div class="col">
+              <label>Scenario filter</label>
+              <sh-multi-string-input
+                [(sequence)]="filterScenarios"
+                [validator]="regexValidator"
+              ></sh-multi-string-input>
+              <small class="form-text text-muted">
+                Make use of regular expressions for filtering e.g.
+                <span class="code">user-.*</span>.
+              </small>
+            </div>
+          </div>
           <div>
             <button
               mat-raised-button
               matStepperNext
               color="primary"
               class="step"
+              [disabled]="workspaceHasErrors()"
             >
               Next
             </button>
@@ -46,7 +78,10 @@
           ></sh-server-field-error>
         </ng-template>
         <form [formGroup]="varFormGroup">
-          <div *ngIf="keys(workspace.variables).length; else noVars">
+          <div
+            *ngIf="keys(workspace.variables).length; else noVars"
+            class="variables-container"
+          >
             <table
               mat-table
               [dataSource]="variableKeys$ | async"
@@ -71,10 +106,15 @@
                 [ngClass]="isVariableSet(row) ? 'overridden' : 'default'"
               ></tr>
 
-              <ng-container matColumnDef="key">
+              <ng-container matColumnDef="key" sticky>
                 <th mat-header-cell *matHeaderCellDef>Name</th>
                 <td mat-cell *matCellDef="let element">
-                  <pre><code>{{ element }}</code></pre>
+                  <sh-server-field-error
+                    path="sessionSettings.variables[{{ element }}]"
+                    [fieldErrors]="fieldErrors$ | async"
+                    displayType="indicator-tooltip"
+                  ></sh-server-field-error>
+                  <span class="code">{{ element }}</span>
                 </td>
               </ng-container>
               <ng-container matColumnDef="schema">
@@ -106,7 +146,7 @@
                   ></sh-server-field-error>
                 </td>
               </ng-container>
-              <ng-container matColumnDef="action">
+              <ng-container matColumnDef="action" stickyEnd>
                 <th mat-header-cell *matHeaderCellDef>Actions</th>
                 <td mat-cell *matCellDef="let element">
                   <button
@@ -114,6 +154,7 @@
                     color="accent"
                     title="Override value"
                     (click)="setVariable(element)"
+                    [disabled]="workspaceHasErrors()"
                   >
                     <fa-icon icon="edit"></fa-icon>
                   </button>
@@ -139,6 +180,7 @@
               matStepperNext
               color="primary"
               class="step"
+              [disabled]="workspaceHasErrors()"
             >
               Next
             </button>
@@ -177,9 +219,10 @@
             <div class="col">
               <label>Number of parallel executions</label>
               <div class="row">
-                <div class="col-2">
+                <div class="col-md-2">
                   <input
                     class="form-control"
+                    [disabled]="workspaceHasErrors()"
                     min="1"
                     [max]="maxParallelSessionCount()"
                     formControlName="parallelSessionCount"
@@ -187,7 +230,7 @@
                     [(ngModel)]="executionStart.parallelSessionCount"
                   />
                 </div>
-                <div class="col-10">
+                <div class="col-md-10">
                   <mat-slider
                     min="1"
                     [max]="maxParallelSessionCount()"
@@ -209,6 +252,7 @@
               color="primary"
               (click)="start()"
               class="step"
+              [disabled]="workspaceHasErrors()"
             >
               Start
             </button>

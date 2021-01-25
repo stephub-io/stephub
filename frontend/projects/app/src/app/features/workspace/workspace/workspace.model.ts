@@ -1,9 +1,12 @@
+import { FieldError } from "../../../core/server-error/server-error.model";
+
 export interface Workspace {
   id: string;
   name: string;
   features: Feature[];
   gherkinPreferences: GherkinPreferences;
   variables: VariableMap;
+  errors?: FieldError[];
 }
 
 export interface WorkspacesResult {

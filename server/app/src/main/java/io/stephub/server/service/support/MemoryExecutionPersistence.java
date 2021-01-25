@@ -76,7 +76,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
             pendingItems.addAll(executionItems);
         }
         if (pendingItems.isEmpty()) {
-            throw new ExecutionException("Expected at least one instruction to execute, but got none");
+            throw new ExecutionException("Empty selection, expected at least one item to execute");
         }
         final MemoryExecution execution = MemoryExecution.builder().
                 instruction(instruction).
@@ -127,7 +127,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                         item.setStatus(EXECUTING);
                         log.debug("Starting execution of step item={} of execution={}", item, execution);
                         try {
-                            StepExecutionResult result = command.execute();
+                            final StepExecutionResult result = command.execute();
                             item.setResponse(result.getResponse());
                             item.setStepSpec(result.getStepSpec());
                             return result.getResponse();

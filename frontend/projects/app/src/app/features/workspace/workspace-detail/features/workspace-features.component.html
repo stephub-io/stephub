@@ -1,312 +1,206 @@
-<mat-accordion
-  class="items-headers-align"
-  multi
-  *ngFor="let feature of workspace.features; let fi = index"
->
-  <mat-expansion-panel>
-    <mat-expansion-panel-header>
-      <mat-panel-title>
-        <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
-        <span>{{ feature.name }}</span>
-      </mat-panel-title>
-    </mat-expansion-panel-header>
-    <mat-divider></mat-divider>
-    <div>
-      <div class="inline-meta">
-        <div class="section-actions">
-          <button mat-icon-button color="accent">
-            <fa-icon icon="play"></fa-icon>
-          </button>
-          <button
-            *ngIf="editMode"
-            mat-icon-button
-            color="warn"
-            (click)="deleteFeature(fi)"
-          >
-            <fa-icon icon="trash"></fa-icon>
-          </button>
-        </div>
-        <div class="row">
-          <div class="col font-weight-bold">Feature:</div>
-          <div class="col-9">
-            <sh-inline-edit
-              [editable]="editMode"
-              [value]="feature.name"
-              [validator]="validatorRequired"
-              (save)="feature.name = $event"
+<div [ngClass]="{ 'view-mode': !editMode, 'edit-mode': editMode }">
+  <mat-accordion
+    class="items-headers-align"
+    multi
+    *ngFor="let feature of workspace.features; let fi = index"
+  >
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
+          <span>{{ feature.name }}</span>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <mat-divider></mat-divider>
+      <div>
+        <div class="inline-meta">
+          <div class="section-actions">
+            <button mat-icon-button color="accent">
+              <fa-icon icon="play"></fa-icon>
+            </button>
+            <button
+              *ngIf="editMode"
+              mat-icon-button
+              color="warn"
+              (click)="deleteFeature(fi)"
             >
-              <ng-template inlineView>{{ feature.name }}</ng-template>
-              <ng-template inlineEdit let-fc>
-                <mat-form-field class="full">
-                  <input
-                    matInput
-                    [formControl]="fc"
-                    type="text"
-                    placeholder="Name"
-                    [focus]="true"
-                    saveOnEnter
-                    cancelOnEsc
-                  />
-                  <mat-error *ngIf="fc.errors?.required"
-                    >Required input
-                  </mat-error>
-                </mat-form-field>
-              </ng-template>
-            </sh-inline-edit>
+              <fa-icon icon="trash"></fa-icon>
+            </button>
           </div>
-        </div>
-        <ng-container
-          *ngTemplateOutlet="
-            annotationRows;
-            context: { annotationContext: feature }
-          "
-        >
-        </ng-container>
-      </div>
-    </div>
-    <p class="font-weight-bold">Background:</p>
-
-    <mat-accordion class="items-headers-align">
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <span>Background steps</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        <ng-container
-          *ngTemplateOutlet="
-            stepSequence;
-            context: {
-              sequence: feature.background
-            }
-          "
-        >
-        </ng-container>
-      </mat-expansion-panel>
-    </mat-accordion>
-
-    <p class="font-weight-bold">Scenarios:</p>
-    <mat-accordion
-      *ngFor="let scenario of feature.scenarios; let si = index"
-      class="items-headers-align"
-      multi
-    >
-      <mat-expansion-panel>
-        <mat-expansion-panel-header>
-          <mat-panel-title>
-            <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
-            <span>{{ scenario.name }}</span>
-          </mat-panel-title>
-        </mat-expansion-panel-header>
-        <mat-divider></mat-divider>
-        <div>
-          <div class="inline-meta">
-            <div class="section-actions">
-              <button mat-icon-button color="accent">
-                <fa-icon icon="play"></fa-icon>
-              </button>
-              <button
-                *ngIf="editMode"
-                mat-icon-button
-                color="warn"
-                (click)="deleteScenario(feature, si)"
+          <div class="row">
+            <div class="col font-weight-bold">Feature:</div>
+            <div class="col-9">
+              <sh-inline-edit
+                [editable]="editMode"
+                [value]="feature.name"
+                [validator]="validatorRequired"
+                (save)="feature.name = $event"
               >
-                <fa-icon icon="trash"></fa-icon>
-              </button>
+                <ng-template inlineView>{{ feature.name }}</ng-template>
+                <ng-template inlineEdit let-fc>
+                  <mat-form-field class="full">
+                    <input
+                      matInput
+                      [formControl]="fc"
+                      type="text"
+                      placeholder="Name"
+                      [focus]="true"
+                      saveOnEnter
+                      cancelOnEsc
+                    />
+                    <mat-error *ngIf="fc.errors?.required"
+                      >Required input
+                    </mat-error>
+                  </mat-form-field>
+                </ng-template>
+              </sh-inline-edit>
             </div>
-            <div class="row">
-              <div class="col font-weight-bold">Scenario:</div>
-              <div class="col-9">
-                <sh-inline-edit
-                  [editable]="editMode"
-                  [value]="scenario.name"
-                  [validator]="validatorRequired"
-                  (save)="scenario.name = $event"
-                >
-                  <ng-template inlineView>{{ scenario.name }}</ng-template>
-                  <ng-template inlineEdit let-fc>
-                    <mat-form-field class="full">
-                      <input
-                        matInput
-                        [formControl]="fc"
-                        type="text"
-                        placeholder="Name"
-                        [focus]="true"
-                        saveOnEnter
-                        cancelOnEsc
-                      />
-                      <mat-error *ngIf="fc.errors?.required"
-                        >Required input
-                      </mat-error>
-                    </mat-form-field>
-                  </ng-template>
-                </sh-inline-edit>
-              </div>
-            </div>
-            <ng-container
-              *ngTemplateOutlet="
-                annotationRows;
-                context: { annotationContext: scenario }
-              "
-            >
-            </ng-container>
           </div>
+          <ng-container
+            *ngTemplateOutlet="
+              annotationRows;
+              context: { annotationContext: feature }
+            "
+          >
+          </ng-container>
         </div>
-        <p class="font-weight-bold">Steps:</p>
-        <ng-container
-          *ngTemplateOutlet="stepSequence; context: { sequence: scenario }"
-        >
-        </ng-container>
-      </mat-expansion-panel>
-    </mat-accordion>
-    <button
-      *ngIf="editMode"
-      mat-mini-fab
-      color="accent"
-      class="add"
-      title="Add scenario"
-      (click)="addScenario(feature)"
-    >
-      <fa-icon icon="plus"></fa-icon>
-    </button>
-  </mat-expansion-panel>
-</mat-accordion>
-<button
-  *ngIf="editMode"
-  mat-mini-fab
-  color="accent"
-  class="add"
-  title="Add feature"
-  (click)="addFeature()"
->
-  <fa-icon icon="plus"></fa-icon>
-</button>
+      </div>
+      <p class="font-weight-bold">Background:</p>
+
+      <mat-accordion class="items-headers-align">
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <span>Background steps</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <ng-container
+            *ngTemplateOutlet="
+              stepSequence;
+              context: {
+                sequence: feature.background
+              }
+            "
+          >
+          </ng-container>
+        </mat-expansion-panel>
+      </mat-accordion>
+
+      <p class="font-weight-bold">Scenarios:</p>
+      <mat-accordion
+        *ngFor="let scenario of feature.scenarios; let si = index"
+        class="items-headers-align"
+        multi
+      >
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
+              <span>{{ scenario.name }}</span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <mat-divider></mat-divider>
+          <div>
+            <div class="inline-meta">
+              <div class="section-actions">
+                <button mat-icon-button color="accent">
+                  <fa-icon icon="play"></fa-icon>
+                </button>
+                <button
+                  *ngIf="editMode"
+                  mat-icon-button
+                  color="warn"
+                  (click)="deleteScenario(feature, si)"
+                >
+                  <fa-icon icon="trash"></fa-icon>
+                </button>
+              </div>
+              <div class="row">
+                <div class="col font-weight-bold">Scenario:</div>
+                <div class="col-9">
+                  <sh-inline-edit
+                    [editable]="editMode"
+                    [value]="scenario.name"
+                    [validator]="validatorRequired"
+                    (save)="scenario.name = $event"
+                  >
+                    <ng-template inlineView>{{ scenario.name }}</ng-template>
+                    <ng-template inlineEdit let-fc>
+                      <mat-form-field class="full">
+                        <input
+                          matInput
+                          [formControl]="fc"
+                          type="text"
+                          placeholder="Name"
+                          [focus]="true"
+                          saveOnEnter
+                          cancelOnEsc
+                        />
+                        <mat-error *ngIf="fc.errors?.required"
+                          >Required input
+                        </mat-error>
+                      </mat-form-field>
+                    </ng-template>
+                  </sh-inline-edit>
+                </div>
+              </div>
+              <ng-container
+                *ngTemplateOutlet="
+                  annotationRows;
+                  context: { annotationContext: scenario }
+                "
+              >
+              </ng-container>
+            </div>
+          </div>
+          <p class="font-weight-bold">Steps:</p>
+          <ng-container
+            *ngTemplateOutlet="stepSequence; context: { sequence: scenario }"
+          >
+          </ng-container>
+        </mat-expansion-panel>
+      </mat-accordion>
+      <button
+        *ngIf="editMode"
+        mat-mini-fab
+        color="accent"
+        class="add"
+        title="Add scenario"
+        (click)="addScenario(feature)"
+      >
+        <fa-icon icon="plus"></fa-icon>
+      </button>
+    </mat-expansion-panel>
+  </mat-accordion>
+  <button
+    *ngIf="editMode"
+    mat-mini-fab
+    color="accent"
+    class="add"
+    title="Add feature"
+    (click)="addFeature()"
+  >
+    <fa-icon icon="plus"></fa-icon>
+  </button>
+</div>
 
 <ng-template #stepSequence let-sequence="sequence">
   <div class="step-sequence">
-    <input type="hidden" #dragDisabled value="1" />
-    <input type="hidden" #newStep value="" />
-    <table
-      mat-table
-      cdkDropList
-      (cdkDropListDropped)="onStepDrop(sequence, $event)"
-      [dataSource]="sequence?.steps"
-      [cdkDropListData]="sequence?.steps"
-      class="mat-elevation-z8"
+    <sh-multi-string-input
+      [textarea]="true"
+      [(sequence)]="sequence.steps"
+      [editMode]="editMode"
+      [validator]="validatorRequired"
+      [codeInput]="true"
     >
-      <tr
-        mat-row
-        *matRowDef="let row; columns: ['drag', 'step', 'action']"
-        cdkDrag
-        [cdkDragData]="row"
-        [cdkDragDisabled]="!editMode || dragDisabled.value == '1'"
-        (cdkDragReleased)="dragDisabled.value = '1'"
-        hover-class="active-step"
-      ></tr>
-      <tr
-        mat-footer-row
-        *matFooterRowDef="['drag', 'step', 'action']"
-        hover-class="active-step"
-      ></tr>
-      <ng-container matColumnDef="drag">
-        <td mat-cell *matCellDef="let element">
-          <fa-icon
-            cdkDragHandle
-            class="drag-handle"
-            (touchstart)="dragDisabled.value = '0'"
-            (touchend)="dragDisabled.value = '1'"
-            (mousedown)="dragDisabled.value = '0'"
-            (mouseup)="dragDisabled.value = '1'"
-            icon="grip-vertical"
-          ></fa-icon>
-        </td>
-        <td mat-footer-cell *matFooterCellDef>
-          <div *ngIf="editMode">
-            <fa-icon icon="plus"></fa-icon>
-          </div>
-        </td>
-      </ng-container>
-
-      <ng-container matColumnDef="step">
-        <td mat-cell *matCellDef="let element; let i = index" #row>
-          <sh-inline-edit
-            [editable]="editMode"
-            [value]="element"
-            [validator]="validatorRequired"
-            (save)="saveStep(sequence, i, $event)"
-          >
-            <ng-template inlineView>
-              <sh-step-view
-                [step]="element"
-                [gherkinPreferences]="workspace.gherkinPreferences"
-              >
-              </sh-step-view>
-            </ng-template>
-            <ng-template inlineEdit let-fc>
-              <mat-form-field class="step">
-                <textarea
-                  [formControl]="fc"
-                  #stepEdit
-                  matInput
-                  cdkTextareaAutosize
-                  [focus]="true"
-                  saveOnEnter
-                  cancelOnEsc
-                  cdkAutosizeMinRows="1"
-                ></textarea>
-              </mat-form-field>
-            </ng-template>
-          </sh-inline-edit>
-        </td>
-        <td mat-footer-cell *matFooterCellDef>
-          <div *ngIf="editMode">
-            <mat-form-field class="step">
-              <mat-label>New step</mat-label>
-              <textarea
-                matInput
-                cdkTextareaAutosize
-                cdkAutosizeMinRows="1"
-                [(ngModel)]="newStep.value"
-                (keydown.enter)="addStepOnEnter($event, sequence, newStep)"
-              ></textarea>
-            </mat-form-field>
-          </div>
-        </td>
-      </ng-container>
-      <ng-container matColumnDef="action">
-        <td mat-cell *matCellDef="let element; let i = index" align="right">
-          <button
-            *ngIf="editMode"
-            mat-icon-button
-            color="warn"
-            class="step-action"
-            (click)="deleteStep(sequence, i)"
-          >
-            <fa-icon icon="trash"></fa-icon>
-          </button>
-        </td>
-        <td mat-footer-cell *matFooterCellDef align="right">
-          <div *ngIf="editMode">
-            <button
-              mat-icon-button
-              color="accent"
-              class="step-action"
-              (click)="addStep(sequence, newStep)"
-              [disabled]="newStep.value.trim().length == 0"
-            >
-              <fa-icon icon="check-circle"></fa-icon>
-            </button>
-            <button
-              mat-icon-button
-              class="step-action"
-              (click)="newStep.value = ''"
-            >
-              <fa-icon icon="times-circle"></fa-icon>
-            </button>
-          </div>
-        </td>
-      </ng-container>
-    </table>
+      <ng-template multiStringView let-item="item">
+        <sh-step-view
+          [step]="item"
+          [gherkinPreferences]="workspace.gherkinPreferences"
+        >
+        </sh-step-view>
+      </ng-template>
+    </sh-multi-string-input>
   </div>
 </ng-template>
 

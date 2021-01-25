@@ -52,3 +52,11 @@
     line-height: 24px;
   }
 }
+
+.variables-container {
+  overflow-x: auto;
+
+  .mat-column-action {
+    white-space: nowrap;
+  }
+}

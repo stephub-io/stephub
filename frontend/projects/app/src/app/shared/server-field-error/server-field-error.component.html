@@ -1,14 +1,19 @@
 <span *ngIf="errors.length > 0" class="validation-errors">
-  <div *ngIf="displayType == 'full'; else indicator">
+  <div *ngIf="displayType == 'full'">
     <div *ngFor="let error of errors">
       <fa-icon icon="exclamation-circle"></fa-icon>
       {{ error }}
     </div>
   </div>
-  <ng-template #indicator
-    ><fa-icon
-      icon="exclamation-circle"
-      title="Contains validation errors"
-    ></fa-icon
-  ></ng-template>
+  <fa-icon
+    *ngIf="displayType == 'indicator'"
+    icon="exclamation-circle"
+    title="Contains validation errors"
+  ></fa-icon>
+  <fa-icon
+    *ngIf="displayType == 'indicator-tooltip'"
+    icon="exclamation-circle"
+    [matTooltip]="aggregatedTooltip()"
+    matTooltipClass="warn-tooltip"
+  ></fa-icon>
 </span>

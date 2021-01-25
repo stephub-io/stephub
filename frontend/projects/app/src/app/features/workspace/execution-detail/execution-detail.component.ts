@@ -28,6 +28,7 @@ import { GherkinPreferences } from "../workspace/workspace.model";
 import { map } from "rxjs/operators";
 import { BreadcrumbService } from "xng-breadcrumb";
 import { DatePipe } from "@angular/common";
+import { StepStatus } from "../step.model";
 
 @Component({
   selector: "sh-execution-detail",
@@ -135,6 +136,14 @@ export class ExecutionDetailComponent implements OnInit {
       return item as StepExecutionItem;
     }
     return null;
+  }
+
+  errorStep(step: StepExecutionItem) {
+    return (
+      step.erroneous ||
+      step.response?.status == StepStatus.erroneous ||
+      step.response?.status == StepStatus.failed
+    );
   }
 }
 

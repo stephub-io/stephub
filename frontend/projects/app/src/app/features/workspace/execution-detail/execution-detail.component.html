@@ -146,6 +146,7 @@
       <ng-template #step_item let-items="items">
         <mat-expansion-panel
           *ngFor="let step of getStepItems(items)"
+          [expanded]="errorStep(step)"
           class="mat-elevation-z0"
         >
           <mat-expansion-panel-header>

@@ -30,10 +30,14 @@
       padding: 2px;
       width: 24px;
       visibility: hidden;
+      opacity: 0;
+      transition: visibility 0s 0.25s, opacity 0.25s linear;
     }
   }
 }
 
 .inline-edit.view:hover .indicator {
   visibility: visible !important;
+  opacity: 1;
+  transition: opacity 0.5s linear;
 }

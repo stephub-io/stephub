@@ -2,6 +2,7 @@ package io.stephub.server.service;
 
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.api.model.customsteps.StepDefinition;
+import io.stephub.server.api.validation.ProcessCondition;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -9,6 +10,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.SmartValidator;
 
+import javax.validation.groups.Default;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +25,7 @@ public class WorkspaceValidator {
 
     public void validate(final Workspace workspace) {
         final BeanPropertyBindingResult result = new BeanPropertyBindingResult(workspace, "workspace");
-        this.validator.validate(workspace, result);
+        this.validator.validate(workspace, result, Default.class, ProcessCondition.class);
         this.validateSteps(result, workspace, workspace.getStepDefinitions());
         if (result.hasErrors()) {
             workspace.setErrors(

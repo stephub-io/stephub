@@ -5,10 +5,12 @@ import io.stephub.server.api.rest.PageResult;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.ExecutionPersistence;
 import io.stephub.server.service.ExecutionService;
+import io.stephub.server.service.exception.ExecutionException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -29,9 +31,16 @@ public class ExecutionController {
     @PostMapping("/workspaces/{wid}/executions")
     public Execution startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                                     @RequestBody @Valid final Execution.ExecutionStart executionStart,
-                                    final HttpServletResponse response) throws IOException {
-        final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
-        return execution;
+                                    final HttpServletResponse response) throws IOException, BindException {
+        try {
+            final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
+            return execution;
+        } catch (final ExecutionException e) {
+            if (e.getCause() instanceof BindException) {
+                throw (BindException) e.getCause();
+            }
+            throw e;
+        }
     }
 
     @GetMapping("/workspaces/{wid}/executions")

@@ -6,6 +6,7 @@ import io.stephub.server.api.model.customsteps.CustomStepContainer;
 import io.stephub.server.api.model.customsteps.StepDefinition;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Fixture;
+import io.stephub.server.api.validation.ProcessCondition;
 import io.stephub.server.api.validation.ValidProviderSpec;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -38,7 +39,7 @@ public class Workspace implements CustomStepContainer, Identifiable {
 
     @Valid
     @Singular
-    private List<@ValidProviderSpec ProviderSpec> providers = new ArrayList<>();
+    private List<@ValidProviderSpec(groups = ProcessCondition.class) ProviderSpec> providers = new ArrayList<>();
 
     @Singular
     @Valid

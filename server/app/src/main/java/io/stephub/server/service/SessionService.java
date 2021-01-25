@@ -18,6 +18,7 @@ import io.stephub.server.service.executor.StepExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.BindException;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -62,7 +63,24 @@ public abstract class SessionService {
         if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
             throw new ExecutionException("Erroneous workspace, please correct the errors first");
         }
-        final Map<String, Json> attributes = this.setUpAttributes(workspace, sessionSettings);
+        final Map<String, Json> attributes = this.setUpAttributes(workspace, sessionSettings, new VariableBindingRejector() {
+            private final BindException bindException = new BindException(sessionSettings, "sessionSettings");
+
+            @Override
+            public void reject(final String key, final String message) {
+                this.bindException.rejectValue("variables[" + key + "]", null, message);
+            }
+
+            @Override
+            public boolean hasErrors() {
+                return this.bindException.hasErrors();
+            }
+
+            @Override
+            public Exception buildException() {
+                return this.bindException;
+            }
+        });
         return this.startSession(workspace, sessionSettings, attributes);
     }
 
@@ -74,9 +92,10 @@ public abstract class SessionService {
 
     public abstract RuntimeSession getSession(Context ctx, String wid, String sid);
 
-    Map<String, Json> setUpAttributes(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings) {
+    Map<String, Json> setUpAttributes(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings, final VariableBindingRejector variableBindingRejector) {
         final Map<String, Json> attributes = new HashMap<>();
         final JsonObject vars = new JsonObject();
+        final BindException varValidException = new BindException(sessionSettings, "sessionSettings");
         workspace.getVariables().forEach((key, var) -> {
             Json value = sessionSettings.getVariables().get(key);
             if (value == null) {
@@ -86,10 +105,13 @@ public abstract class SessionService {
                 value = var.getSchema().convertFrom(value);
                 var.getSchema().accept(value);
             } catch (final Exception e) {
-                throw new ExecutionPrerequisiteException("Invalid value for variable '" + key + "': " + e.getMessage());
+                variableBindingRejector.reject(key, "Invalid value for variable '" + key + "': " + e.getMessage());
             }
             vars.getFields().put(key, value);
         });
+        if (variableBindingRejector.hasErrors()) {
+            throw new ExecutionPrerequisiteException("Invalid variable values", variableBindingRejector.buildException());
+        }
         attributes.put("var", vars);
         return attributes;
     }
@@ -193,5 +215,13 @@ public abstract class SessionService {
             dataMap.put("execId", execution.getId());
             return dataMap;
         }
+    }
+
+    public interface VariableBindingRejector {
+        void reject(String key, String message);
+
+        boolean hasErrors();
+
+        Exception buildException();
     }
 }

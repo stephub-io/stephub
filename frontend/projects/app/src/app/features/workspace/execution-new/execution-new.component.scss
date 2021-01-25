@@ -21,6 +21,10 @@ form > .row + .row {
   margin: 5px;
 }
 
+.variables-container {
+  overflow-x: auto;
+}
+
 table.variables {
   width: 100%;
   margin: 1rem 0;
@@ -31,6 +35,10 @@ table.variables {
 
   .mat-column-action {
     white-space: nowrap;
+  }
+
+  .mat-column-key sh-server-field-error {
+    padding-right: 4px;
   }
 }
 

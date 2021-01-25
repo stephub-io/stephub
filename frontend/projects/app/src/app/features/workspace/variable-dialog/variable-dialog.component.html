@@ -101,7 +101,7 @@
       </mat-checkbox>
     </div>
   </div>
-  <div class="row">
+  <div class="row" *ngIf="mode == 'full'">
     <div class="col-md-12">
       <div class="form-group" *ngIf="schemaType == 'custom'">
         <label>Custom JSON Schema:</label>

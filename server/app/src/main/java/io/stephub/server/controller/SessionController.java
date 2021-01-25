@@ -9,6 +9,7 @@ import io.stephub.server.service.SessionService;
 import io.stephub.server.service.WorkspaceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
@@ -35,7 +36,7 @@ public class SessionController {
 
     @PostMapping("/workspaces/{wid}/sessions")
     @ResponseBody
-    public RuntimeSession startSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid, @RequestBody final RuntimeSession.SessionSettings sessionSettings) {
+    public RuntimeSession startSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid, @RequestBody final RuntimeSession.SessionSettings sessionSettings) throws BindException {
         return this.sessionService.startSession(ctx, wid, sessionSettings);
     }
 

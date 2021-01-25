@@ -1,2 +1,6 @@
-<code *ngIf="schemaType == 'custom'" [highlight]="schemaJsonString()"></code>
-<code *ngIf="schemaType != 'custom'">{{ schemaType }}</code>
+<span
+  class="code"
+  *ngIf="schemaType == 'custom'"
+  [highlight]="schemaJsonString()"
+></span>
+<span class="code" *ngIf="schemaType != 'custom'">{{ schemaType }}</span>

@@ -9,7 +9,12 @@ import { ExecutionService } from "../execution.service";
 import { BehaviorSubject } from "rxjs";
 import { ActivatedRoute, Router } from "@angular/router";
 import { Workspace } from "../workspace/workspace.model";
-import { FormBuilder, FormGroup, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  FormControl,
+  FormGroup,
+  Validators,
+} from "@angular/forms";
 import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
 import { Title } from "@angular/platform-browser";
 import { environment as env } from "../../../../environments/environment";
@@ -49,6 +54,17 @@ export class ExecutionNewComponent implements OnInit {
   executionStart: ExecutionStart;
 
   fieldErrors$ = new BehaviorSubject(null);
+  filterScenarios: string[] = [];
+  regexValidator = (control: FormControl): { [key: string]: any } | null => {
+    try {
+      if (control.value && control.value.length > 0) {
+        new RegExp(control.value);
+      }
+      return null;
+    } catch (e) {
+      return { invalidRegex: e.message };
+    }
+  };
 
   constructor(
     private workspaceService: WorkspaceService,
@@ -81,6 +97,11 @@ export class ExecutionNewComponent implements OnInit {
           [Validators.min(1), Validators.max(this.maxParallelSessionCount())],
         ],
       });
+      if (this.workspaceHasErrors()) {
+        this.varFormGroup.disable();
+        this.selectionFormGroup.disable();
+        this.settingsFormGroup.disable();
+      }
       this.variableKeys$.next(this.keys(workspace.variables));
       this.setTitle(workspace);
       return workspace;
@@ -167,6 +188,15 @@ export class ExecutionNewComponent implements OnInit {
           },
         } as ScenariosExecutionInstruction;
         break;
+      case SelectionType.filter_scenario:
+        this.executionStart.instruction = {
+          type: "scenarios",
+          filter: {
+            type: "by-scenario-name",
+            patterns: this.filterScenarios,
+          },
+        } as ScenariosExecutionInstruction;
+        break;
     }
     this.fieldErrors$.next(null);
     this.executionService.start(this.wid, this.executionStart).subscribe(
@@ -182,8 +212,15 @@ export class ExecutionNewComponent implements OnInit {
       }
     );
   }
+
+  workspaceHasErrors() {
+    return this.workspace.errors?.length > 0;
+  }
 }
 
 enum SelectionType {
   all = "all",
+  filter_tag = "filter-tag",
+  filter_scenario = "filter-scenario",
+  filter_feature = "filter-feature",
 }

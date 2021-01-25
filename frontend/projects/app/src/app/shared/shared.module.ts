@@ -86,11 +86,17 @@ import { InlineViewDirective } from "./inline-edit/inline-view.directive";
 import { SaveOnEnterDirective } from "./inline-edit/save-on-enter.directive";
 import { CancelOnEscDirective } from "./inline-edit/cancel-on-esc.directive";
 import { ServerFieldErrorComponent } from "./server-field-error/server-field-error.component";
+import { ErrorStateComponent } from "./error-state/error-state.component";
+import { MultiStringInputComponent } from "./multi-string-input/multi-string-input.component";
+import { MatTableModule } from "@angular/material/table";
+import { DragDropModule } from "@angular/cdk/drag-drop";
+import { MultiStringViewDirective } from "./multi-string-input/multi-string-view.directive";
 
 @NgModule({
   imports: [
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
 
     TranslateModule,
 
@@ -118,6 +124,8 @@ import { ServerFieldErrorComponent } from "./server-field-error/server-field-err
     BreadcrumbModule,
     HighlightModule,
     AceModule,
+    MatTableModule,
+    DragDropModule,
   ],
   declarations: [
     BigInputComponent,
@@ -136,6 +144,9 @@ import { ServerFieldErrorComponent } from "./server-field-error/server-field-err
     SaveOnEnterDirective,
     CancelOnEscDirective,
     ServerFieldErrorComponent,
+    ErrorStateComponent,
+    MultiStringInputComponent,
+    MultiStringViewDirective,
   ],
   exports: [
     CommonModule,
@@ -188,6 +199,9 @@ import { ServerFieldErrorComponent } from "./server-field-error/server-field-err
     SaveOnEnterDirective,
     CancelOnEscDirective,
     ServerFieldErrorComponent,
+    ErrorStateComponent,
+    MultiStringInputComponent,
+    MultiStringViewDirective,
   ],
 })
 export class SharedModule {

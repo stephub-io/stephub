@@ -1,9 +1,4 @@
 @import "~@angular/material/theming";
 
 @mixin sh-execution-new-component($theme) {
-  $foreground: map-get($theme, foreground);
-
-  table.variables tr.default {
-    background: rgba(mat-color($foreground, text), 0.1);
-  }
 }

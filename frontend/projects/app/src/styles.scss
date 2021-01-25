@@ -37,6 +37,7 @@
 @import "./app/features/workspace/workspace-detail/workspace-detail.component.scss-theme";
 @import "./app/features/workspace/execution-new/execution-new.component.scss-theme";
 @import "./app/shared/server-field-error/server-field-error.component.scss-theme";
+@import "./app/shared/error-state/error-state.component.scss-theme";
 @import "~highlight.js/styles/github.css";
 
 @mixin custom-components-theme($theme) {
@@ -58,6 +59,7 @@
   @include sh-workspace-detail-component($theme);
   @include sh-execution-new-component($theme);
   @include sh-server-field-error-component($theme);
+  @include sh-error-state-component($theme);
 }
 
 .default-theme {

@@ -7,109 +7,30 @@ mat-expansion-panel {
 .step-sequence {
   width: 100%;
 
-  table {
-    width: 100%;
-    box-shadow: none;
-    table-layout: fixed;
-
-    tr:first-child td {
-      border-top: 1px solid #e0e0e0;
-    }
-  }
-
-  .mat-icon-button {
-    width: 24px;
-    height: 24px;
-    line-height: 24px;
-  }
-}
-
-td.mat-column-action {
-  width: 28px;
-  padding-right: 0 !important;
-}
-
-th.mat-column-step,
-td.mat-column-step {
-  padding-right: 0;
-  padding-left: 0 !important;
-
   sh-inline-edit {
     display: block;
     width: 100%;
     overflow-x: auto;
   }
 
-  textarea {
-    white-space: pre;
+  sh-inline-edit sh-step-view {
+    display: block;
+    overflow-x: auto;
   }
-}
-
-td.mat-column-drag {
-  width: 15px !important;
-  padding: 0 5px !important;
-
-  fa-icon {
-    margin: auto;
-  }
-
-  .drag-handle {
-    cursor: move;
-  }
-}
-
-// Drag & drop for steps
-.cdk-drag-preview {
-  td.mat-column-action {
-    display: none;
-  }
-
-  td {
-    border: none;
-  }
-}
-
-.cdk-drag-placeholder {
-  opacity: 0;
 }
 
 .feature-action,
-.scenario-action,
-.step-action {
+.scenario-action {
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s 0.25s, opacity 0.25s linear;
 }
 
 .active-feature .feature-action,
-.active-scenario .scenario-action,
-.active-step .step-action {
+.active-scenario .scenario-action {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.5s linear;
-}
-
-mat-form-field.step {
-  width: 100%;
-  line-height: normal;
-
-  textarea.mat-input-element {
-    padding: 0;
-    margin: 0;
-    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-      "Courier New", monospace;
-    font-size: 0.9em;
-  }
-}
-
-.inline-meta .row {
-  margin-bottom: 5px;
-  margin-top: 5px;
-}
-
-.step-sequence sh-inline-edit sh-step-view {
-  display: block;
-  overflow-x: auto;
 }
 
 .comments {

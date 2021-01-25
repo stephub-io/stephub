@@ -9,6 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.BindException;
 
 import java.util.Collections;
 
@@ -42,7 +43,24 @@ public class ExecutionService {
         if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
             throw new ExecutionException("Erroneous workspace, please correct the errors first");
         }
-        this.sessionService.setUpAttributes(workspace, executionStart.getSessionSettings());
+        this.sessionService.setUpAttributes(workspace, executionStart.getSessionSettings(), new SessionService.VariableBindingRejector() {
+            private final BindException bindException = new BindException(executionStart, "executionStart");
+
+            @Override
+            public void reject(final String key, final String message) {
+                this.bindException.rejectValue("sessionSettings.variables[" + key + "]", null, message);
+            }
+
+            @Override
+            public boolean hasErrors() {
+                return this.bindException.hasErrors();
+            }
+
+            @Override
+            public Exception buildException() {
+                return this.bindException;
+            }
+        });
         final Execution execution = this.executionPersistence.initExecution(workspace, executionStart.getInstruction(), executionStart.getSessionSettings());
         final int parallelizationCount = Math.min(execution.getMaxParallelizationCount(), executionStart.getParallelSessionCount());
         log.debug("Initializing {} parallel jobs for executing {}", parallelizationCount, execution);

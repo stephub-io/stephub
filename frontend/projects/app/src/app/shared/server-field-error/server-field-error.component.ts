@@ -37,9 +37,16 @@ export class ServerFieldErrorComponent implements OnChanges {
       });
     }
   }
+
+  aggregatedTooltip() {
+    return this.errors
+      .map((value, index) => index + 1 + ") " + value)
+      .join("\n");
+  }
 }
 
 export enum DisplayType {
   indicator = "indicator",
+  indicator_tooltip = "indicator-tooltip",
   full = "full",
 }

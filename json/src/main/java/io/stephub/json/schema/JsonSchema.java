@@ -78,7 +78,7 @@ public class JsonSchema extends JsonObject {
             } else if (typeRaw instanceof JsonArray) {
                 final List<JsonType> types = new ArrayList<>();
                 for (final Json type : ((JsonArray) typeRaw).getValues()) {
-                    types.add(this.getTypeFromJson(typeRaw));
+                    types.add(this.getTypeFromJson(type));
                 }
                 if (types.isEmpty()) {
                     types.add(JsonType.ANY);
