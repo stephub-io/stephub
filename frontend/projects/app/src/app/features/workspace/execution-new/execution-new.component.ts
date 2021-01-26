@@ -55,6 +55,9 @@ export class ExecutionNewComponent implements OnInit {
 
   fieldErrors$ = new BehaviorSubject(null);
   filterScenarios: string[] = [];
+  filterFeatures: string[] = [];
+  filterTags: string[] = [];
+
   regexValidator = (control: FormControl): { [key: string]: any } | null => {
     try {
       if (control.value && control.value.length > 0) {
@@ -78,6 +81,15 @@ export class ExecutionNewComponent implements OnInit {
   ) {
     this.route.parent.parent.params.subscribe((params) => {
       this.wid = params.wid;
+    });
+    this.route.queryParams.subscribe((params) => {
+      if (params["scenario"]) {
+        this.selectionType = SelectionType.filter_scenario;
+        this.filterScenarios.push(escapeRegExp(params["scenario"]));
+      } else if (params["feature"]) {
+        this.selectionType = SelectionType.filter_feature;
+        this.filterFeatures.push(escapeRegExp(params["feature"]));
+      }
     });
   }
 
@@ -197,6 +209,24 @@ export class ExecutionNewComponent implements OnInit {
           },
         } as ScenariosExecutionInstruction;
         break;
+      case SelectionType.filter_feature:
+        this.executionStart.instruction = {
+          type: "scenarios",
+          filter: {
+            type: "by-feature-name",
+            patterns: this.filterFeatures,
+          },
+        } as ScenariosExecutionInstruction;
+        break;
+      case SelectionType.filter_tag:
+        this.executionStart.instruction = {
+          type: "scenarios",
+          filter: {
+            type: "by-tag",
+            patterns: this.filterTags,
+          },
+        } as ScenariosExecutionInstruction;
+        break;
     }
     this.fieldErrors$.next(null);
     this.executionService.start(this.wid, this.executionStart).subscribe(
@@ -216,6 +246,18 @@ export class ExecutionNewComponent implements OnInit {
   workspaceHasErrors() {
     return this.workspace.errors?.length > 0;
   }
+
+  invalidSelection() {
+    switch (this.selectionType) {
+      case SelectionType.filter_scenario:
+        return this.filterScenarios.length == 0;
+      case SelectionType.filter_feature:
+        return this.filterFeatures.length == 0;
+      case SelectionType.filter_tag:
+        return this.filterTags.length == 0;
+    }
+    return false;
+  }
 }
 
 enum SelectionType {
@@ -223,4 +265,8 @@ enum SelectionType {
   filter_tag = "filter-tag",
   filter_scenario = "filter-scenario",
   filter_feature = "filter-feature",
+}
+
+function escapeRegExp(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

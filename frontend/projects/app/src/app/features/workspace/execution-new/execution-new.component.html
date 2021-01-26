@@ -44,8 +44,15 @@
           </div>
           <div class="row" *ngIf="selectionType == 'filter-scenario'">
             <div class="col">
-              <label>Scenario filter</label>
+              <label>Scenario filters</label>
+              <small
+                *ngIf="filterScenarios.length == 0"
+                class="form-text warn-text"
+              >
+                Please define at least one scenario filter expression.
+              </small>
               <sh-multi-string-input
+                [order]="false"
                 [(sequence)]="filterScenarios"
                 [validator]="regexValidator"
               ></sh-multi-string-input>
@@ -55,13 +62,54 @@
               </small>
             </div>
           </div>
+          <div class="row" *ngIf="selectionType == 'filter-feature'">
+            <div class="col">
+              <label>Feature filters</label>
+              <small
+                *ngIf="filterFeatures.length == 0"
+                class="form-text warn-text"
+              >
+                Please define at least one feature filter expression.
+              </small>
+              <sh-multi-string-input
+                [order]="false"
+                [(sequence)]="filterFeatures"
+                [validator]="regexValidator"
+              ></sh-multi-string-input>
+              <small class="form-text text-muted">
+                Make use of regular expressions for filtering e.g.
+                <span class="code">user-.*</span>.
+              </small>
+            </div>
+          </div>
+          <div class="row" *ngIf="selectionType == 'filter-tag'">
+            <div class="col">
+              <label>Tag filters</label>
+              <small *ngIf="filterTags.length == 0" class="form-text warn-text">
+                Please define at least one tag filter expression.
+              </small>
+              <sh-multi-string-input
+                [order]="false"
+                [(sequence)]="filterTags"
+                [validator]="regexValidator"
+              ></sh-multi-string-input>
+              <small class="form-text text-muted">
+                Note that tags start with a
+                <span class="code">@</span> character.
+              </small>
+              <small class="form-text text-muted">
+                Make use of regular expressions for filtering e.g.
+                <span class="code">@user-.*</span>.
+              </small>
+            </div>
+          </div>
           <div>
             <button
               mat-raised-button
               matStepperNext
               color="primary"
               class="step"
-              [disabled]="workspaceHasErrors()"
+              [disabled]="workspaceHasErrors() || invalidSelection()"
             >
               Next
             </button>

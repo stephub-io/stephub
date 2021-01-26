@@ -30,12 +30,16 @@ export class MultiStringInputComponent implements OnInit {
 
   @Input() codeInput: boolean = false;
 
+  @Input() order: boolean = true;
+
   @Output() sequenceChange = new EventEmitter<string[]>();
 
   newItemCtrl: FormControl;
+  columns: string[];
 
   ngOnInit(): void {
     this.newItemCtrl = new FormControl("", this.validator);
+    this.columns = this.order ? ["drag", "item", "action"] : ["item", "action"];
   }
 
   private updateSequence() {

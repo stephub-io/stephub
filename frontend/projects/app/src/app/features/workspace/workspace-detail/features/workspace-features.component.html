@@ -15,9 +15,15 @@
       <div>
         <div class="inline-meta">
           <div class="section-actions">
-            <button mat-icon-button color="accent">
+            <a
+              mat-icon-button
+              color="accent"
+              [routerLink]="['executions', 'new']"
+              [queryParams]="{ feature: feature.name }"
+              title="Execute all feature scenarios"
+            >
               <fa-icon icon="play"></fa-icon>
-            </button>
+            </a>
             <button
               *ngIf="editMode"
               mat-icon-button
@@ -103,9 +109,15 @@
           <div>
             <div class="inline-meta">
               <div class="section-actions">
-                <button mat-icon-button color="accent">
+                <a
+                  mat-icon-button
+                  color="accent"
+                  [routerLink]="['executions', 'new']"
+                  [queryParams]="{ scenario: scenario.name }"
+                  title="Execute scenario"
+                >
                   <fa-icon icon="play"></fa-icon>
-                </button>
+                </a>
                 <button
                   *ngIf="editMode"
                   mat-icon-button
