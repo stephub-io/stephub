@@ -24,7 +24,7 @@ public class JsonTypeTest {
         );
         assertThat(
                 BOOLEAN.convertFrom(JsonNull.INSTANCE),
-                equalTo(FALSE)
+                equalTo(JsonNull.INSTANCE)
         );
         assertThat(
                 BOOLEAN.convertFrom(TRUE),
@@ -69,8 +69,10 @@ public class JsonTypeTest {
                 OBJECT.convertFrom(obj),
                 equalTo(obj)
         );
-
-        this.verifyMappingException(OBJECT, JsonNull.INSTANCE);
+        assertThat(
+                OBJECT.convertFrom(JsonNull.INSTANCE),
+                equalTo(JsonNull.INSTANCE)
+        );
         this.verifyMappingException(OBJECT, TRUE);
         this.verifyMappingException(OBJECT, new JsonArray());
         this.verifyMappingException(OBJECT, new JsonString(""));
@@ -84,8 +86,11 @@ public class JsonTypeTest {
                 ARRAY.convertFrom(arr),
                 equalTo(arr)
         );
+        assertThat(
+                ARRAY.convertFrom(JsonNull.INSTANCE),
+                equalTo(JsonNull.INSTANCE)
+        );
 
-        this.verifyMappingException(ARRAY, JsonNull.INSTANCE);
         this.verifyMappingException(ARRAY, TRUE);
         this.verifyMappingException(ARRAY, new JsonObject());
         this.verifyMappingException(ARRAY, new JsonString(""));
