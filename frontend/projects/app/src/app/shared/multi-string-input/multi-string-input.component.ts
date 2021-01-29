@@ -10,6 +10,8 @@ import {
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { FormControl, ValidatorFn } from "@angular/forms";
 import { MultiStringViewDirective } from "./multi-string-view.directive";
+import { BehaviorSubject, Observable } from "rxjs";
+import { map, startWith } from "rxjs/operators";
 
 @Component({
   selector: "sh-multi-string-input",
@@ -32,13 +34,31 @@ export class MultiStringInputComponent implements OnInit {
 
   @Input() order: boolean = true;
 
+  @Input() autoCompleteSource: (value: string) => string[];
+
   @Output() sequenceChange = new EventEmitter<string[]>();
 
   newItemCtrl: FormControl;
   columns: string[];
+  autoCompleteItems$: Observable<string[]>;
+  newAutoCompleteItems$: Observable<string[]>;
+  autoCompleteSelected$ = new BehaviorSubject(false);
+
+  controlFactory: (value: any) => FormControl = (givenValue) => {
+    let control = new FormControl(givenValue, this.validator);
+    this.autoCompleteItems$ = control.valueChanges.pipe(
+      startWith(givenValue),
+      map((value) => this.filterAutoComplete(value))
+    );
+    return control;
+  };
 
   ngOnInit(): void {
     this.newItemCtrl = new FormControl("", this.validator);
+    this.newAutoCompleteItems$ = this.newItemCtrl.valueChanges.pipe(
+      startWith(""),
+      map((value) => this.filterAutoComplete(value))
+    );
     this.columns = this.order ? ["drag", "item", "action"] : ["item", "action"];
   }
 
@@ -62,6 +82,7 @@ export class MultiStringInputComponent implements OnInit {
     this.sequence.push(this.newItemCtrl.value);
     this.updateSequence();
     this.newItemCtrl.setValue("");
+    this.newItemCtrl.setErrors(null);
   }
 
   deleteItem(index: number) {
@@ -70,7 +91,12 @@ export class MultiStringInputComponent implements OnInit {
   }
 
   addItemOnEnter(event: KeyboardEvent) {
-    if (!event.shiftKey && this.newItemCtrl.value.indexOf("\n") < 0) {
+    if (
+      !event.shiftKey &&
+      this.newItemCtrl.value.indexOf("\n") < 0 &&
+      this.newItemCtrl.value.trim().length > 0 &&
+      !this.autoCompleteSelected$.value
+    ) {
       this.addItem();
       event.preventDefault();
     }
@@ -92,5 +118,17 @@ export class MultiStringInputComponent implements OnInit {
   clearNewItem() {
     this.newItemCtrl.setValue("");
     this.newItemCtrl.setErrors(null);
+  }
+
+  filterAutoComplete(value) {
+    if (this.autoCompleteSource) {
+      return this.autoCompleteSource(value);
+    }
+    return [];
+  }
+
+  markAutoCompleteSelected() {
+    this.autoCompleteSelected$.next(true);
+    setTimeout(() => this.autoCompleteSelected$.next(false), 500);
   }
 }

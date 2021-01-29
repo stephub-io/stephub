@@ -12,6 +12,7 @@ import "brace/mode/json";
 import "brace/theme/github";
 import {
   getSchemaType,
+  isNullable,
   JsonSchemaType,
 } from "../../../shared/json-schema-view/json--schema-view.component";
 import { ServerError } from "../../../core/server-error/server-error.model";
@@ -51,6 +52,7 @@ export class VariableDialogComponent {
   private readonly saveCallback: (data) => Observable<any>;
   private readonly name: string;
   readonly mode = VariableDialogMode.full;
+  nullable: boolean;
 
   constructor(
     private fb: FormBuilder,
@@ -64,6 +66,7 @@ export class VariableDialogComponent {
     this.form = fb.group([this.nameField, this.valueField, this.schemaField]);
     this.nameField.setValue(this.name);
     this.schemaType = getSchemaType(this.variable.schema);
+    this.nullable = isNullable(this.variable.schema);
     this.schemaString = JSON.stringify(this.variable.schema, null, 2);
     const value =
       this.mode == VariableDialogMode.full
@@ -75,14 +78,21 @@ export class VariableDialogComponent {
     this.updateValueValidator();
   }
 
+  private buildSchemaVariant(type: string) {
+    if (this.nullable) {
+      return { type: [type, "null"] };
+    }
+    return { type };
+  }
+
   buildSchema() {
     switch (this.schemaType) {
       case JsonSchemaType.string:
-        return { type: "string" };
+        return this.buildSchemaVariant("string");
       case JsonSchemaType.number:
-        return { type: "number" };
+        return this.buildSchemaVariant("number");
       case JsonSchemaType.boolean:
-        return { type: "boolean" };
+        return this.buildSchemaVariant("boolean");
       case JsonSchemaType.any:
         return null;
       case JsonSchemaType.custom:

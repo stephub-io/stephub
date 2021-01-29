@@ -69,6 +69,16 @@ export class ExecutionNewComponent implements OnInit {
     }
   };
 
+  scenarioAutoCompleteSource: (value: string) => string[] = (value) =>
+    autoCompleteFilter(allScenarios(this.workspace), value);
+  featureAutoCompleteSource: (value: string) => string[] = (value) =>
+    autoCompleteFilter(
+      this.workspace.features.map((f) => escapeRegExp(f.name)),
+      value
+    );
+  tagsAutoCompleteSource: (value: string) => string[] = (value) =>
+    autoCompleteFilter(allTags(this.workspace), value);
+
   constructor(
     private workspaceService: WorkspaceService,
     private executionService: ExecutionService,
@@ -269,4 +279,32 @@ enum SelectionType {
 
 function escapeRegExp(text: string): string {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function allScenarios(workspace: Workspace): string[] {
+  const scenarios = [];
+  workspace.features.forEach((f) =>
+    f.scenarios.forEach((s) => scenarios.push(escapeRegExp(s.name)))
+  );
+  return [...new Set(scenarios)];
+}
+
+function allTags(workspace: Workspace): string[] {
+  const tags: string[] = [];
+  workspace.features.forEach((f) => {
+    if (f.tags) {
+      f.tags.forEach((t) => tags.push(escapeRegExp(t)));
+    }
+    f.scenarios.forEach((s) => {
+      if (s.tags) {
+        s.tags.forEach((t) => tags.push(escapeRegExp(t)));
+      }
+    });
+  });
+  return [...new Set(tags)];
+}
+
+function autoCompleteFilter(options: string[], value: string): string[] {
+  const filterValue = value.toLowerCase();
+  return options.filter((option) => option.toLowerCase().includes(filterValue));
 }

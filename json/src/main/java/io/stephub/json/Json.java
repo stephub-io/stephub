@@ -46,7 +46,7 @@ public abstract class Json {
 
         public Json convertFrom(final Json input) {
             final JsonType sourceType = valueOf(input);
-            if (sourceType == this) {
+            if (sourceType == this || input == JsonNull.INSTANCE) {
                 return input;
             }
             switch (this) {
@@ -66,9 +66,7 @@ public abstract class Json {
                     }
                     break;
                 case BOOLEAN:
-                    if (sourceType == NULL) {
-                        return JsonBoolean.FALSE;
-                    } else if (sourceType == STRING) {
+                    if (sourceType == STRING) {
                         return JsonBoolean.valueOf(((JsonString) input).getValue().length() > 0);
                     } else if (sourceType == ARRAY) {
                         return JsonBoolean.valueOf(!((JsonArray) input).getValues().isEmpty());

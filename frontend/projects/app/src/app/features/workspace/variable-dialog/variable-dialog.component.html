@@ -27,6 +27,13 @@
           <mat-option value="custom">Custom JSON schema</mat-option>
         </mat-select>
       </mat-form-field>
+      <mat-checkbox
+        [disabled]="schemaType == 'any' || schemaType == 'custom'"
+        [(ngModel)]="nullable"
+        [ngModelOptions]="{ standalone: true }"
+      >
+        is <code>nullable</code>
+      </mat-checkbox>
     </div>
   </div>
   <div class="row">
@@ -40,11 +47,11 @@
           "
         ></label>
         <ng-template #jsonLabel
-          ><span *ngIf="mode == 'full'">Default </span>JSON value:</ng-template
-        >
+          ><span *ngIf="mode == 'full'">Default </span>JSON value
+        </ng-template>
         <ng-template #defaultLabel
-          ><span *ngIf="mode == 'full'">Default </span>value:</ng-template
-        >
+          ><span *ngIf="mode == 'full'">Default </span>value
+        </ng-template>
         <mat-form-field appearance="fill" *ngIf="schemaType == 'string'">
           <mat-label>String value</mat-label>
           <textarea

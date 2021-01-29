@@ -1,10 +1,12 @@
-import { Directive, ElementRef, HostListener } from "@angular/core";
+import { Directive, ElementRef, HostListener, Input } from "@angular/core";
 import { InlineEditComponent } from "./inline-edit.component";
 
 @Directive({
   selector: "[saveOnEnter]",
 })
 export class SaveOnEnterDirective {
+  @Input() public saveOnEnter: boolean = true;
+
   constructor(
     private host: ElementRef,
     private editable: InlineEditComponent
@@ -13,6 +15,7 @@ export class SaveOnEnterDirective {
   @HostListener("keydown.enter", ["$event"])
   onEnter(event: KeyboardEvent) {
     if (
+      this.saveOnEnter &&
       !event.shiftKey &&
       (this.host.nativeElement as HTMLInputElement).value.indexOf("\n") < 0
     ) {

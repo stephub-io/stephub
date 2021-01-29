@@ -37,12 +37,30 @@ export enum JsonSchemaType {
 export function getSchemaType(schema) {
   if (schema == null || deepEqual(schema, {})) {
     return JsonSchemaType.any;
-  } else if (deepEqual(schema, { type: "number" })) {
+  } else if (matchesSchemaVariant(schema, "number")) {
     return JsonSchemaType.number;
-  } else if (deepEqual(schema, { type: "string" })) {
+  } else if (matchesSchemaVariant(schema, "string")) {
     return JsonSchemaType.string;
-  } else if (deepEqual(schema, { type: "boolean" })) {
+  } else if (matchesSchemaVariant(schema, "boolean")) {
     return JsonSchemaType.boolean;
   }
   return JsonSchemaType.custom;
+}
+
+export function isNullable(schema) {
+  return (
+    schema &&
+    schema.type &&
+    (schema.type == "null" ||
+      (Array.isArray(schema.type) && schema.type.indexOf("null") >= 0))
+  );
+}
+
+function matchesSchemaVariant(schema, type) {
+  return (
+    deepEqual(schema, { type: type }) ||
+    deepEqual(schema, { type: [type] }) ||
+    deepEqual(schema, { type: [type, "null"] }) ||
+    deepEqual(schema, { type: ["null", type] })
+  );
 }

@@ -47,6 +47,7 @@
           [value]="element"
           [validator]="validator"
           (save)="saveItem(i, $event)"
+          [controlFactory]="controlFactory"
         >
           <ng-template inlineView>
             <ng-container
@@ -65,23 +66,36 @@
                 matInput
                 cdkTextareaAutosize
                 [focus]="true"
-                saveOnEnter
+                [saveOnEnter]="!(autoCompleteSelected$ | async)"
                 cancelOnEsc
                 cdkAutosizeMinRows="1"
                 [ngClass]="{ code: codeInput }"
+                [matAutocomplete]="auto"
               ></textarea>
               <input
                 *ngIf="!textarea"
                 [formControl]="!textarea ? fc : null"
                 matInput
                 [focus]="true"
-                saveOnEnter
+                [saveOnEnter]="!(autoCompleteSelected$ | async)"
                 cancelOnEsc
                 [ngClass]="{ code: codeInput }"
+                [matAutocomplete]="auto"
               />
               <mat-error *ngFor="let error of fieldErrors(fc)">{{
                 error
               }}</mat-error>
+              <mat-autocomplete
+                #auto
+                (optionActivated)="markAutoCompleteSelected()"
+              >
+                <mat-option
+                  *ngFor="let option of autoCompleteItems$ | async"
+                  [value]="option"
+                >
+                  {{ option }}
+                </mat-option>
+              </mat-autocomplete>
             </mat-form-field>
           </ng-template>
         </sh-inline-edit>
@@ -98,6 +112,7 @@
               cdkAutosizeMinRows="1"
               (keydown.enter)="addItemOnEnter($event)"
               [ngClass]="{ code: codeInput }"
+              [matAutocomplete]="auto"
             ></textarea>
             <input
               *ngIf="!textarea"
@@ -105,10 +120,22 @@
               matInput
               (keydown.enter)="addItemOnEnter($event)"
               [ngClass]="{ code: codeInput }"
+              [matAutocomplete]="auto"
             />
             <mat-error *ngFor="let error of fieldErrors(newItemCtrl)">{{
               error
             }}</mat-error>
+            <mat-autocomplete
+              #auto
+              (optionActivated)="markAutoCompleteSelected()"
+            >
+              <mat-option
+                *ngFor="let option of newAutoCompleteItems$ | async"
+                [value]="option"
+              >
+                {{ option }}
+              </mat-option>
+            </mat-autocomplete>
           </mat-form-field>
         </div>
       </td>

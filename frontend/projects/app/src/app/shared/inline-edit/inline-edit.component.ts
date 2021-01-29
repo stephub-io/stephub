@@ -31,6 +31,8 @@ export class InlineEditComponent implements OnInit {
   @ContentChild(InlineEditDirective) editModeTpl: InlineEditDirective;
   @Input() value: any;
   @Input() validator: ValidatorFn | ValidatorFn[] | null;
+  @Input() controlFactory: (value: any) => FormControl = (givenValue) =>
+    new FormControl(givenValue, this.validator);
   @Input() editable = true;
 
   mode = new BehaviorSubject("view");
@@ -69,7 +71,7 @@ export class InlineEditComponent implements OnInit {
       .subscribe((event: MouseEvent) => {
         if (this.editable && this.mode.value != "edit") {
           this.lastHandledViewEvent = event;
-          this.formControl = new FormControl(this.value, this.validator);
+          this.formControl = this.controlFactory(this.value);
           this.mode.next("edit");
           this.editMode.next(true);
           this.onEdit.next();

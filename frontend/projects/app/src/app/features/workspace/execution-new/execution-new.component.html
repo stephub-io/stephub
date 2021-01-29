@@ -55,6 +55,7 @@
                 [order]="false"
                 [(sequence)]="filterScenarios"
                 [validator]="regexValidator"
+                [autoCompleteSource]="scenarioAutoCompleteSource"
               ></sh-multi-string-input>
               <small class="form-text text-muted">
                 Make use of regular expressions for filtering e.g.
@@ -75,6 +76,7 @@
                 [order]="false"
                 [(sequence)]="filterFeatures"
                 [validator]="regexValidator"
+                [autoCompleteSource]="featureAutoCompleteSource"
               ></sh-multi-string-input>
               <small class="form-text text-muted">
                 Make use of regular expressions for filtering e.g.
@@ -92,6 +94,7 @@
                 [order]="false"
                 [(sequence)]="filterTags"
                 [validator]="regexValidator"
+                [autoCompleteSource]="tagsAutoCompleteSource"
               ></sh-multi-string-input>
               <small class="form-text text-muted">
                 Note that tags start with a

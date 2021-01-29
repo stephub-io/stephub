@@ -22,6 +22,7 @@ import {
 import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { MatInput } from "@angular/material/input";
 import { Validators } from "@angular/forms";
+import { keyframes } from "@angular/animations";
 
 @Component({
   selector: "sh-workspace-features",
@@ -41,6 +42,9 @@ export class WorkspaceFeaturesComponent {
 
   validatorRequired = Validators.required;
   validatorTagsLine = Validators.pattern(/^(\s*@[^#@\s]+(\s+@[^#@\s]+)*\s*)?$/);
+
+  stepAutoCompleteSource: (value: string) => string[] = (value) =>
+    this.autoCompleteFilter(value);
 
   constructor() {}
 
@@ -112,6 +116,26 @@ export class WorkspaceFeaturesComponent {
         steps: [],
       },
     } as Feature);
+  }
+
+  private autoCompleteFilter(value: string) {
+    const filterValue = value.trim().toLowerCase();
+    if (filterValue.indexOf("\n") >= 0) {
+      return [];
+    }
+    // Check containment of step keywords
+    const stepKeywords = this.workspace.gherkinPreferences.stepKeywords;
+    let usedKeywords = stepKeywords.filter((key) =>
+      filterValue.startsWith(key.toLowerCase())
+    );
+    if (usedKeywords.length == 0) {
+      // Keyword not used, suggest keywords
+      return stepKeywords.filter((option) =>
+        option.toLowerCase().includes(filterValue)
+      );
+    }
+
+    return [];
   }
 }
 
