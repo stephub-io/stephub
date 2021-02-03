@@ -1,6 +1,10 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { WorkspacesResult, Workspace } from "./workspace.model";
+import {
+  WorkspacesResult,
+  Workspace,
+  StepsCollection,
+} from "./workspace.model";
 import { Observable } from "rxjs";
 
 @Injectable({
@@ -15,6 +19,12 @@ export class WorkspaceService {
 
   public get(id: string): Observable<Workspace> {
     return this.http.get<Workspace>(`/api/v1/workspaces/${id}`);
+  }
+
+  public getStepsCollection(id: string): Observable<StepsCollection> {
+    return this.http.get<StepsCollection>(
+      `/api/v1/workspaces/${id}/stepsCollection`
+    );
   }
 
   update(id: string, workspace: Workspace) {

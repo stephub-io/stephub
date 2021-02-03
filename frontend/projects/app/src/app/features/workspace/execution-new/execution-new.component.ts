@@ -30,6 +30,7 @@ import {
   VariableDialogMode,
 } from "../variable-dialog/variable-dialog.component";
 import { ServerError } from "../../../core/server-error/server-error.model";
+import { SuggestOption } from "../../../shared/multi-string-input/multi-string-input.component";
 
 @Component({
   selector: "sh-execution-new",
@@ -69,14 +70,14 @@ export class ExecutionNewComponent implements OnInit {
     }
   };
 
-  scenarioAutoCompleteSource: (value: string) => string[] = (value) =>
+  scenarioAutoCompleteSource: (value: string) => SuggestOption[] = (value) =>
     autoCompleteFilter(allScenarios(this.workspace), value);
-  featureAutoCompleteSource: (value: string) => string[] = (value) =>
+  featureAutoCompleteSource: (value: string) => SuggestOption[] = (value) =>
     autoCompleteFilter(
       this.workspace.features.map((f) => escapeRegExp(f.name)),
       value
     );
-  tagsAutoCompleteSource: (value: string) => string[] = (value) =>
+  tagsAutoCompleteSource: (value: string) => SuggestOption[] = (value) =>
     autoCompleteFilter(allTags(this.workspace), value);
 
   constructor(
@@ -304,7 +305,14 @@ function allTags(workspace: Workspace): string[] {
   return [...new Set(tags)];
 }
 
-function autoCompleteFilter(options: string[], value: string): string[] {
+function autoCompleteFilter(options: string[], value: string): SuggestOption[] {
   const filterValue = value.toLowerCase();
-  return options.filter((option) => option.toLowerCase().includes(filterValue));
+  return options
+    .filter((option) => option.toLowerCase().includes(filterValue))
+    .map((s) => {
+      return {
+        value: s,
+        view: s,
+      } as SuggestOption;
+    });
 }

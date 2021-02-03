@@ -1,4 +1,5 @@
 import { FieldError } from "../../../core/server-error/server-error.model";
+import { StepSpec } from "../step/step.model";
 
 export interface Workspace {
   id: string;
@@ -46,4 +47,8 @@ export interface Feature extends Annotatable {
   name: string;
   background?: StepSequence;
   scenarios?: Scenario[];
+}
+
+export interface StepsCollection {
+  [key: string]: StepSpec[];
 }

@@ -6,11 +6,4 @@
   .validation-errors {
     color: mat-color($warn);
   }
-
-  .warn-tooltip {
-    color: mat-color($warn, default-contrast);
-    background-color: mat-color($warn);
-    white-space: pre-wrap;
-    font-size: 14px;
-  }
 }

@@ -14,6 +14,7 @@ export function parse(
   preferences: GherkinPreferences
 ): StepInstruction {
   let fragments = [];
+  const stepInstruction = new StepInstruction(fragments);
   let stepLine = FragmentStatus.none;
   let docString = {
     status: FragmentStatus.none,
@@ -39,7 +40,9 @@ export function parse(
         }
       }
       if (stepLine == FragmentStatus.none) {
-        fragments.push(parseStepLine(line, spec, strict, preferences));
+        fragments.push(
+          parseStepLine(line, spec, strict, preferences, stepInstruction)
+        );
         stepLine = FragmentStatus.ended;
       } else if (
         docString.status == FragmentStatus.none &&
@@ -104,14 +107,15 @@ export function parse(
         fragments.push(new ErroneousLine(line, "Invalid line sequence"));
       }
     });
-  return new StepInstruction(fragments);
+  return stepInstruction;
 }
 
 function parseStepLine(
   line: string,
   spec: StepSpec,
   strict: boolean,
-  preferences: GherkinPreferences
+  preferences: GherkinPreferences,
+  stepInstruction: StepInstruction
 ): StepLine {
   let stepLine = new StepLine([]);
   if (preferences) {
@@ -146,6 +150,9 @@ function parseStepLine(
       ")?$";
     const stepMatcher = RegExp(stepPattern, "gi").exec(line);
     if (stepMatcher) {
+      if (spec) {
+        stepInstruction.matchingSpec = spec;
+      }
       stepLine.parts.push(new StepLinePartKeyword(stepMatcher[1]));
       for (let i = 2; i < stepMatcher.length - 1; i++) {
         if (i % 2 == 0) {
@@ -204,19 +211,30 @@ function extractSpaceOffset(str: string, maxOffset: number) {
 
 export class StepInstruction {
   fragments: Fragment[];
+  matchingSpec: StepSpec;
 
   constructor(fragments: Fragment[]) {
     this.fragments = fragments;
   }
+
+  public toString(): string {
+    return this.fragments.map((f) => f.toString()).join("\n");
+  }
 }
 
-export interface Fragment {}
+export interface Fragment {
+  toString(): string;
+}
 
 export class CommentLine implements Fragment {
   comment: string;
 
   constructor(comment: string) {
     this.comment = comment;
+  }
+
+  public toString(): string {
+    return "# " + this.comment;
   }
 }
 
@@ -225,6 +243,10 @@ export class StepLine implements Fragment {
 
   constructor(parts: StepLinePart[]) {
     this.parts = parts;
+  }
+
+  public toString(): string {
+    return this.parts.map((p) => p.toString()).join("");
   }
 }
 
@@ -238,13 +260,19 @@ export class ErroneousLine implements Fragment {
   }
 }
 
-export interface StepLinePart {}
+export interface StepLinePart {
+  toString(): string;
+}
 
 export class StepLinePartKeyword implements StepLinePart {
   keyword: string;
 
   constructor(keyword: string) {
     this.keyword = keyword;
+  }
+
+  public toString(): string {
+    return this.keyword;
   }
 }
 
@@ -254,6 +282,10 @@ export class StepLinePartText implements StepLinePart {
   constructor(text: string) {
     this.text = text;
   }
+
+  public toString(): string {
+    return this.text;
+  }
 }
 
 export class StepLinePartAttribute implements StepLinePart {
@@ -261,6 +293,10 @@ export class StepLinePartAttribute implements StepLinePart {
 
   constructor(expression: string) {
     this.expression = expression;
+  }
+
+  public toString(): string {
+    return this.expression;
   }
 }
 
@@ -274,6 +310,10 @@ export class StepLinePartAssignment implements StepLinePart {
     this.attribute = attribute;
     this.right = right;
   }
+
+  public toString(): string {
+    return this.left + this.attribute + this.right;
+  }
 }
 
 export class DocString implements Fragment {
@@ -282,6 +322,10 @@ export class DocString implements Fragment {
   constructor(lines: string[]) {
     this.lines = lines;
   }
+
+  public toString(): string {
+    return '"""\n' + this.lines.join("\n") + '\n"""';
+  }
 }
 
 export class DataTable implements Fragment {
@@ -289,6 +333,10 @@ export class DataTable implements Fragment {
 
   constructor(rows: string[]) {
     this.rows = rows;
+  }
+
+  public toString(): string {
+    return this.rows.join("\n");
   }
 }
 

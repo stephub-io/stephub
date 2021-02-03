@@ -12,6 +12,7 @@ import { FormControl, ValidatorFn } from "@angular/forms";
 import { MultiStringViewDirective } from "./multi-string-view.directive";
 import { BehaviorSubject, Observable } from "rxjs";
 import { map, startWith } from "rxjs/operators";
+import { MultiStringAutoSuggestOptionDirective } from "./multi-string-auto-suggest-option.directive";
 
 @Component({
   selector: "sh-multi-string-input",
@@ -21,6 +22,8 @@ import { map, startWith } from "rxjs/operators";
 })
 export class MultiStringInputComponent implements OnInit {
   @ContentChild(MultiStringViewDirective) itemViewTpl: MultiStringViewDirective;
+  @ContentChild(MultiStringAutoSuggestOptionDirective)
+  autoSuggestOptionTpl: MultiStringAutoSuggestOptionDirective;
 
   @Input() editMode: boolean = true;
 
@@ -34,14 +37,14 @@ export class MultiStringInputComponent implements OnInit {
 
   @Input() order: boolean = true;
 
-  @Input() autoCompleteSource: (value: string) => string[];
+  @Input() autoCompleteSource: (value: string) => SuggestOption[];
 
   @Output() sequenceChange = new EventEmitter<string[]>();
 
   newItemCtrl: FormControl;
   columns: string[];
-  autoCompleteItems$: Observable<string[]>;
-  newAutoCompleteItems$: Observable<string[]>;
+  autoCompleteItems$: Observable<SuggestOption[]>;
+  newAutoCompleteItems$: Observable<SuggestOption[]>;
   autoCompleteSelected$ = new BehaviorSubject(false);
 
   controlFactory: (value: any) => FormControl = (givenValue) => {
@@ -99,6 +102,7 @@ export class MultiStringInputComponent implements OnInit {
     ) {
       this.addItem();
       event.preventDefault();
+      (event.target as HTMLElement).blur();
     }
   }
 
@@ -131,4 +135,9 @@ export class MultiStringInputComponent implements OnInit {
     this.autoCompleteSelected$.next(true);
     setTimeout(() => this.autoCompleteSelected$.next(false), 500);
   }
+}
+
+export interface SuggestOption {
+  value: string;
+  view: any;
 }

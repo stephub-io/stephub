@@ -17,6 +17,10 @@ mat-expansion-panel {
     display: block;
     overflow-x: auto;
   }
+
+  .step {
+    white-space: nowrap;
+  }
 }
 
 .feature-action,

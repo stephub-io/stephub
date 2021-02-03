@@ -92,6 +92,7 @@ import { MatTableModule } from "@angular/material/table";
 import { DragDropModule } from "@angular/cdk/drag-drop";
 import { MultiStringViewDirective } from "./multi-string-input/multi-string-view.directive";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
+import { MultiStringAutoSuggestOptionDirective } from "./multi-string-input/multi-string-auto-suggest-option.directive";
 
 @NgModule({
   imports: [
@@ -149,6 +150,7 @@ import { MatAutocompleteModule } from "@angular/material/autocomplete";
     ErrorStateComponent,
     MultiStringInputComponent,
     MultiStringViewDirective,
+    MultiStringAutoSuggestOptionDirective,
   ],
   exports: [
     CommonModule,
@@ -204,6 +206,7 @@ import { MatAutocompleteModule } from "@angular/material/autocomplete";
     ErrorStateComponent,
     MultiStringInputComponent,
     MultiStringViewDirective,
+    MultiStringAutoSuggestOptionDirective,
   ],
 })
 export class SharedModule {

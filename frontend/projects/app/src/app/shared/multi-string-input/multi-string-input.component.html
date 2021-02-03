@@ -91,9 +91,17 @@
               >
                 <mat-option
                   *ngFor="let option of autoCompleteItems$ | async"
-                  [value]="option"
+                  [value]="option.value"
                 >
-                  {{ option }}
+                  <ng-container
+                    *ngTemplateOutlet="
+                      autoSuggestOptionTpl
+                        ? autoSuggestOptionTpl.tpl
+                        : suggestOptionView;
+                      context: { $implicit: option.view }
+                    "
+                  >
+                  </ng-container>
                 </mat-option>
               </mat-autocomplete>
             </mat-form-field>
@@ -131,9 +139,17 @@
             >
               <mat-option
                 *ngFor="let option of newAutoCompleteItems$ | async"
-                [value]="option"
+                [value]="option.value"
               >
-                {{ option }}
+                <ng-container
+                  *ngTemplateOutlet="
+                    autoSuggestOptionTpl
+                      ? autoSuggestOptionTpl.tpl
+                      : suggestOptionView;
+                    context: { $implicit: option.view }
+                  "
+                >
+                </ng-container>
               </mat-option>
             </mat-autocomplete>
           </mat-form-field>
@@ -175,4 +191,7 @@
 </div>
 <ng-template #view let-item="item">
   {{ item }}
+</ng-template>
+<ng-template #suggestOptionView let-option>
+  {{ option }}
 </ng-template>

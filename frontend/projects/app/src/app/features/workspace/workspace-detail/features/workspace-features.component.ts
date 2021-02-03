@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   Input,
+  OnChanges,
   QueryList,
   ViewChildren,
 } from "@angular/core";
@@ -11,7 +12,7 @@ import "brace/theme/github";
 import {
   Feature,
   Scenario,
-  StepSequence,
+  StepsCollection,
   Workspace,
 } from "../../workspace/workspace.model";
 import {
@@ -19,10 +20,16 @@ import {
   faReceipt,
   faRocket,
 } from "@fortawesome/free-solid-svg-icons";
-import { CdkDragDrop, moveItemInArray } from "@angular/cdk/drag-drop";
 import { MatInput } from "@angular/material/input";
 import { Validators } from "@angular/forms";
-import { keyframes } from "@angular/animations";
+import { SuggestOption } from "../../../../shared/multi-string-input/multi-string-input.component";
+import {
+  parse,
+  StepInstruction,
+  StepLine,
+  StepLinePartKeyword,
+} from "../../step/parser/instruction-parser";
+import { SpecSuggest } from "../../step/spec-suggest/spec-suggest";
 
 @Component({
   selector: "sh-workspace-features",
@@ -30,57 +37,38 @@ import { keyframes } from "@angular/animations";
   styleUrls: ["./workspace-features.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class WorkspaceFeaturesComponent {
+export class WorkspaceFeaturesComponent implements OnChanges {
   featureIcon = faRocket;
   scenarioIcon = faReceipt;
   stepIcon = faMagic;
 
+  private specSuggests: SpecSuggest[] = [];
+
   @Input() workspace: Workspace;
   @Input() editMode = false;
+  @Input() stepsCollection: StepsCollection;
 
   @ViewChildren("stepEdit") stepEditFields: QueryList<MatInput>;
 
   validatorRequired = Validators.required;
   validatorTagsLine = Validators.pattern(/^(\s*@[^#@\s]+(\s+@[^#@\s]+)*\s*)?$/);
 
-  stepAutoCompleteSource: (value: string) => string[] = (value) =>
+  stepAutoCompleteSource: (value: string) => SuggestOption[] = (value) =>
     this.autoCompleteFilter(value);
+  private instructionCache = new Map<string, StepInstruction>();
 
   constructor() {}
 
-  onStepDrop(sequence: StepSequence, event: CdkDragDrop<string[]>) {
-    moveItemInArray(sequence.steps, event.previousIndex, event.currentIndex);
-    sequence.steps = [...sequence.steps];
-  }
-
-  addStep(sequence: StepSequence, newStep: HTMLInputElement) {
-    if (!sequence.steps) {
-      sequence.steps = [];
+  ngOnChanges() {
+    this.specSuggests = [];
+    if (this.stepsCollection) {
+      for (const providerName in this.stepsCollection) {
+        this.stepsCollection[providerName]
+          .map((spec) => new SpecSuggest(spec))
+          .forEach((s) => this.specSuggests.push(s));
+      }
     }
-    sequence.steps.push(newStep.value);
-    sequence.steps = [...sequence.steps];
-    newStep.value = "";
-  }
-
-  deleteStep(sequence: StepSequence, index: number) {
-    sequence.steps.splice(index, 1);
-    sequence.steps = [...sequence.steps];
-  }
-
-  addStepOnEnter(
-    event: KeyboardEvent,
-    sequence: StepSequence,
-    newStep: HTMLInputElement
-  ) {
-    if (!event.shiftKey && newStep.value.indexOf("\n") < 0) {
-      this.addStep(sequence, newStep);
-      event.preventDefault();
-    }
-  }
-
-  saveStep(sequence: StepSequence, index: number, newValue: string) {
-    sequence.steps[index] = newValue;
-    sequence.steps = [...sequence.steps];
+    this.instructionCache.clear();
   }
 
   splitTags(tagsString: string) {
@@ -118,24 +106,72 @@ export class WorkspaceFeaturesComponent {
     } as Feature);
   }
 
-  private autoCompleteFilter(value: string) {
+  private autoCompleteFilter(value: string): SuggestOption[] {
     const filterValue = value.trim().toLowerCase();
     if (filterValue.indexOf("\n") >= 0) {
       return [];
     }
+    const suggestionOptions: SuggestOption[] = [];
     // Check containment of step keywords
     const stepKeywords = this.workspace.gherkinPreferences.stepKeywords;
-    let usedKeywords = stepKeywords.filter((key) =>
+    const usedKeywords = stepKeywords.filter((key) =>
       filterValue.startsWith(key.toLowerCase())
     );
-    if (usedKeywords.length == 0) {
-      // Keyword not used, suggest keywords
-      return stepKeywords.filter((option) =>
-        option.toLowerCase().includes(filterValue)
-      );
-    }
 
-    return [];
+    // Keyword not used, suggest keywords
+    stepKeywords
+      .filter((option) => option.toLowerCase().includes(filterValue))
+      .forEach((s) => {
+        suggestionOptions.push({
+          value: s,
+          view: new StepInstruction([
+            new StepLine([new StepLinePartKeyword(s)]),
+          ]),
+        } as SuggestOption);
+      });
+    // Combination composed of keyword and step
+    if (usedKeywords.length > 0) {
+      usedKeywords.forEach((keyword) => {
+        const rest = value.substr(keyword.length);
+        this.specSuggests.forEach((specSuggest) => {
+          specSuggest
+            .completes(keyword, rest, this.workspace.gherkinPreferences)
+            .forEach((instruction) =>
+              suggestionOptions.push({
+                view: instruction,
+                value: instruction.toString(),
+              })
+            );
+        });
+      });
+    }
+    return suggestionOptions;
+  }
+
+  instruction(step: string): StepInstruction {
+    let instruction = this.instructionCache.get(step);
+    if (instruction) {
+      return instruction;
+    }
+    if (this.stepsCollection) {
+      for (const providerName in this.stepsCollection) {
+        for (let i = 0; i < this.stepsCollection[providerName].length; i++) {
+          instruction = parse(
+            step,
+            this.stepsCollection[providerName][i],
+            true,
+            this.workspace.gherkinPreferences
+          );
+          if (instruction.matchingSpec) {
+            this.instructionCache.set(step, instruction);
+            return instruction;
+          }
+        }
+      }
+    }
+    instruction = parse(step, null, false, this.workspace.gherkinPreferences);
+    this.instructionCache.set(step, instruction);
+    return instruction;
   }
 }
 

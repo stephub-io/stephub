@@ -5,7 +5,11 @@ import {
   ROUTE_ANIMATIONS_ELEMENTS,
 } from "../../../core/core.module";
 import { WorkspaceService } from "../workspace/workspace.service";
-import { Variable, Workspace } from "../workspace/workspace.model";
+import {
+  StepsCollection,
+  Variable,
+  Workspace,
+} from "../workspace/workspace.model";
 import { BehaviorSubject, Observable } from "rxjs";
 import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
 import { ActivatedRoute } from "@angular/router";
@@ -45,6 +49,7 @@ export class WorkspaceDetailComponent implements OnInit {
     Validators.pattern(/@ATTRIBUTE/),
   ]);
   validatorRequired = Validators.required;
+  stepsCollection$ = new BehaviorSubject<StepsCollection>(null);
 
   constructor(
     private workspaceService: WorkspaceService,
@@ -71,6 +76,11 @@ export class WorkspaceDetailComponent implements OnInit {
     this.setTitle(workspace);
     this.variablesMap = this.arrayOfMap(workspace.variables);
     this.origWorkspace = JSON.parse(JSON.stringify(workspace));
+    this.workspaceService
+      .getStepsCollection(this.id)
+      .subscribe((collection) => {
+        this.stepsCollection$.next(collection);
+      });
   }
 
   private setTitle(workspace: Workspace) {

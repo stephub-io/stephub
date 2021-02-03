@@ -207,11 +207,19 @@
       [autoCompleteSource]="stepAutoCompleteSource"
     >
       <ng-template multiStringView let-item="item">
-        <sh-step-view
-          [step]="item"
-          [gherkinPreferences]="workspace.gherkinPreferences"
-        >
-        </sh-step-view>
+        <div class="step">
+          <fa-icon
+            class="warn-text"
+            *ngIf="!instruction(item).matchingSpec"
+            icon="exclamation-circle"
+            matTooltip="No matching step found! Please check for correct syntax."
+            matTooltipClass="warn-tooltip"
+          ></fa-icon>
+          <sh-step-request [instruction]="instruction(item)"></sh-step-request>
+        </div>
+      </ng-template>
+      <ng-template multiStringAutoSuggestOption let-option>
+        <sh-step-abstract [instruction]="option"></sh-step-abstract>
       </ng-template>
     </sh-multi-string-input>
   </div>
