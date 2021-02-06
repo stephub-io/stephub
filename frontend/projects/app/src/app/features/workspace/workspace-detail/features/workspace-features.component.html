@@ -11,177 +11,186 @@
           <span>{{ feature.name }}</span>
         </mat-panel-title>
       </mat-expansion-panel-header>
-      <mat-divider></mat-divider>
-      <div>
-        <div class="inline-meta">
-          <div class="section-actions">
-            <a
-              mat-icon-button
-              color="accent"
-              [routerLink]="['executions', 'new']"
-              [queryParams]="{ feature: feature.name }"
-              title="Execute all feature scenarios"
-            >
-              <fa-icon icon="play"></fa-icon>
-            </a>
-            <button
-              *ngIf="editMode"
-              mat-icon-button
-              color="warn"
-              (click)="deleteFeature(fi)"
-            >
-              <fa-icon icon="trash"></fa-icon>
-            </button>
-          </div>
-          <div class="row">
-            <div class="col font-weight-bold">Feature:</div>
-            <div class="col-9">
-              <sh-inline-edit
-                [editable]="editMode"
-                [value]="feature.name"
-                [validator]="validatorRequired"
-                (save)="feature.name = $event"
+      <ng-template matExpansionPanelContent>
+        <mat-divider></mat-divider>
+        <div>
+          <div class="inline-meta">
+            <div class="section-actions">
+              <a
+                mat-icon-button
+                color="accent"
+                [routerLink]="['executions', 'new']"
+                [queryParams]="{ feature: feature.name }"
+                title="Execute all feature scenarios"
               >
-                <ng-template inlineView>{{ feature.name }}</ng-template>
-                <ng-template inlineEdit let-fc>
-                  <mat-form-field class="full">
-                    <input
-                      matInput
-                      [formControl]="fc"
-                      type="text"
-                      placeholder="Name"
-                      [focus]="true"
-                      saveOnEnter
-                      cancelOnEsc
-                    />
-                    <mat-error *ngIf="fc.errors?.required"
-                      >Required input
-                    </mat-error>
-                  </mat-form-field>
-                </ng-template>
-              </sh-inline-edit>
+                <fa-icon icon="play"></fa-icon>
+              </a>
+              <button
+                *ngIf="editMode"
+                mat-icon-button
+                color="warn"
+                (click)="deleteFeature(fi)"
+              >
+                <fa-icon icon="trash"></fa-icon>
+              </button>
             </div>
-          </div>
-          <ng-container
-            *ngTemplateOutlet="
-              annotationRows;
-              context: { annotationContext: feature }
-            "
-          >
-          </ng-container>
-        </div>
-      </div>
-      <p class="font-weight-bold">Background:</p>
-
-      <mat-accordion class="items-headers-align">
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <span>Background steps</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <ng-container
-            *ngTemplateOutlet="
-              stepSequence;
-              context: {
-                sequence: feature.background
-              }
-            "
-          >
-          </ng-container>
-        </mat-expansion-panel>
-      </mat-accordion>
-
-      <p class="font-weight-bold">Scenarios:</p>
-      <mat-accordion
-        *ngFor="let scenario of feature.scenarios; let si = index"
-        class="items-headers-align"
-        multi
-      >
-        <mat-expansion-panel>
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
-              <span>{{ scenario.name }}</span>
-            </mat-panel-title>
-          </mat-expansion-panel-header>
-          <mat-divider></mat-divider>
-          <div>
-            <div class="inline-meta">
-              <div class="section-actions">
-                <a
-                  mat-icon-button
-                  color="accent"
-                  [routerLink]="['executions', 'new']"
-                  [queryParams]="{ scenario: scenario.name }"
-                  title="Execute scenario"
+            <div class="row">
+              <div class="col font-weight-bold">Feature:</div>
+              <div class="col-9">
+                <sh-inline-edit
+                  [editable]="editMode"
+                  [value]="feature.name"
+                  [validator]="validatorRequired"
+                  (save)="feature.name = $event"
                 >
-                  <fa-icon icon="play"></fa-icon>
-                </a>
-                <button
-                  *ngIf="editMode"
-                  mat-icon-button
-                  color="warn"
-                  (click)="deleteScenario(feature, si)"
-                >
-                  <fa-icon icon="trash"></fa-icon>
-                </button>
+                  <ng-template inlineView>{{ feature.name }}</ng-template>
+                  <ng-template inlineEdit let-fc>
+                    <mat-form-field class="full">
+                      <input
+                        matInput
+                        [formControl]="fc"
+                        type="text"
+                        placeholder="Name"
+                        [focus]="true"
+                        saveOnEnter
+                        cancelOnEsc
+                      />
+                      <mat-error *ngIf="fc.errors?.required"
+                        >Required input
+                      </mat-error>
+                    </mat-form-field>
+                  </ng-template>
+                </sh-inline-edit>
               </div>
-              <div class="row">
-                <div class="col font-weight-bold">Scenario:</div>
-                <div class="col-9">
-                  <sh-inline-edit
-                    [editable]="editMode"
-                    [value]="scenario.name"
-                    [validator]="validatorRequired"
-                    (save)="scenario.name = $event"
+            </div>
+            <ng-container
+              *ngTemplateOutlet="
+                annotationRows;
+                context: { annotationContext: feature }
+              "
+            >
+            </ng-container>
+          </div>
+        </div>
+        <p class="font-weight-bold">Background:</p>
+
+        <mat-accordion class="items-headers-align">
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <span>Background steps</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-container
+              *ngTemplateOutlet="
+                stepSequence;
+                context: {
+                  sequence: feature.background
+                }
+              "
+            >
+            </ng-container>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <p class="font-weight-bold">Scenarios:</p>
+        <mat-accordion
+          *ngFor="let scenario of feature.scenarios; let si = index"
+          class="items-headers-align"
+          multi
+        >
+          <mat-expansion-panel>
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
+                <span>{{ scenario.name }}</span>
+              </mat-panel-title>
+            </mat-expansion-panel-header>
+            <ng-template matExpansionPanelContent>
+              <mat-divider></mat-divider>
+              <div>
+                <div class="inline-meta">
+                  <div class="section-actions">
+                    <a
+                      mat-icon-button
+                      color="accent"
+                      [routerLink]="['executions', 'new']"
+                      [queryParams]="{ scenario: scenario.name }"
+                      title="Execute scenario"
+                    >
+                      <fa-icon icon="play"></fa-icon>
+                    </a>
+                    <button
+                      *ngIf="editMode"
+                      mat-icon-button
+                      color="warn"
+                      (click)="deleteScenario(feature, si)"
+                    >
+                      <fa-icon icon="trash"></fa-icon>
+                    </button>
+                  </div>
+                  <div class="row">
+                    <div class="col font-weight-bold">Scenario:</div>
+                    <div class="col-9">
+                      <sh-inline-edit
+                        [editable]="editMode"
+                        [value]="scenario.name"
+                        [validator]="validatorRequired"
+                        (save)="scenario.name = $event"
+                      >
+                        <ng-template inlineView>{{
+                          scenario.name
+                        }}</ng-template>
+                        <ng-template inlineEdit let-fc>
+                          <mat-form-field class="full">
+                            <input
+                              matInput
+                              [formControl]="fc"
+                              type="text"
+                              placeholder="Name"
+                              [focus]="true"
+                              saveOnEnter
+                              cancelOnEsc
+                            />
+                            <mat-error *ngIf="fc.errors?.required"
+                              >Required input
+                            </mat-error>
+                          </mat-form-field>
+                        </ng-template>
+                      </sh-inline-edit>
+                    </div>
+                  </div>
+                  <ng-container
+                    *ngTemplateOutlet="
+                      annotationRows;
+                      context: { annotationContext: scenario }
+                    "
                   >
-                    <ng-template inlineView>{{ scenario.name }}</ng-template>
-                    <ng-template inlineEdit let-fc>
-                      <mat-form-field class="full">
-                        <input
-                          matInput
-                          [formControl]="fc"
-                          type="text"
-                          placeholder="Name"
-                          [focus]="true"
-                          saveOnEnter
-                          cancelOnEsc
-                        />
-                        <mat-error *ngIf="fc.errors?.required"
-                          >Required input
-                        </mat-error>
-                      </mat-form-field>
-                    </ng-template>
-                  </sh-inline-edit>
+                  </ng-container>
                 </div>
               </div>
+              <p class="font-weight-bold">Steps:</p>
               <ng-container
                 *ngTemplateOutlet="
-                  annotationRows;
-                  context: { annotationContext: scenario }
+                  stepSequence;
+                  context: { sequence: scenario }
                 "
               >
               </ng-container>
-            </div>
-          </div>
-          <p class="font-weight-bold">Steps:</p>
-          <ng-container
-            *ngTemplateOutlet="stepSequence; context: { sequence: scenario }"
-          >
-          </ng-container>
-        </mat-expansion-panel>
-      </mat-accordion>
-      <button
-        *ngIf="editMode"
-        mat-mini-fab
-        color="accent"
-        class="add"
-        title="Add scenario"
-        (click)="addScenario(feature)"
-      >
-        <fa-icon icon="plus"></fa-icon>
-      </button>
+            </ng-template>
+          </mat-expansion-panel>
+        </mat-accordion>
+        <button
+          *ngIf="editMode"
+          mat-mini-fab
+          color="accent"
+          class="add"
+          title="Add scenario"
+          (click)="addScenario(feature)"
+        >
+          <fa-icon icon="plus"></fa-icon>
+        </button>
+      </ng-template>
     </mat-expansion-panel>
   </mat-accordion>
   <button

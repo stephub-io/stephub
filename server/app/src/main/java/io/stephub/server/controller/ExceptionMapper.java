@@ -2,6 +2,7 @@ package io.stephub.server.controller;
 
 import io.stephub.expression.EvaluationException;
 import io.stephub.expression.ParseException;
+import io.stephub.provider.api.ProviderException;
 import io.stephub.server.service.ResourceNotFoundException;
 import io.stephub.server.service.exception.ExecutionException;
 import org.springframework.http.HttpStatus;
@@ -22,6 +23,12 @@ public class ExceptionMapper {
     @ExceptionHandler(ExecutionException.class)
     public void handleExecutionError(
             final ExecutionException ex, final HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.CONFLICT.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(ProviderException.class)
+    public void handleProviderError(
+            final ProviderException ex, final HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.CONFLICT.value(), ex.getMessage());
     }
 

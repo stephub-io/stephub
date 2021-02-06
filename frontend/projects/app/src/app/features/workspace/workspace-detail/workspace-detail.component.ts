@@ -10,7 +10,7 @@ import {
   Variable,
   Workspace,
 } from "../workspace/workspace.model";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject } from "rxjs";
 import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
 import { ActivatedRoute } from "@angular/router";
 import { Title } from "@angular/platform-browser";
@@ -21,7 +21,10 @@ import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
 import { VariableDialogComponent } from "../variable-dialog/variable-dialog.component";
 import * as deepEqual from "fast-deep-equal";
 import { initFeatures } from "./features/workspace-features.component";
-import { ServerError } from "../../../core/server-error/server-error.model";
+import {
+  FieldError,
+  ServerError,
+} from "../../../core/server-error/server-error.model";
 import { inOutAnimation } from "../../../core/animations/in-out.animations";
 
 @Component({
@@ -40,7 +43,7 @@ export class WorkspaceDetailComponent implements OnInit {
   origWorkspace: Workspace;
   editable = true;
   editMode = false;
-  variablesMap;
+  variableKeys$ = new BehaviorSubject<string[]>([]);
 
   faExecutions = faExecutions;
   readonly separatorKeysCodes: number[] = [ENTER, COMMA];
@@ -50,6 +53,8 @@ export class WorkspaceDetailComponent implements OnInit {
   ]);
   validatorRequired = Validators.required;
   stepsCollection$ = new BehaviorSubject<StepsCollection>(null);
+
+  fieldErrors$ = new BehaviorSubject<FieldError[]>(null);
 
   constructor(
     private workspaceService: WorkspaceService,
@@ -74,13 +79,15 @@ export class WorkspaceDetailComponent implements OnInit {
     initFeatures(workspace);
     this.workspace = workspace;
     this.setTitle(workspace);
-    this.variablesMap = this.arrayOfMap(workspace.variables);
+    this.variableKeys$.next(this.keys(workspace.variables));
     this.origWorkspace = JSON.parse(JSON.stringify(workspace));
-    this.workspaceService
-      .getStepsCollection(this.id)
-      .subscribe((collection) => {
+    this.workspaceService.getStepsCollection(this.id).subscribe(
+      (collection) => {
         this.stepsCollection$.next(collection);
-      });
+      },
+      (error) => console.error("Failed to load steps collection", error)
+    );
+    this.fieldErrors$.next([]);
   }
 
   private setTitle(workspace: Workspace) {
@@ -89,6 +96,15 @@ export class WorkspaceDetailComponent implements OnInit {
 
   isDirty(): boolean {
     return !deepEqual(this.origWorkspace, this.workspace);
+  }
+
+  private onSyntaxChange() {
+    this.workspace.gherkinPreferences = {
+      ...this.workspace.gherkinPreferences,
+    };
+    this.stepsCollection$.next({
+      ...this.stepsCollection$.value,
+    });
   }
 
   addStepKeyword(
@@ -102,8 +118,8 @@ export class WorkspaceDetailComponent implements OnInit {
       return;
     }
     if ((value || "").trim()) {
-      keywords.push(value.trim());
-      this.patchGherkinPreferences();
+      keywords[keywords.length] = value.trim();
+      this.onSyntaxChange();
     }
 
     // Reset the input value
@@ -116,33 +132,8 @@ export class WorkspaceDetailComponent implements OnInit {
     const index = keywords.indexOf(keyword);
     if (index >= 0) {
       keywords.splice(index, 1);
-      this.patchGherkinPreferences();
+      this.onSyntaxChange();
     }
-  }
-
-  private patchGherkinPreferences() {
-    return this.patch({
-      gherkinPreferences: this.workspace.gherkinPreferences,
-    } as Workspace).subscribe();
-  }
-
-  private patch(patch: Workspace): Observable<Workspace> {
-    this.editable = false;
-    return new Observable((observer) => {
-      this.workspaceService.patch(this.id, patch).subscribe(
-        (workspace) => {
-          this.editable = true;
-          this.workspace$.next(workspace);
-          this.onWorkspaceInit(workspace);
-          this.notificationService.success("Workspace changes were saved");
-          observer.next(workspace);
-        },
-        (error) => {
-          this.editable = true;
-          observer.error(error);
-        }
-      );
-    });
   }
 
   saveWorkspaceChanges() {
@@ -152,15 +143,14 @@ export class WorkspaceDetailComponent implements OnInit {
         this.editable = true;
         this.workspace$.next(workspace);
         this.onWorkspaceInit(workspace);
-        this.notificationService.success("Saved workspace successfully!");
+        this.notificationService.success("Workspace saved successfully!");
       },
       (error) => {
-        if (error instanceof ServerError && error.status == 400) {
-          this.notificationService.error(
-            "Failed to save workspace due to above validation errors!"
-          );
-        }
         this.editable = true;
+        if (error instanceof ServerError) {
+          this.fieldErrors$.next(error.errors);
+        }
+        throw error;
       }
     );
   }
@@ -174,49 +164,53 @@ export class WorkspaceDetailComponent implements OnInit {
     return Object.keys(obj);
   }
 
-  arrayOfMap(map: Object) {
-    return this.keys(map).map((value, index) => {
-      return {
-        key: value,
-        value: map[value],
-      };
-    });
-  }
-
   editVariable(name: string, variable: Variable) {
     const dialogConfig = new MatDialogConfig();
-    // dialogConfig.disableClose = true;
     dialogConfig.autoFocus = true;
-    let dialogRef;
-
     dialogConfig.data = {
       name: name,
       variable: variable,
-      saveCallback: (data) => {
-        const newVars = Object.assign({}, this.workspace.variables);
-        delete newVars[name];
-        newVars[data.name] = data.variable;
-        return this.patch({
-          variables: newVars,
-        } as Workspace);
-      },
+      fieldErrors: this.fieldErrors$.value,
     };
     dialogConfig.width = "50%";
 
-    dialogRef = this.dialog.open(VariableDialogComponent, dialogConfig);
+    this.dialog
+      .open(VariableDialogComponent, dialogConfig)
+      .afterClosed()
+      .subscribe((data) => {
+        if (data) {
+          if (data.name != name) {
+            delete this.workspace.variables[name];
+          }
+          this.workspace.variables[data.name] = data.variable;
+          this.variableKeys$.next(this.keys(this.workspace.variables));
+        }
+      });
   }
 
   deleteVariable(key: string) {
-    const newVars = Object.assign({}, this.workspace.variables);
-    delete newVars[key];
-    return this.patch({
-      variables: newVars,
-    } as Workspace).subscribe();
+    delete this.workspace.variables[key];
+    this.variableKeys$.next(this.keys(this.workspace.variables));
   }
 
   addVariable() {
     this.editVariable("", {
       schema: { type: "string" },
+      defaultValue: "",
     } as Variable);
+  }
+
+  variableColumns() {
+    return this.editMode
+      ? ["key", "schema", "defaultValue", "action"]
+      : ["key", "schema", "defaultValue"];
+  }
+
+  allErrors() {
+    if (this.workspace.errors) {
+      return [...this.fieldErrors$.value, ...this.workspace.errors];
+    } else {
+      return this.fieldErrors$.value;
+    }
   }
 }

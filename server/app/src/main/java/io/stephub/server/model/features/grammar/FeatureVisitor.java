@@ -96,7 +96,7 @@ public class FeatureVisitor extends FeaturesBaseVisitor<Feature> {
         annotations.forEach(a -> {
             if (!a.tag().isEmpty()) {
                 a.tag().stream().
-                        map(tagContext -> tagContext.tagName().getText().trim()).
+                        map(tagContext -> "@" + tagContext.tagName().getText().trim()).
                         forEach(tagConsumer);
             } else if (a.commentLine() != null) {
                 commentConsumer.accept(a.commentLine().comment().getText().trim().trim());

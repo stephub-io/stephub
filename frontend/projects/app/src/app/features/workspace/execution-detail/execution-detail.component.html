@@ -77,63 +77,67 @@
                   </span>
                 </mat-panel-description>
               </mat-expansion-panel-header>
-              <p>
-                <mat-divider></mat-divider>
-              </p>
-              <p>
-                <span class="font-weight-bold">{{ getTitle(item) }}:</span>
-                {{ getName(item) }}
-              </p>
-              <p class="font-weight-bold">Scenarios:</p>
-              <mat-accordion
-                *ngFor="let scenario of getFeature(item).scenarios"
-                class="items-headers-align"
-                multi
-              >
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <mat-panel-title>
-                      <fa-icon
-                        [icon]="getIcon(scenario)"
-                        [title]="getTitle(scenario)"
-                      ></fa-icon>
-                      <span>{{ getName(scenario) }}</span>
-                    </mat-panel-title>
-                    <mat-panel-description>
-                      <span>
-                        <sh-execution-stats
-                          class="indicator"
-                          [stats]="scenario.stats"
-                        ></sh-execution-stats>
+              <ng-template matExpansionPanelContent>
+                <p>
+                  <mat-divider></mat-divider>
+                </p>
+                <p>
+                  <span class="font-weight-bold">{{ getTitle(item) }}:</span>
+                  {{ getName(item) }}
+                </p>
+                <p class="font-weight-bold">Scenarios:</p>
+                <mat-accordion
+                  *ngFor="let scenario of getFeature(item).scenarios"
+                  class="items-headers-align"
+                  multi
+                >
+                  <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
                         <fa-icon
-                          class="indicator"
-                          [icon]="statusIcon(scenario.status)"
-                          [spin]="statusIconSpin(scenario.status)"
-                          [title]="scenario.status"
+                          [icon]="getIcon(scenario)"
+                          [title]="getTitle(scenario)"
                         ></fa-icon>
-                      </span>
-                    </mat-panel-description>
-                  </mat-expansion-panel-header>
-                  <p>
-                    <mat-divider></mat-divider>
-                  </p>
-                  <p>
-                    <span class="font-weight-bold"
-                      >{{ getTitle(scenario) }} :</span
-                    >
-                    {{ getName(scenario) }}
-                  </p>
-                  <p class="font-weight-bold">Steps:</p>
-                  <mat-accordion class="items-headers-align" multi>
-                    <ng-container
-                      *ngTemplateOutlet="
-                        step_item;
-                        context: { items: scenario.steps }
-                      "
-                    ></ng-container>
-                  </mat-accordion>
-                </mat-expansion-panel>
-              </mat-accordion>
+                        <span>{{ getName(scenario) }}</span>
+                      </mat-panel-title>
+                      <mat-panel-description>
+                        <span>
+                          <sh-execution-stats
+                            class="indicator"
+                            [stats]="scenario.stats"
+                          ></sh-execution-stats>
+                          <fa-icon
+                            class="indicator"
+                            [icon]="statusIcon(scenario.status)"
+                            [spin]="statusIconSpin(scenario.status)"
+                            [title]="scenario.status"
+                          ></fa-icon>
+                        </span>
+                      </mat-panel-description>
+                    </mat-expansion-panel-header>
+                    <ng-template matExpansionPanelContent>
+                      <p>
+                        <mat-divider></mat-divider>
+                      </p>
+                      <p>
+                        <span class="font-weight-bold"
+                          >{{ getTitle(scenario) }} :</span
+                        >
+                        {{ getName(scenario) }}
+                      </p>
+                      <p class="font-weight-bold">Steps:</p>
+                      <mat-accordion class="items-headers-align" multi>
+                        <ng-container
+                          *ngTemplateOutlet="
+                            step_item;
+                            context: { items: scenario.steps }
+                          "
+                        ></ng-container>
+                      </mat-accordion>
+                    </ng-template>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </ng-template>
             </mat-expansion-panel>
             <ng-container *ngIf="getStepItem(item) as stepItem">
               <ng-container
@@ -143,6 +147,7 @@
           </ng-container>
         </mat-accordion>
       </div>
+
       <ng-template #step_item let-items="items">
         <mat-expansion-panel
           *ngFor="let step of getStepItems(items)"
@@ -188,24 +193,26 @@
               </div>
             </mat-panel-description>
           </mat-expansion-panel-header>
-          <mat-divider></mat-divider>
-          <div class="request">
-            <sh-step-request
-              [instruction]="
-                parseStepInstruction(step, exec?.gherkinPreferences)
-              "
-            >
-            </sh-step-request>
-          </div>
-          <div *ngIf="step.response && step.response?.status != 'passed'">
-            <div class="response">
-              <div class="error-message">
-                <fa-icon icon="exclamation-triangle"></fa-icon>
-                {{ step.response?.errorMessage }}
+          <ng-template matExpansionPanelContent>
+            <mat-divider></mat-divider>
+            <div class="request">
+              <sh-step-request
+                [instruction]="
+                  parseStepInstruction(step, exec?.gherkinPreferences)
+                "
+              >
+              </sh-step-request>
+            </div>
+            <div *ngIf="step.response && step.response?.status != 'passed'">
+              <div class="response">
+                <div class="error-message">
+                  <fa-icon icon="exclamation-triangle"></fa-icon>
+                  {{ step.response?.errorMessage }}
+                </div>
               </div>
             </div>
-          </div>
-          <mat-divider></mat-divider>
+            <mat-divider></mat-divider>
+          </ng-template>
         </mat-expansion-panel>
       </ng-template>
     </div>

@@ -47,6 +47,11 @@
         </div>
       </div>
     </div>
+    <sh-error-state
+      text="Workspace settings are invalid!
+                Please fix the errors before executing tests."
+      *ngIf="workspace.errors?.length > 0"
+    ></sh-error-state>
     <mat-tab-group>
       <mat-tab label="Tests">
         <div class="tab-body">
@@ -57,66 +62,78 @@
           ></sh-workspace-features>
         </div>
       </mat-tab>
-      <mat-tab label="Providers"></mat-tab>
-      <mat-tab label="Custom steps"></mat-tab>
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Providers
+          <sh-server-field-error
+            path="providers"
+            [fieldErrors]="allErrors()"
+            displayType="indicator"
+          ></sh-server-field-error>
+        </ng-template>
+      </mat-tab>
 
-      <mat-tab label="Variables ({{ keys(workspace.variables).length }})">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Variables
+          <sh-server-field-error
+            path="variables"
+            [fieldErrors]="allErrors()"
+            displayType="indicator"
+          ></sh-server-field-error>
+        </ng-template>
         <div class="tab-body">
           <p>Variables for increasing re-use and flexibility in tests</p>
           <div class="variables-container">
             <table
               mat-table
-              [dataSource]="variablesMap"
+              [dataSource]="variableKeys$ | async"
               class="mat-elevation-z8"
             >
-              <tr
-                mat-header-row
-                *matHeaderRowDef="['key', 'schema', 'defaultValue', 'action']"
-              ></tr>
-              <tr
-                mat-row
-                *matRowDef="
-                  let row;
-                  columns: ['key', 'schema', 'defaultValue', 'action']
-                "
-              ></tr>
+              <tr mat-header-row *matHeaderRowDef="variableColumns()"></tr>
+              <tr mat-row *matRowDef="let row; columns: variableColumns()"></tr>
 
               <ng-container matColumnDef="key" sticky>
                 <th mat-header-cell *matHeaderCellDef>Name</th>
-                <td mat-cell *matCellDef="let element">
-                  <span class="code">{{ element.key }}</span>
+                <td mat-cell *matCellDef="let key">
+                  <sh-server-field-error
+                    path="variables[{{ key }}]"
+                    [fieldErrors]="fieldErrors$ | async"
+                    displayType="indicator-tooltip"
+                  ></sh-server-field-error>
+                  <span class="code">{{ key }}</span>
                 </td>
               </ng-container>
               <ng-container matColumnDef="defaultValue">
                 <th mat-header-cell *matHeaderCellDef>Default value</th>
-                <td mat-cell *matCellDef="let element">
+                <td mat-cell *matCellDef="let key">
                   <sh-json-view
-                    [json]="element.value.defaultValue"
+                    [json]="workspace.variables[key].defaultValue"
                   ></sh-json-view>
                 </td>
               </ng-container>
               <ng-container matColumnDef="schema">
                 <th mat-header-cell *matHeaderCellDef>JSON-Schema</th>
-                <td mat-cell *matCellDef="let element">
+                <td mat-cell *matCellDef="let key">
                   <sh-json-schema-view
-                    [schema]="element.value.schema"
+                    [schema]="workspace.variables[key].schema"
                   ></sh-json-schema-view>
                 </td>
               </ng-container>
               <ng-container matColumnDef="action" stickyEnd>
                 <th mat-header-cell *matHeaderCellDef>Actions</th>
-                <td mat-cell *matCellDef="let element">
+                <td mat-cell *matCellDef="let key">
                   <button
                     mat-icon-button
                     color="accent"
-                    (click)="editVariable(element.key, element.value)"
+                    (click)="editVariable(key, workspace.variables[key])"
                   >
                     <fa-icon icon="edit"></fa-icon>
                   </button>
                   <button
                     mat-icon-button
                     color="warn"
-                    (click)="deleteVariable(element.key)"
+                    (click)="deleteVariable(key)"
                   >
                     <fa-icon icon="trash"></fa-icon>
                   </button>
@@ -129,13 +146,22 @@
             color="primary"
             class="add"
             (click)="addVariable()"
+            *ngIf="editMode"
           >
             <fa-icon icon="plus"></fa-icon>
           </button>
         </div>
       </mat-tab>
 
-      <mat-tab label="Syntax preferences">
+      <mat-tab>
+        <ng-template mat-tab-label>
+          Syntax preferences
+          <sh-server-field-error
+            path="gherkinPreferences"
+            [fieldErrors]="allErrors()"
+            displayType="indicator"
+          ></sh-server-field-error>
+        </ng-template>
         <div class="tab-body">
           <p>Keywords and phrases for parsing steps</p>
           <div class="container">
@@ -173,11 +199,7 @@
         </div>
       </mat-tab>
     </mat-tab-group>
-    <div
-      *ngIf="editMode && isDirty()"
-      [@inOutAnimation]
-      class="workspace-dirty-actions"
-    >
+    <div *ngIf="isDirty()" [@inOutAnimation] class="workspace-dirty-actions">
       <button
         mat-raised-button
         color="primary"
@@ -205,7 +227,7 @@
         <mat-chip
           *ngFor="let keyword of keywords"
           [selectable]="false"
-          [removable]="editable && keywords.length > 1"
+          [removable]="editMode && keywords.length > 1"
           (removed)="removeStepKeyword(keywords, keyword)"
           color="primary"
           class="text-monospace"
@@ -214,13 +236,13 @@
           <fa-icon
             icon="minus-circle"
             matChipRemove
-            *ngIf="keywords.length > 1"
+            *ngIf="editMode && keywords.length > 1"
           ></fa-icon>
         </mat-chip>
         <input
           [placeholder]="newLabel"
           class="text-monospace"
-          [disabled]="!editable"
+          [disabled]="!editMode"
           [formControl]="formControl"
           [matChipInputFor]="chipList"
           [matChipInputSeparatorKeyCodes]="separatorKeysCodes"

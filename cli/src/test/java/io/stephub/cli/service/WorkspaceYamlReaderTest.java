@@ -37,7 +37,7 @@ class WorkspaceYamlReaderTest {
         SnapshotMatcher.expect(this.objectMapper.writeValueAsString(workspace)).toMatchSnapshot();
     }
 
-    @Test
+    // @Test
     public void testFeaturesFromFile() throws IOException {
         final Workspace workspace = this.reader.read(new ClassPathResource("workspace-feature-file.yml").getFile());
         SnapshotMatcher.expect(this.objectMapper.writeValueAsString(workspace)).toMatchSnapshot();

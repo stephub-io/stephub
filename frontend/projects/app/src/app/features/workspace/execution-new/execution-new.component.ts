@@ -29,7 +29,10 @@ import {
   VariableDialogComponent,
   VariableDialogMode,
 } from "../variable-dialog/variable-dialog.component";
-import { ServerError } from "../../../core/server-error/server-error.model";
+import {
+  FieldError,
+  ServerError,
+} from "../../../core/server-error/server-error.model";
 import { SuggestOption } from "../../../shared/multi-string-input/multi-string-input.component";
 
 @Component({
@@ -54,7 +57,7 @@ export class ExecutionNewComponent implements OnInit {
   variableKeys$ = new BehaviorSubject<string[]>([]);
   executionStart: ExecutionStart;
 
-  fieldErrors$ = new BehaviorSubject(null);
+  fieldErrors$ = new BehaviorSubject<FieldError[]>(null);
   filterScenarios: string[] = [];
   filterFeatures: string[] = [];
   filterTags: string[] = [];

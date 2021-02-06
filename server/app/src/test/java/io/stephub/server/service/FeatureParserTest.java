@@ -33,9 +33,9 @@ public class FeatureParserTest {
         assertThat(feature.getName(), equalTo("Abc"));
         assertThat(feature.getBackground(), nullValue());
         assertThat(feature.getTags(), hasSize(3));
-        assertThat(feature.getTags(), hasItem("tag1"));
-        assertThat(feature.getTags(), hasItem("tag-xy"));
-        assertThat(feature.getTags(), hasItem("tag87"));
+        assertThat(feature.getTags(), hasItem("@tag1"));
+        assertThat(feature.getTags(), hasItem("@tag-xy"));
+        assertThat(feature.getTags(), hasItem("@tag87"));
         assertThat(feature.getComments(), hasSize(2));
         assertThat(feature.getComments(), hasItem("first comment"));
         assertThat(feature.getComments(), hasItem("second comment # doubled"));
@@ -149,8 +149,8 @@ public class FeatureParserTest {
         assertThat(scenario.getComments(), hasSize(1));
         assertThat(scenario.getComments(), hasItem("Comment for scenario"));
         assertThat(scenario.getTags(), hasSize(2));
-        assertThat(scenario.getTags(), hasItem("stag1"));
-        assertThat(scenario.getTags(), hasItem("stag2"));
+        assertThat(scenario.getTags(), hasItem("@stag1"));
+        assertThat(scenario.getTags(), hasItem("@stag2"));
         assertThat(scenario.getSteps(), hasSize(1));
         assertThat(scenario.getSteps(), hasItem("# Step comment\nScenario step # hello"));
     }

@@ -60,6 +60,7 @@ export class WorkspaceFeaturesComponent implements OnChanges {
   constructor() {}
 
   ngOnChanges() {
+    console.log("Clearing instructions cache");
     this.specSuggests = [];
     if (this.stepsCollection) {
       for (const providerName in this.stepsCollection) {

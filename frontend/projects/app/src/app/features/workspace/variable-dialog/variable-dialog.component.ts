@@ -1,4 +1,9 @@
-import { ChangeDetectionStrategy, Component, Inject } from "@angular/core";
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  Inject,
+} from "@angular/core";
 import {
   FormBuilder,
   FormControl,
@@ -15,8 +20,11 @@ import {
   isNullable,
   JsonSchemaType,
 } from "../../../shared/json-schema-view/json--schema-view.component";
-import { ServerError } from "../../../core/server-error/server-error.model";
 import { Observable } from "rxjs";
+import {
+  FieldError,
+  propagateFieldErrors,
+} from "../../../core/server-error/server-error.model";
 
 @Component({
   selector: "sh-variable-dialog",
@@ -24,8 +32,9 @@ import { Observable } from "rxjs";
   styleUrls: ["./variable-dialog.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class VariableDialogComponent {
+export class VariableDialogComponent implements AfterViewInit {
   form: FormGroup;
+  private readonly fieldErrors: FieldError[];
 
   variable: Variable;
   nameField = new FormControl("", [
@@ -63,6 +72,7 @@ export class VariableDialogComponent {
     this.name = data.name;
     this.saveCallback = data.saveCallback;
     this.mode = data.mode ? data.mode : VariableDialogMode.full;
+    this.fieldErrors = data.fieldErrors ? data.fieldErrors : [];
     this.form = fb.group([this.nameField, this.valueField, this.schemaField]);
     this.nameField.setValue(this.name);
     this.schemaType = getSchemaType(this.variable.schema);
@@ -76,6 +86,11 @@ export class VariableDialogComponent {
     this.valueNull = value == null;
     this.changeValueNull();
     this.updateValueValidator();
+  }
+
+  ngOnInit(): void {
+    // Otherwise init errors won't be shown
+    setTimeout(() => this.propagateFieldErrors(), 150);
   }
 
   private buildSchemaVariant(type: string) {
@@ -153,40 +168,16 @@ export class VariableDialogComponent {
           value: value,
         })
       );
-      return;
     } else {
-      data = {
-        name: this.nameField.value,
-        variable: {
-          schema: this.buildSchema(),
-          defaultValue: value,
-        } as Variable,
-      };
-    }
-    const subject = this.saveCallback(data);
-    if (subject) {
-      subject.subscribe(
-        () => {
-          this.close();
-        },
-        (error) => {
-          if (error instanceof ServerError && error.status == 400) {
-            console.log("Bad request", error);
-            const prefix = "variables[" + this.nameField.value + "]";
-            error.propagateFieldErrors(prefix, this.nameField);
-            error.propagateFieldErrors(
-              prefix + ".defaultValue",
-              this.valueField
-            );
-            error.propagateFieldErrors(prefix + ".schema", this.schemaField);
-            this.form.markAllAsTouched();
-          } else {
-            throw error;
-          }
-        }
+      this.dialogRef.close(
+        (data = {
+          name: this.nameField.value,
+          variable: {
+            schema: this.buildSchema(),
+            defaultValue: value,
+          } as Variable,
+        })
       );
-    } else {
-      this.close();
     }
   }
 
@@ -219,6 +210,24 @@ export class VariableDialogComponent {
       this.valueField.enable();
     }
   }
+
+  private propagateFieldErrors() {
+    const prefix = "variables[" + this.name + "]";
+    propagateFieldErrors(this.fieldErrors, prefix, this.nameField);
+    propagateFieldErrors(
+      this.fieldErrors,
+      prefix + ".defaultValue",
+      this.valueField
+    );
+    propagateFieldErrors(
+      this.fieldErrors,
+      prefix + ".schema",
+      this.schemaField
+    );
+    this.form.markAllAsTouched();
+  }
+
+  ngAfterViewInit(): void {}
 }
 
 export enum VariableDialogMode {

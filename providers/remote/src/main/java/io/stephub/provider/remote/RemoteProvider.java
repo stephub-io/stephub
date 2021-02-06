@@ -46,9 +46,16 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
     }
 
+    private OkHttpClient buildClient() {
+        if (StringUtils.isNotBlank(this.baseUrl)) {
+            return this.httpClientBuilder.build();
+        }
+        throw new ProviderException("Undefined URL for provider " + this);
+    }
+
     @Override
     public ProviderInfo<JsonSchema> getInfo() {
-        final OkHttpClient client = this.httpClientBuilder.build();
+        final OkHttpClient client = this.buildClient();
         final Request request = new Request.Builder()
                 .get()
                 .url(this.baseUrl)
@@ -66,7 +73,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
     @Override
     public String createSession(final ProviderOptions options) {
-        final OkHttpClient client = this.httpClientBuilder.build();
+        final OkHttpClient client = this.buildClient();
         try {
             final Request request = new Request.Builder()
                     .post(RequestBody.create(this.objectMapper.writeValueAsBytes(options)))
@@ -93,7 +100,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
     @Override
     public StepResponse<Json> execute(final String sessionId, final StepRequest<Json> stepRequest) {
-        final OkHttpClient client = this.httpClientBuilder.build();
+        final OkHttpClient client = this.buildClient();
         try {
             final Request request = new Request.Builder()
                     .post(RequestBody.create(this.objectMapper.writeValueAsBytes(stepRequest)))
@@ -120,7 +127,7 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
     @Override
     public void destroySession(final String sessionId) {
-        final OkHttpClient client = this.httpClientBuilder.build();
+        final OkHttpClient client = this.buildClient();
         try {
             final Request request = new Request.Builder()
                     .delete()

@@ -10,17 +10,25 @@ export class ServerError implements Error {
   name = "ServerError";
 
   propagateFieldErrors(fieldPath: string, formControl: FormControl) {
-    if (this.errors) {
-      const fes = this.errors.filter((value) => value.field == fieldPath);
-      if (fes.length > 0) {
-        formControl.updateValueAndValidity({
-          emitEvent: true,
-        });
-        formControl.setErrors({
-          server: fes.map((value) => value.message).join(" - "),
-        });
-        formControl.markAsTouched();
-      }
+    propagateFieldErrors(this.errors, fieldPath, formControl);
+  }
+}
+
+export function propagateFieldErrors(
+  fieldErrors: FieldError[],
+  fieldPath: string,
+  formControl: FormControl
+) {
+  if (fieldErrors) {
+    const fes = fieldErrors.filter((value) => value.field == fieldPath);
+    if (fes.length > 0) {
+      formControl.updateValueAndValidity({
+        emitEvent: true,
+      });
+      formControl.setErrors({
+        server: fes.map((value) => value.message).join(" - "),
+      });
+      formControl.markAllAsTouched();
     }
   }
 }
