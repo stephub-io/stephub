@@ -42,7 +42,6 @@ export class MultiStringInputComponent implements OnInit {
   @Output() sequenceChange = new EventEmitter<string[]>();
 
   newItemCtrl: FormControl;
-  columns: string[];
   autoCompleteItems$: Observable<SuggestOption[]>;
   newAutoCompleteItems$: Observable<SuggestOption[]>;
   autoCompleteSelected$ = new BehaviorSubject(false);
@@ -62,7 +61,6 @@ export class MultiStringInputComponent implements OnInit {
       startWith(""),
       map((value) => this.filterAutoComplete(value))
     );
-    this.columns = this.order ? ["drag", "item", "action"] : ["item", "action"];
   }
 
   private updateSequence() {
@@ -134,6 +132,24 @@ export class MultiStringInputComponent implements OnInit {
   markAutoCompleteSelected() {
     this.autoCompleteSelected$.next(true);
     setTimeout(() => this.autoCompleteSelected$.next(false), 500);
+  }
+
+  columns() {
+    const columns = [];
+    if (this.order && this.editMode) {
+      columns[columns.length] = "drag";
+    }
+    columns[columns.length] = "item";
+    if (this.editMode) {
+      columns[columns.length] = "action";
+    }
+    return columns;
+  }
+
+  minRows(textarea: HTMLTextAreaElement, text: string): number {
+    return textarea.clientHeight < textarea.scrollHeight
+      ? text.split("\n").length + 1
+      : 1;
   }
 }
 

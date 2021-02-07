@@ -13,14 +13,14 @@
   >
     <tr
       mat-row
-      *matRowDef="let row; columns: columns"
+      *matRowDef="let row; columns: columns()"
       cdkDrag
       [cdkDragData]="row"
       [cdkDragDisabled]="!editMode || dragDisabled.value == '1'"
       (cdkDragReleased)="dragDisabled.value = '1'"
       hover-class="hover"
     ></tr>
-    <tr mat-footer-row *matFooterRowDef="columns" hover-class="hover"></tr>
+    <tr mat-footer-row *matFooterRowDef="columns()" hover-class="hover"></tr>
     <ng-container matColumnDef="drag">
       <td mat-cell *matCellDef="let element">
         <fa-icon
@@ -61,6 +61,7 @@
           <ng-template inlineEdit let-fc>
             <mat-form-field class="item">
               <textarea
+                #ta
                 *ngIf="textarea"
                 [formControl]="textarea ? fc : null"
                 matInput
@@ -68,7 +69,7 @@
                 [focus]="true"
                 [saveOnEnter]="!(autoCompleteSelected$ | async)"
                 cancelOnEsc
-                cdkAutosizeMinRows="1"
+                [cdkAutosizeMinRows]="minRows(ta, element)"
                 [ngClass]="{ code: codeInput }"
                 [matAutocomplete]="auto"
               ></textarea>

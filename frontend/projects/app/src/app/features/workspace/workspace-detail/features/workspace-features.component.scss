@@ -7,19 +7,16 @@ mat-expansion-panel {
 .step-sequence {
   width: 100%;
 
-  sh-inline-edit {
+  .step {
     display: block;
     width: 100%;
     overflow-x: auto;
-  }
-
-  sh-inline-edit sh-step-view {
-    display: block;
-    overflow-x: auto;
-  }
-
-  .step {
     white-space: nowrap;
+
+    fa-icon.warn-text {
+      float: left;
+      padding-right: 4px;
+    }
   }
 }
 

@@ -41,3 +41,7 @@
   opacity: 1;
   transition: opacity 0.5s linear;
 }
+
+.inline-edit.non-editable .actions {
+  display: none !important;
+}

@@ -1,7 +1,11 @@
 <div
   class="inline-edit"
   *ngIf="mode$ | async as m"
-  [ngClass]="{ edit: m == 'edit', view: m != 'edit' }"
+  [ngClass]="{
+    edit: m == 'edit',
+    view: m != 'edit',
+    'non-editable': !editable
+  }"
 >
   <div class="wrapper" *ngIf="m == 'edit'">
     <ng-container
