@@ -22,7 +22,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { MatInput } from "@angular/material/input";
 import { Validators } from "@angular/forms";
-import { SuggestOption } from "../../../../shared/multi-string-input/multi-string-input.component";
 import {
   parse,
   StepInstruction,
@@ -30,6 +29,7 @@ import {
   StepLinePartKeyword,
 } from "../../step/parser/instruction-parser";
 import { SpecSuggest } from "../../step/spec-suggest/spec-suggest";
+import { SuggestGroup, SuggestOption } from "../../../../util/auto-suggest";
 
 @Component({
   selector: "sh-workspace-features",
@@ -42,7 +42,10 @@ export class WorkspaceFeaturesComponent implements OnChanges {
   scenarioIcon = faReceipt;
   stepIcon = faMagic;
 
-  private specSuggests: SpecSuggest[] = [];
+  private specSuggests: Map<string, SpecSuggest[]> = new Map<
+    string,
+    SpecSuggest[]
+  >();
 
   @Input() workspace: Workspace;
   @Input() editMode = false;
@@ -53,7 +56,7 @@ export class WorkspaceFeaturesComponent implements OnChanges {
   validatorRequired = Validators.required;
   validatorTagsLine = Validators.pattern(/^(\s*@[^#@\s]+(\s+@[^#@\s]+)*\s*)?$/);
 
-  stepAutoCompleteSource: (value: string) => SuggestOption[] = (value) =>
+  stepAutoCompleteSource: (value: string) => SuggestGroup[] = (value) =>
     this.autoCompleteFilter(value);
   private instructionCache = new Map<string, StepInstruction>();
 
@@ -61,12 +64,14 @@ export class WorkspaceFeaturesComponent implements OnChanges {
 
   ngOnChanges() {
     console.log("Clearing instructions cache");
-    this.specSuggests = [];
+    this.specSuggests.clear();
     if (this.stepsCollection) {
       for (const providerName in this.stepsCollection) {
+        const provSuggests = [];
         this.stepsCollection[providerName]
           .map((spec) => new SpecSuggest(spec))
-          .forEach((s) => this.specSuggests.push(s));
+          .forEach((s) => provSuggests.push(s));
+        this.specSuggests.set(providerName, provSuggests);
       }
     }
     this.instructionCache.clear();
@@ -107,12 +112,12 @@ export class WorkspaceFeaturesComponent implements OnChanges {
     } as Feature);
   }
 
-  private autoCompleteFilter(value: string): SuggestOption[] {
+  private autoCompleteFilter(value: string): SuggestGroup[] {
     const filterValue = value.trim().toLowerCase();
     if (filterValue.indexOf("\n") >= 0) {
       return [];
     }
-    const suggestionOptions: SuggestOption[] = [];
+    const suggestionGroups: SuggestGroup[] = [];
     // Check containment of step keywords
     const stepKeywords = this.workspace.gherkinPreferences.stepKeywords;
     const usedKeywords = stepKeywords.filter((key) =>
@@ -120,33 +125,48 @@ export class WorkspaceFeaturesComponent implements OnChanges {
     );
 
     // Keyword not used, suggest keywords
-    stepKeywords
-      .filter((option) => option.toLowerCase().includes(filterValue))
-      .forEach((s) => {
-        suggestionOptions.push({
-          value: s,
-          view: new StepInstruction([
-            new StepLine([new StepLinePartKeyword(s)]),
-          ]),
-        } as SuggestOption);
-      });
+    const keywordSuggest = stepKeywords.filter((option) =>
+      option.toLowerCase().includes(filterValue)
+    );
+    if (keywordSuggest.length > 0) {
+      suggestionGroups.push({
+        label: "Keywords",
+        options: keywordSuggest.map((s) => {
+          return {
+            value: s,
+            view: new StepInstruction([
+              new StepLine([new StepLinePartKeyword(s)]),
+            ]),
+          } as SuggestOption;
+        }),
+      } as SuggestGroup);
+    }
     // Combination composed of keyword and step
     if (usedKeywords.length > 0) {
       usedKeywords.forEach((keyword) => {
         const rest = value.substr(keyword.length);
-        this.specSuggests.forEach((specSuggest) => {
-          specSuggest
-            .completes(keyword, rest, this.workspace.gherkinPreferences)
-            .forEach((instruction) =>
-              suggestionOptions.push({
-                view: instruction,
-                value: instruction.toString(),
-              })
-            );
+        this.specSuggests.forEach((specSuggests, pName) => {
+          const provSuggestionOptions = [];
+          specSuggests.forEach((specSuggest) => {
+            specSuggest
+              .completes(keyword, rest, this.workspace.gherkinPreferences)
+              .forEach((instruction) =>
+                provSuggestionOptions.push({
+                  view: instruction,
+                  value: instruction.toString(),
+                })
+              );
+          });
+          if (provSuggestionOptions.length > 0) {
+            suggestionGroups.push({
+              label: "Provider - " + pName,
+              options: provSuggestionOptions,
+            } as SuggestGroup);
+          }
         });
       });
     }
-    return suggestionOptions;
+    return suggestionGroups;
   }
 
   instruction(step: string): StepInstruction {

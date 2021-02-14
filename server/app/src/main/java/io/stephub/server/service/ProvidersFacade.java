@@ -1,6 +1,5 @@
 package io.stephub.server.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.json.Json;
 import io.stephub.json.JsonObject;
@@ -12,6 +11,7 @@ import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.provider.remote.RemoteProvider;
+import io.stephub.provider.remote.RemoteProviderFactory;
 import io.stephub.providers.base.BaseProvider;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
@@ -23,12 +23,11 @@ import org.apache.commons.lang3.tuple.Triple;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.validation.Validator;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -47,10 +46,10 @@ public class ProvidersFacade implements StepExecutionSource {
     private StepEvaluationDelegate stepEvaluationDelegate;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private RemoteProviderFactory remoteProviderFactory;
 
-    @Autowired
-    private Validator validator;
+    @Autowired(required = false)
+    private List<Provider> builtInProviders;
 
     @Override
     public StepExecution resolveStepExecution(final String stepInstruction, final Workspace workspace) {
@@ -91,9 +90,7 @@ public class ProvidersFacade implements StepExecutionSource {
 
 
     private List<ProviderSpec> getProviderSpecs(final Workspace workspace) {
-        final List<ProviderSpec> providerSpecs = new ArrayList<>(workspace.getProviders());
-        providerSpecs.add(ProviderSpec.builder().name(BaseProvider.PROVIDER_NAME).version(">0").build());
-        return providerSpecs;
+        return workspace.getProviders();
     }
 
     private Triple<ProviderSpec, StepSpec<JsonSchema>, StepMatch> getMatchingStep(final Workspace workspace, final String instruction) {
@@ -124,17 +121,30 @@ public class ProvidersFacade implements StepExecutionSource {
     }
 
     public Provider<JsonObject, JsonSchema, Json> getProvider(final ProviderSpec providerSpec) {
-        if (BaseProvider.PROVIDER_NAME.equals(providerSpec.getName())) {
-            return this.baseProvider;
-        } else {
-            return RemoteProvider.builder().baseUrl(providerSpec.getProviderUrl()).
-                    objectMapper(this.objectMapper).
-                    alias(providerSpec.getName() +
-                            (isNotBlank(providerSpec.getVersion()) ? ":" + providerSpec.getVersion() : "")
-                    ).
-                    validator(this.validator).
-                    build();
+        if (providerSpec.getRemoteConfig() != null) {
+            final RemoteProvider provider = this.remoteProviderFactory.createProvider(providerSpec);
+            if (!providerSpec.getName().equals(provider.getInfo().getName())) {
+                throw new ProviderException("Remote provider's name '" + provider.getInfo().getName() + "' mismatches");
+            }
+            if (!this.appliesVersion(provider, providerSpec)) {
+                throw new ProviderException("Remote provider's version '" + provider.getInfo().getVersion() + "' mismatches");
+            }
+            return provider;
         }
+        if (this.builtInProviders != null) {
+            final Optional<Provider> optionalProvider = this.builtInProviders.stream().filter(provider -> providerSpec.getName().toLowerCase().equals(
+                    provider.getInfo().getName().toLowerCase())
+                    && this.appliesVersion(provider, providerSpec)
+            ).findFirst();
+            if (optionalProvider.isPresent()) {
+                return optionalProvider.get();
+            }
+        }
+        throw new ProviderException("Expected provider '" + this.usedName(providerSpec) + "' not registered");
+    }
+
+    private boolean appliesVersion(final Provider<JsonObject, JsonSchema, Json> provider, final ProviderSpec spec) {
+        return spec.matchesVersion(provider.getInfo().getVersion());
     }
 
     private StepResponse<Json> execute(final Provider<JsonObject, JsonSchema, Json> provider,
@@ -149,5 +159,10 @@ public class ProvidersFacade implements StepExecutionSource {
             sessionExecutionContext.setProviderSession(providerName, pSid);
         }
         return provider.execute(pSid, request);
+    }
+
+    private String usedName(final ProviderSpec providerSpec) {
+        return providerSpec.getName() +
+                (isNotBlank(providerSpec.getVersion()) ? ":" + providerSpec.getVersion() : "");
     }
 }

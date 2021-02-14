@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="Spring" name="Spring">
+      <configuration />
+    </facet>
+  </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_10">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
@@ -17,7 +22,7 @@
     <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.jcodings:jcodings:1.0.46" level="project" />
     <orderEntry type="module" module-name="server.api" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.23" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.25" level="project" />
     <orderEntry type="module" module-name="expression" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.8.RELEASE" level="project" />

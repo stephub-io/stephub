@@ -48,6 +48,7 @@ import {
   faMagic,
   faMinusCircle,
   faPaintBrush,
+  faPen,
   faPlay,
   faPlus,
   faReceipt,
@@ -58,6 +59,7 @@ import {
   faTasks,
   faTimes,
   faTimesCircle,
+  faToolbox,
   faTrash,
   faWindowMaximize,
 } from "@fortawesome/free-solid-svg-icons";
@@ -93,6 +95,7 @@ import { DragDropModule } from "@angular/cdk/drag-drop";
 import { MultiStringViewDirective } from "./multi-string-input/multi-string-view.directive";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MultiStringAutoSuggestOptionDirective } from "./multi-string-input/multi-string-auto-suggest-option.directive";
+import { EmptyValueComponent } from "./empty-value/empty-value.component";
 
 @NgModule({
   imports: [
@@ -151,6 +154,7 @@ import { MultiStringAutoSuggestOptionDirective } from "./multi-string-input/mult
     MultiStringInputComponent,
     MultiStringViewDirective,
     MultiStringAutoSuggestOptionDirective,
+    EmptyValueComponent,
   ],
   exports: [
     CommonModule,
@@ -207,6 +211,7 @@ import { MultiStringAutoSuggestOptionDirective } from "./multi-string-input/mult
     MultiStringInputComponent,
     MultiStringViewDirective,
     MultiStringAutoSuggestOptionDirective,
+    EmptyValueComponent,
   ],
 })
 export class SharedModule {
@@ -246,7 +251,9 @@ export class SharedModule {
       faSlidersH,
       faFilter,
       faEraser,
-      faExclamationCircle
+      faExclamationCircle,
+      faToolbox,
+      faPen
     );
   }
 }

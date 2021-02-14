@@ -19,6 +19,8 @@ export class ServerFieldErrorComponent implements OnChanges {
 
   @Input() path: string | string[];
 
+  @Input() exact: boolean = false;
+
   errors: string[];
 
   ngOnChanges(): void {
@@ -26,16 +28,20 @@ export class ServerFieldErrorComponent implements OnChanges {
     if (this.fieldErrors) {
       this.fieldErrors.forEach((error) => {
         if (Array.isArray(this.path)) {
-          if (this.path.find((p) => error.field.startsWith(p))) {
+          if (this.path.find((p) => this.matches(error, p))) {
             this.errors.push(error.message);
           }
         } else {
-          if (error.field.startsWith(this.path)) {
+          if (this.matches(error, this.path)) {
             this.errors.push(error.message);
           }
         }
       });
     }
+  }
+
+  private matches(error: FieldError, path: string): boolean {
+    return this.exact ? error.field == path : error.field.startsWith(path);
   }
 
   aggregatedTooltip() {

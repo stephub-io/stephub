@@ -1,0 +1,4 @@
+<span *ngIf="value; else empty"><ng-content></ng-content></span>
+<ng-template #empty>
+  <fa-icon icon="pen"></fa-icon><span class="hint">- missing value -</span>
+</ng-template>

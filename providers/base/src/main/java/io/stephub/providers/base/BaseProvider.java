@@ -30,6 +30,6 @@ public class BaseProvider extends SpringBeanProvider<LocalProviderAdapter.Sessio
 
     @Override
     public JsonSchema getOptionsSchema() {
-        return JsonSchema.builder().build();
+        return JsonSchema.ofType(Json.JsonType.NULL);
     }
 }

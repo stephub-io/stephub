@@ -25,7 +25,7 @@
                 [formControl]="fc"
                 matInput
                 [focus]="true"
-                saveOnEnter
+                [saveOnEnter]="true"
                 cancelOnEsc
               />
               <mat-error *ngIf="fc.errors?.required">Required input</mat-error>
@@ -67,10 +67,17 @@
           Providers
           <sh-server-field-error
             path="providers"
-            [fieldErrors]="allErrors()"
+            [fieldErrors]="allErrors$ | async"
             displayType="indicator"
           ></sh-server-field-error>
         </ng-template>
+        <div class="tab-body">
+          <sh-workspace-providers
+            [workspace]="workspace"
+            [editMode]="editMode"
+            [errors]="allErrors$ | async"
+          ></sh-workspace-providers>
+        </div>
       </mat-tab>
 
       <mat-tab>
@@ -78,7 +85,7 @@
           Variables
           <sh-server-field-error
             path="variables"
-            [fieldErrors]="allErrors()"
+            [fieldErrors]="allErrors$ | async"
             displayType="indicator"
           ></sh-server-field-error>
         </ng-template>
@@ -158,7 +165,7 @@
           Syntax preferences
           <sh-server-field-error
             path="gherkinPreferences"
-            [fieldErrors]="allErrors()"
+            [fieldErrors]="allErrors$ | async"
             displayType="indicator"
           ></sh-server-field-error>
         </ng-template>

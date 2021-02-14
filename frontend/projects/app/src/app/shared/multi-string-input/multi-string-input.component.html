@@ -71,7 +71,7 @@
                 cancelOnEsc
                 [cdkAutosizeMinRows]="minRows(ta, element)"
                 [ngClass]="{ code: codeInput }"
-                [matAutocomplete]="auto"
+                [matAutocomplete]="autoGroup"
               ></textarea>
               <input
                 *ngIf="!textarea"
@@ -81,29 +81,34 @@
                 [saveOnEnter]="!(autoCompleteSelected$ | async)"
                 cancelOnEsc
                 [ngClass]="{ code: codeInput }"
-                [matAutocomplete]="auto"
+                [matAutocomplete]="autoGroup"
               />
               <mat-error *ngFor="let error of fieldErrors(fc)">{{
                 error
               }}</mat-error>
               <mat-autocomplete
-                #auto
+                #autoGroup
                 (optionActivated)="markAutoCompleteSelected()"
               >
-                <mat-option
-                  *ngFor="let option of autoCompleteItems$ | async"
-                  [value]="option.value"
+                <mat-optgroup
+                  *ngFor="let group of autoCompleteItems$ | async"
+                  [label]="group.label"
                 >
-                  <ng-container
-                    *ngTemplateOutlet="
-                      autoSuggestOptionTpl
-                        ? autoSuggestOptionTpl.tpl
-                        : suggestOptionView;
-                      context: { $implicit: option.view }
-                    "
+                  <mat-option
+                    *ngFor="let option of group.options"
+                    [value]="option.value"
                   >
-                  </ng-container>
-                </mat-option>
+                    <ng-container
+                      *ngTemplateOutlet="
+                        autoSuggestOptionTpl
+                          ? autoSuggestOptionTpl.tpl
+                          : suggestOptionView;
+                        context: { $implicit: option.view }
+                      "
+                    >
+                    </ng-container>
+                  </mat-option>
+                </mat-optgroup>
               </mat-autocomplete>
             </mat-form-field>
           </ng-template>
@@ -121,7 +126,7 @@
               cdkAutosizeMinRows="1"
               (keydown.enter)="addItemOnEnter($event)"
               [ngClass]="{ code: codeInput }"
-              [matAutocomplete]="auto"
+              [matAutocomplete]="autoGroup"
             ></textarea>
             <input
               *ngIf="!textarea"
@@ -129,29 +134,34 @@
               matInput
               (keydown.enter)="addItemOnEnter($event)"
               [ngClass]="{ code: codeInput }"
-              [matAutocomplete]="auto"
+              [matAutocomplete]="autoGroup"
             />
             <mat-error *ngFor="let error of fieldErrors(newItemCtrl)">{{
               error
             }}</mat-error>
             <mat-autocomplete
-              #auto
+              #autoGroup
               (optionActivated)="markAutoCompleteSelected()"
             >
-              <mat-option
-                *ngFor="let option of newAutoCompleteItems$ | async"
-                [value]="option.value"
+              <mat-optgroup
+                *ngFor="let group of newAutoCompleteItems$ | async"
+                [label]="group.label"
               >
-                <ng-container
-                  *ngTemplateOutlet="
-                    autoSuggestOptionTpl
-                      ? autoSuggestOptionTpl.tpl
-                      : suggestOptionView;
-                    context: { $implicit: option.view }
-                  "
+                <mat-option
+                  *ngFor="let option of group.options"
+                  [value]="option.value"
                 >
-                </ng-container>
-              </mat-option>
+                  <ng-container
+                    *ngTemplateOutlet="
+                      autoSuggestOptionTpl
+                        ? autoSuggestOptionTpl.tpl
+                        : suggestOptionView;
+                      context: { $implicit: option.view }
+                    "
+                  >
+                  </ng-container>
+                </mat-option>
+              </mat-optgroup>
             </mat-autocomplete>
           </mat-form-field>
         </div>

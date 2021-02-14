@@ -56,6 +56,8 @@ export class WorkspaceDetailComponent implements OnInit {
 
   fieldErrors$ = new BehaviorSubject<FieldError[]>(null);
 
+  allErrors$ = new BehaviorSubject<FieldError[]>(null);
+
   constructor(
     private workspaceService: WorkspaceService,
     private route: ActivatedRoute,
@@ -75,6 +77,14 @@ export class WorkspaceDetailComponent implements OnInit {
     });
   }
 
+  private setFieldErrors(fieldErrors: FieldError[]) {
+    this.fieldErrors$.next(fieldErrors);
+    this.allErrors$.next([
+      ...(this.workspace?.errors ? this.workspace?.errors : []),
+      ...fieldErrors,
+    ]);
+  }
+
   private onWorkspaceInit(workspace: Workspace) {
     initFeatures(workspace);
     this.workspace = workspace;
@@ -87,7 +97,7 @@ export class WorkspaceDetailComponent implements OnInit {
       },
       (error) => console.error("Failed to load steps collection", error)
     );
-    this.fieldErrors$.next([]);
+    this.setFieldErrors([]);
   }
 
   private setTitle(workspace: Workspace) {
@@ -148,7 +158,7 @@ export class WorkspaceDetailComponent implements OnInit {
       (error) => {
         this.editable = true;
         if (error instanceof ServerError) {
-          this.fieldErrors$.next(error.errors);
+          this.setFieldErrors(error.errors);
         }
         throw error;
       }
@@ -204,13 +214,5 @@ export class WorkspaceDetailComponent implements OnInit {
     return this.editMode
       ? ["key", "schema", "defaultValue", "action"]
       : ["key", "schema", "defaultValue"];
-  }
-
-  allErrors() {
-    if (this.workspace.errors) {
-      return [...this.fieldErrors$.value, ...this.workspace.errors];
-    } else {
-      return this.fieldErrors$.value;
-    }
   }
 }

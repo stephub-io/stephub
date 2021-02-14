@@ -52,7 +52,7 @@
                         type="text"
                         placeholder="Name"
                         [focus]="true"
-                        saveOnEnter
+                        [saveOnEnter]="true"
                         cancelOnEsc
                       />
                       <mat-error *ngIf="fc.errors?.required"
@@ -149,7 +149,7 @@
                               type="text"
                               placeholder="Name"
                               [focus]="true"
-                              saveOnEnter
+                              [saveOnEnter]="true"
                               cancelOnEsc
                             />
                             <mat-error *ngIf="fc.errors?.required"
@@ -214,6 +214,7 @@
       [validator]="validatorRequired"
       [codeInput]="true"
       [autoCompleteSource]="stepAutoCompleteSource"
+      [autoCompleteGroup]="true"
     >
       <ng-template multiStringView let-item="item">
         <div class="step">
@@ -254,7 +255,7 @@
               matInput
               cdkTextareaAutosize
               [focus]="true"
-              saveOnEnter
+              [saveOnEnter]="true"
               cancelOnEsc
               cdkAutosizeMinRows="1"
             ></textarea>
@@ -287,7 +288,7 @@
               type="text"
               placeholder="Tags"
               [focus]="true"
-              saveOnEnter
+              [saveOnEnter]="true"
               cancelOnEsc
             />
             <mat-error *ngIf="fc.errors?.pattern"

@@ -33,7 +33,7 @@ import {
   FieldError,
   ServerError,
 } from "../../../core/server-error/server-error.model";
-import { SuggestOption } from "../../../shared/multi-string-input/multi-string-input.component";
+import { SuggestOption } from "../../../util/auto-suggest";
 
 @Component({
   selector: "sh-execution-new",

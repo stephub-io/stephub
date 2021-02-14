@@ -25,6 +25,8 @@ import { StepViewComponent } from "./step/step-view/step-view.component";
 import { ExecutionNewComponent } from "./execution-new/execution-new.component";
 import { MatStepperModule } from "@angular/material/stepper";
 import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
+import { WorkspaceProvidersComponent } from "./workspace-detail/providers/workspace-providers.component";
+import { MatAutocompleteModule } from "@angular/material/autocomplete";
 
 @NgModule({
   declarations: [
@@ -41,6 +43,7 @@ import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
     WorkspaceFeaturesComponent,
     StepViewComponent,
     ExecutionNewComponent,
+    WorkspaceProvidersComponent,
   ],
   imports: [
     CommonModule,
@@ -54,6 +57,7 @@ import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
     MatRadioModule,
     DragDropModule,
     MatStepperModule,
+    MatAutocompleteModule,
   ],
   providers: [
     {

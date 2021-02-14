@@ -13,6 +13,7 @@ import { MultiStringViewDirective } from "./multi-string-view.directive";
 import { BehaviorSubject, Observable } from "rxjs";
 import { map, startWith } from "rxjs/operators";
 import { MultiStringAutoSuggestOptionDirective } from "./multi-string-auto-suggest-option.directive";
+import { SuggestGroup, SuggestOption } from "../../util/auto-suggest";
 
 @Component({
   selector: "sh-multi-string-input",
@@ -37,20 +38,35 @@ export class MultiStringInputComponent implements OnInit {
 
   @Input() order: boolean = true;
 
-  @Input() autoCompleteSource: (value: string) => SuggestOption[];
+  @Input() autoCompleteGroup: boolean = false;
+
+  @Input() autoCompleteSource: (
+    value: string
+  ) => SuggestOption[] | SuggestGroup[];
 
   @Output() sequenceChange = new EventEmitter<string[]>();
 
   newItemCtrl: FormControl;
-  autoCompleteItems$: Observable<SuggestOption[]>;
-  newAutoCompleteItems$: Observable<SuggestOption[]>;
+  autoCompleteItems$: Observable<SuggestGroup[]>;
+  newAutoCompleteItems$: Observable<SuggestGroup[]>;
   autoCompleteSelected$ = new BehaviorSubject(false);
 
   controlFactory: (value: any) => FormControl = (givenValue) => {
     let control = new FormControl(givenValue, this.validator);
     this.autoCompleteItems$ = control.valueChanges.pipe(
       startWith(givenValue),
-      map((value) => this.filterAutoComplete(value))
+      map((value) => {
+        if (this.autoCompleteGroup) {
+          return this.filterAutoComplete(value) as SuggestGroup[];
+        } else {
+          return [
+            {
+              label: "Select",
+              options: this.filterAutoComplete(value) as SuggestOption[],
+            } as SuggestGroup,
+          ];
+        }
+      })
     );
     return control;
   };
@@ -59,7 +75,18 @@ export class MultiStringInputComponent implements OnInit {
     this.newItemCtrl = new FormControl("", this.validator);
     this.newAutoCompleteItems$ = this.newItemCtrl.valueChanges.pipe(
       startWith(""),
-      map((value) => this.filterAutoComplete(value))
+      map((value) => {
+        if (this.autoCompleteGroup) {
+          return this.filterAutoComplete(value) as SuggestGroup[];
+        } else {
+          return [
+            {
+              label: "Select",
+              options: this.filterAutoComplete(value) as SuggestOption[],
+            } as SuggestGroup,
+          ];
+        }
+      })
     );
   }
 
@@ -151,9 +178,4 @@ export class MultiStringInputComponent implements OnInit {
       ? text.split("\n").length + 1
       : 1;
   }
-}
-
-export interface SuggestOption {
-  value: string;
-  view: any;
 }

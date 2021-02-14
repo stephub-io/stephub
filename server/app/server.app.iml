@@ -1,5 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module org.jetbrains.idea.maven.project.MavenProjectsManager.isMavenModule="true" version="4">
+  <component name="FacetManager">
+    <facet type="Spring" name="Spring">
+      <configuration />
+    </facet>
+    <facet type="web" name="Web">
+      <configuration>
+        <webroots />
+        <sourceRoots>
+          <root url="file://$MODULE_DIR$/src/main/java" />
+          <root url="file://$MODULE_DIR$/src/main/resources" />
+          <root url="file://$MODULE_DIR$/target/generated-sources/antlr4" />
+        </sourceRoots>
+      </configuration>
+    </facet>
+  </component>
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_10">
     <output url="file://$MODULE_DIR$/target/classes" />
     <output-test url="file://$MODULE_DIR$/target/test-classes" />
@@ -13,7 +28,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.23" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.0.25" level="project" />
     <orderEntry type="library" name="Maven: javax.validation:validation-api:2.0.1.Final" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
     <orderEntry type="module" module-name="expression" />
@@ -22,7 +37,7 @@
     <orderEntry type="library" name="Maven: org.jruby.joni:joni:2.1.31" level="project" />
     <orderEntry type="library" name="Maven: org.jruby.jcodings:jcodings:1.0.46" level="project" />
     <orderEntry type="module" module-name="providers.base" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.23" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.0.25" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.3.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jsonSchema:2.11.1" level="project" />
     <orderEntry type="module" module-name="providers.remote" />

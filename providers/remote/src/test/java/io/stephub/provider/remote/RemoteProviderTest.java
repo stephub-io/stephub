@@ -275,10 +275,10 @@ class RemoteProviderTest {
         this.wireMockServer.start();
         configureFor("localhost", this.wireMockServer.port());
         this.baseUrlBuilder = HttpUrl.parse("http://localhost:" + this.wireMockServer.port() + "/myProvider").newBuilder();
-        this.provider = RemoteProvider.builder().
-                baseUrl(this.baseUrlBuilder.build().toString()).
-                validator(Validation.buildDefaultValidatorFactory().getValidator()).
-                build();
+        this.provider = new RemoteProvider();
+        this.provider.setBaseUrl(this.baseUrlBuilder.build().toString());
+        this.provider.setValidator(
+                Validation.buildDefaultValidatorFactory().getValidator());
     }
 
     @AfterEach

@@ -1,0 +1,206 @@
+<div [ngClass]="{ 'view-mode': !editMode, 'edit-mode': editMode }">
+  <mat-accordion
+    class="items-headers-align"
+    multi
+    *ngFor="let provider of workspace.providers; let fi = index"
+  >
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <sh-empty-value [value]="provider.name">
+            <fa-icon icon="toolbox" title="Provider"></fa-icon>
+            <span>{{ provider.name }}</span>
+          </sh-empty-value>
+          <sh-server-field-error
+            path="providers[{{ fi }}]"
+            [fieldErrors]="errors"
+            displayType="indicator"
+          ></sh-server-field-error>
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-divider></mat-divider>
+        <div>
+          <div class="inline-meta">
+            <div class="section-actions">
+              <button
+                *ngIf="editMode"
+                mat-icon-button
+                color="warn"
+                (click)="deleteProvider(fi)"
+              >
+                <fa-icon icon="trash"></fa-icon>
+              </button>
+            </div>
+            <div class="row">
+              <div class="col"></div>
+              <div class="col-9">
+                <sh-server-field-error
+                  path="providers[{{ fi }}]"
+                  [fieldErrors]="errors"
+                  [exact]="true"
+                ></sh-server-field-error>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">Name:</div>
+              <div class="col-9">
+                <sh-inline-edit
+                  [editable]="editMode"
+                  [value]="provider.name"
+                  [controlFactory]="nameControlFactory"
+                  (save)="provider.name = $event"
+                >
+                  <ng-template inlineView>
+                    <sh-empty-value [value]="provider.name">{{
+                      provider.name
+                    }}</sh-empty-value>
+                  </ng-template>
+                  <ng-template inlineEdit let-fc>
+                    <mat-form-field class="full">
+                      <input
+                        matInput
+                        [formControl]="fc"
+                        type="text"
+                        placeholder="Name"
+                        [focus]="true"
+                        [saveOnEnter]="true"
+                        cancelOnEsc
+                        [matAutocomplete]="autoName"
+                      />
+                      <mat-error *ngIf="fc.errors?.required"
+                        >Required input
+                      </mat-error>
+                    </mat-form-field>
+                  </ng-template>
+                </sh-inline-edit>
+                <sh-server-field-error
+                  path="providers[{{ fi }}].name"
+                  [fieldErrors]="errors"
+                ></sh-server-field-error>
+                <mat-autocomplete #autoName>
+                  <mat-option
+                    *ngFor="let option of autoCompleteNames$ | async"
+                    [value]="option"
+                    >{{ option }}
+                  </mat-option>
+                </mat-autocomplete>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">Version:</div>
+              <div class="col-9">
+                <sh-inline-edit
+                  [editable]="editMode"
+                  [value]="provider.version"
+                  (save)="provider.version = $event"
+                  [controlFactory]="versionControlFactoryByName(provider.name)"
+                >
+                  <ng-template inlineView>{{
+                    provider.version ? provider.version : "- any -"
+                  }}</ng-template>
+                  <ng-template inlineEdit let-fc>
+                    <mat-form-field class="full">
+                      <input
+                        matInput
+                        [formControl]="fc"
+                        type="text"
+                        placeholder="Version"
+                        [focus]="true"
+                        [saveOnEnter]="true"
+                        cancelOnEsc
+                        [matAutocomplete]="autoVersion"
+                      />
+                      <mat-error *ngIf="fc.errors?.required"
+                        >Required input
+                      </mat-error>
+                    </mat-form-field>
+                  </ng-template>
+                </sh-inline-edit>
+                <sh-server-field-error
+                  path="providers[{{ fi }}].version"
+                  [fieldErrors]="errors"
+                ></sh-server-field-error>
+                <mat-autocomplete #autoVersion>
+                  <mat-option [value]="null">- any -</mat-option>
+                  <mat-option
+                    *ngFor="let option of autoCompleteVersions$ | async"
+                    [value]="option"
+                    >{{ option }}
+                  </mat-option>
+                </mat-autocomplete>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col font-weight-bold">
+                Remote configuration:
+              </div>
+              <div class="col-9">
+                <mat-slide-toggle
+                  [checked]="provider.remoteConfig"
+                  (change)="changeRemoteConfig(provider, $event)"
+                  [disabled]="!editMode"
+                >
+                </mat-slide-toggle>
+              </div>
+            </div>
+            <div *ngIf="provider.remoteConfig">
+              <div class="row">
+                <div class="col font-weight-bold">
+                  Provider base URL:
+                </div>
+                <div class="col-9">
+                  <sh-inline-edit
+                    [editable]="editMode"
+                    [value]="provider.remoteConfig?.url"
+                    [validator]="urlValidator"
+                    (save)="provider.remoteConfig.url = $event"
+                  >
+                    <ng-template inlineView>
+                      <sh-empty-value [value]="provider.remoteConfig?.url">
+                        {{ provider.remoteConfig?.url }}
+                      </sh-empty-value>
+                    </ng-template>
+                    <ng-template inlineEdit let-fc>
+                      <mat-form-field class="full">
+                        <input
+                          matInput
+                          [formControl]="fc"
+                          type="url"
+                          placeholder="Provider base URL"
+                          [focus]="true"
+                          [saveOnEnter]="true"
+                          cancelOnEsc
+                        />
+                        <mat-error *ngIf="fc.errors?.required"
+                          >Required input</mat-error
+                        >
+                        <mat-error *ngIf="fc.errors?.pattern"
+                          >Invalid URL</mat-error
+                        >
+                      </mat-form-field>
+                    </ng-template>
+                  </sh-inline-edit>
+                  <sh-server-field-error
+                    path="providers[{{ fi }}].remoteConfig.url"
+                    [fieldErrors]="errors"
+                  ></sh-server-field-error>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
+  </mat-accordion>
+  <button
+    *ngIf="editMode"
+    mat-mini-fab
+    color="accent"
+    class="add"
+    title="Add provider"
+    (click)="addProvider()"
+  >
+    <fa-icon icon="plus"></fa-icon>
+  </button>
+</div>

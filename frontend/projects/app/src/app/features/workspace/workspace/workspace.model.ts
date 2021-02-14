@@ -8,6 +8,19 @@ export interface Workspace {
   gherkinPreferences: GherkinPreferences;
   variables: VariableMap;
   errors?: FieldError[];
+  providers: ProviderSpec[];
+}
+
+export interface ProviderSpec {
+  name: string;
+  version?: string;
+  options?: object;
+  sessionTimeout?: string;
+  remoteConfig?: ProviderRemoteConfig;
+}
+
+export interface ProviderRemoteConfig {
+  url: string;
 }
 
 export interface WorkspacesResult {

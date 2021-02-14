@@ -10,11 +10,14 @@ import io.stephub.provider.api.model.ProviderInfo;
 import io.stephub.provider.api.model.ProviderOptions;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
+import io.stephub.server.api.model.ProviderSpec;
 import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
@@ -23,20 +26,41 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.stephub.json.jackson.ObjectMapperConfigurer.createObjectMapper;
+import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.apache.commons.lang3.Validate.notBlank;
 
 @Slf4j
-@Builder
 public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json; charset=UTF-8";
     @Builder.Default
     private final OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
-    private final String baseUrl;
-    private final String alias;
+    private String baseUrl;
+    private String alias;
     @Builder.Default
-    private final ObjectMapper objectMapper = createObjectMapper();
-    private final Validator validator;
+    private ObjectMapper objectMapper = createObjectMapper();
+    private Validator validator;
+
+    @Component
+    public static class DefaultProviderFactory implements RemoteProviderFactory {
+        @Autowired
+        private Validator validator;
+
+        @Autowired
+        private ObjectMapper objectMapper;
+
+        @Override
+        public RemoteProvider createProvider(final ProviderSpec remoteSpec) {
+            final RemoteProvider provider = new RemoteProvider();
+            provider.baseUrl = remoteSpec.getRemoteConfig().getUrl();
+            provider.objectMapper = this.objectMapper;
+            provider.validator = this.validator;
+            provider.alias = remoteSpec.getName() +
+                    (isNotBlank(remoteSpec.getVersion()) ? ":" + remoteSpec.getVersion() : "");
+            provider.validator = this.validator;
+            return provider;
+        }
+    }
 
     private HttpUrl.Builder baseUrlBuilder() {
         return HttpUrl.parse(this.baseUrl).newBuilder();
@@ -142,6 +166,14 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
         } catch (final IOException e) {
             throw new ProviderException("Failed to delete session at " + this + ": " + e.getMessage(), e);
         }
+    }
+
+    void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    void setValidator(Validator validator) {
+        this.validator = validator;
     }
 
     @Override

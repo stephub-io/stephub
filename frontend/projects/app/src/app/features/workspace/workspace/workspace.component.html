@@ -9,6 +9,7 @@
         [attr.role]="(isHandset$ | async) ? 'dialog' : 'navigation'"
         [mode]="(isHandset$ | async) ? 'over' : 'side'"
         [opened]="!(isHandset$ | async)"
+        [ngClass]="routeAnimationsElements"
       >
         <input #handset type="hidden" [value]="isHandset$ | async" />
         <mat-toolbar class="workspace">

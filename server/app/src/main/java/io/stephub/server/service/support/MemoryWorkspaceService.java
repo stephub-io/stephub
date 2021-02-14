@@ -1,11 +1,14 @@
 package io.stephub.server.service.support;
 
+import io.stephub.providers.base.BaseProvider;
+import io.stephub.server.api.model.ProviderSpec;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.api.rest.WorkspaceFinder;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.ResourceNotFoundException;
 import io.stephub.server.service.WorkspaceService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -18,9 +21,16 @@ import java.util.stream.Collectors;
 public class MemoryWorkspaceService implements WorkspaceService {
     private final Map<String, Workspace> workspaces = new HashMap<>();
 
+    @Autowired
+    private BaseProvider baseProvider;
+
     @Override
     public Workspace createWorkspace(final Context ctx, final Workspace draft) {
         draft.setId(UUID.randomUUID().toString());
+        if (draft.getProviders() == null || draft.getProviders().isEmpty()) {
+            draft.getProviders().add(ProviderSpec.builder().name(BaseProvider.PROVIDER_NAME)
+                    .build());
+        }
         this.workspaces.put(draft.getId(), draft);
         return draft;
     }
