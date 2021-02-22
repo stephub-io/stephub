@@ -27,6 +27,7 @@ export class InlineEditComponent implements OnInit {
   @Output() cancel = new EventEmitter();
   @Output() onEdit = new EventEmitter();
   @Output() onView = new EventEmitter();
+  @Output() externalEdit = new EventEmitter();
   @ContentChild(InlineViewDirective) viewModeTpl: InlineViewDirective;
   @ContentChild(InlineEditDirective) editModeTpl: InlineEditDirective;
   @Input() value: any;
@@ -70,11 +71,15 @@ export class InlineEditComponent implements OnInit {
       .pipe(untilDestroyed(this))
       .subscribe((event: MouseEvent) => {
         if (this.editable && this.mode.value != "edit") {
-          this.lastHandledViewEvent = event;
-          this.formControl = this.controlFactory(this.value);
-          this.mode.next("edit");
-          this.editMode.next(true);
-          this.onEdit.next();
+          if (this.externalEdit.observers.length > 0) {
+            this.externalEdit.next();
+          } else {
+            this.lastHandledViewEvent = event;
+            this.formControl = this.controlFactory(this.value);
+            this.mode.next("edit");
+            this.editMode.next(true);
+            this.onEdit.next();
+          }
         }
       });
   }

@@ -17,7 +17,7 @@ export class ServerFieldErrorComponent implements OnChanges {
 
   @Input() displayType: DisplayType = DisplayType.full;
 
-  @Input() path: string | string[];
+  @Input() path: string | string[] | null;
 
   @Input() exact: boolean = false;
 
@@ -28,7 +28,7 @@ export class ServerFieldErrorComponent implements OnChanges {
     if (this.fieldErrors) {
       this.fieldErrors.forEach((error) => {
         if (Array.isArray(this.path)) {
-          if (this.path.find((p) => this.matches(error, p))) {
+          if (this.path.filter((p) => this.matches(error, p)).length > 0) {
             this.errors.push(error.message);
           }
         } else {
@@ -40,8 +40,13 @@ export class ServerFieldErrorComponent implements OnChanges {
     }
   }
 
-  private matches(error: FieldError, path: string): boolean {
-    return this.exact ? error.field == path : error.field.startsWith(path);
+  private matches(error: FieldError, path: string | null): boolean {
+    if (path && error.field) {
+      return this.exact ? error.field == path : error.field.startsWith(path);
+    } else if (path == null && !error.field) {
+      return true;
+    }
+    return false;
   }
 
   aggregatedTooltip() {

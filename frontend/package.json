@@ -25,14 +25,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "pretty-quick --staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+      "pre-commit": "pretty-quick --staged"
     }
-  },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
   },
   "private": true,
   "dependencies": {
@@ -65,13 +59,17 @@
     "bootstrap": "^4.5.0",
     "browser-detect": "^0.2.28",
     "humanize-duration": "^3.24.0",
+    "jexl": "^2.3.0",
     "ngx-ace-wrapper": "^10.0.1",
     "ngx-highlightjs": "^4.1.2",
+    "ngx-markdown": "^11.1.0",
+    "ngx-schema-form": "^2.6.0",
     "ngx-skeleton-loader": "^2.4.4",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
     "uuid": "^8.3.0",
     "xng-breadcrumb": "^6.3.1",
+    "z-schema": "^5.0.0",
     "zone.js": "~0.10.3"
   },
   "devDependencies": {
@@ -80,7 +78,6 @@
     "@angular/compiler-cli": "~10.0.5",
     "@angular/language-service": "~10.0.5",
     "@commitlint/cli": "^9.1.1",
-    "@commitlint/config-conventional": "^9.1.1",
     "@types/jasmine": "~3.5.11",
     "@types/jasminewd2": "^2.0.8",
     "@types/node": "^14.0.26",

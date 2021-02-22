@@ -1,0 +1,193 @@
+<h1 mat-dialog-title>Step browser</h1>
+<mat-dialog-content class="step-browser">
+  <div *ngFor="let collection of filteredSteps$ | async">
+    <div *ngIf="!filtered || collection.steps.length > 0">
+      <h3>{{ collection.name }}</h3>
+      <mat-accordion class="items-headers-align" multi>
+        <mat-expansion-panel
+          [expanded]="expandedByDefault"
+          *ngFor="let step of collection.steps; let fi = index"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              <fa-icon icon="magic"></fa-icon>
+              <span>
+                <sh-step-abstract
+                  [instruction]="step.instruction"
+                ></sh-step-abstract>
+              </span>
+            </mat-panel-title>
+          </mat-expansion-panel-header>
+          <ng-template matExpansionPanelContent>
+            <mat-divider></mat-divider>
+            <h4>Step pattern</h4>
+            <div class="inline-meta">
+              <div class="details">
+                <div class="row">
+                  <div class="col">
+                    Pattern:
+                  </div>
+                  <div class="col-9">
+                    <sh-step-request [instruction]="step.instruction">
+                    </sh-step-request>
+                  </div>
+                </div>
+                <div class="row" *ngIf="step.spec.description">
+                  <div class="col">
+                    Description:
+                  </div>
+                  <div class="col-9">
+                    <markdown [data]="step.spec.description"></markdown>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h4>Arguments</h4>
+            <p *ngIf="step.spec.arguments.length == 0">- none -</p>
+            <div *ngFor="let arg of step.spec.arguments" class="inline-meta">
+              <div class="row name">
+                <div class="col">
+                  <div class="shadow-none p-2 bg-light rounded">
+                    {{ arg.name }}
+                  </div>
+                </div>
+              </div>
+              <div class="details">
+                <ng-container
+                  *ngTemplateOutlet="
+                    specDetails;
+                    context: { spec: arg, doc: arg.doc }
+                  "
+                ></ng-container>
+              </div>
+            </div>
+
+            <p class="font-weight-bold">Payload</p>
+            <div *ngIf="step.spec.payload == 'doc_string'" class="inline-meta">
+              <div class="row name">
+                <div class="col">
+                  <div class="shadow-none p-2 bg-light rounded">
+                    DocString
+                  </div>
+                </div>
+              </div>
+              <div class="details">
+                <ng-container
+                  *ngTemplateOutlet="
+                    specDetails;
+                    context: {
+                      spec: step.spec.docString,
+                      doc: step.spec.docString.doc
+                    }
+                  "
+                ></ng-container>
+              </div>
+            </div>
+            <div *ngIf="step.spec.payload == 'data_table'" class="inline-meta">
+              <div class="row" *ngIf="step.spec.dataTable?.description">
+                <div class="col">Description:</div>
+                <div class="col-9">
+                  <markdown
+                    [data]="step.spec.dataTable?.description"
+                  ></markdown>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">Table header:</div>
+                <div class="col-9">
+                  <fa-icon
+                    [icon]="
+                      step.spec.dataTable?.header
+                        ? ['far', 'check-square']
+                        : ['far', 'square']
+                    "
+                  ></fa-icon>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col">Columns:</div>
+                <div class="col-9">
+                  <div *ngFor="let col of step.spec.dataTable?.columns">
+                    <div class="row name">
+                      <div class="col">
+                        <div class="shadow-none p-2 bg-light rounded">
+                          {{ col.name }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="details">
+                      <ng-container
+                        *ngTemplateOutlet="
+                          specDetails;
+                          context: { spec: col, doc: col.doc }
+                        "
+                      ></ng-container>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <p *ngIf="step.spec.payload == null">- none -</p>
+
+            <p class="font-weight-bold">Output</p>
+            <div *ngIf="step.spec.output" class="inline-meta">
+              <div class="details">
+                <ng-container
+                  *ngTemplateOutlet="
+                    specDetails;
+                    context: {
+                      spec: step.spec.output,
+                      doc: step.spec.output.doc
+                    }
+                  "
+                ></ng-container>
+              </div>
+            </div>
+            <p *ngIf="step.spec.output == null">- none -</p>
+          </ng-template>
+        </mat-expansion-panel>
+      </mat-accordion>
+    </div>
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="close()" color="primary">Close</button>
+</mat-dialog-actions>
+
+<ng-template #specDetails let-spec="spec" let-doc="doc">
+  <div class="details">
+    <div class="row">
+      <div class="col">Type:</div>
+      <div class="col-9">
+        <sh-json-schema-view [schema]="spec?.schema"></sh-json-schema-view>
+      </div>
+    </div>
+    <div class="row" *ngIf="spec?.strict === true || spec?.strict === false">
+      <div class="col">Type strictness:</div>
+      <div class="col-9">
+        <fa-icon
+          [icon]="spec?.strict ? ['far', 'check-square'] : ['far', 'square']"
+        ></fa-icon>
+      </div>
+    </div>
+    <div class="row" *ngIf="doc?.description">
+      <div class="col">Description:</div>
+      <div class="col-9">
+        <markdown [data]="doc?.description"></markdown>
+      </div>
+    </div>
+    <div class="row" *ngIf="doc?.examples.length">
+      <div class="col">Examples:</div>
+      <div class="col-9">
+        <div *ngFor="let e of doc?.examples; let i = index" class="row">
+          <div class="col">
+            <mat-divider *ngIf="i > 0"></mat-divider>
+            <sh-json-view [jsonStr]="e.value"></sh-json-view>
+            <markdown [data]="e.description"></markdown>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</ng-template>

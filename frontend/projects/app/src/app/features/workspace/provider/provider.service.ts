@@ -1,7 +1,8 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable } from "rxjs";
-import { RegisteredProvider } from "./provider.model";
+import { ProviderInfo } from "./provider.model";
+import { ProviderSpec } from "../workspace/workspace.model";
 
 @Injectable({
   providedIn: "root",
@@ -9,7 +10,11 @@ import { RegisteredProvider } from "./provider.model";
 export class ProviderService {
   constructor(private http: HttpClient) {}
 
-  public getRegistered(): Observable<RegisteredProvider[]> {
-    return this.http.get<RegisteredProvider[]>(`/api/v1/providers/registered`);
+  public getRegistered(): Observable<ProviderInfo[]> {
+    return this.http.get<ProviderInfo[]>(`/api/v1/providers/registered`);
+  }
+
+  public getProviderInfo(spec: ProviderSpec): Observable<ProviderInfo> {
+    return this.http.post<ProviderInfo>(`/api/v1/providers/lookup`, spec);
   }
 }

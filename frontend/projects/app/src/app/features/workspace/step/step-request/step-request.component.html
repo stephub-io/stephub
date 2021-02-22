@@ -3,6 +3,7 @@
     <sh-step-abstract
       *ngIf="stepLine(fragment)"
       [instruction]="instruction"
+      [indicatePayload]="false"
     ></sh-step-abstract>
     <div class="comment text-muted" *ngIf="commentLine(fragment)">
       {{ commentLine(fragment).comment }}

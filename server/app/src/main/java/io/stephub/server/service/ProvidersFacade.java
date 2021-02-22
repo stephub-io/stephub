@@ -6,6 +6,7 @@ import io.stephub.json.JsonObject;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.Provider;
 import io.stephub.provider.api.ProviderException;
+import io.stephub.provider.api.model.ProviderInfo;
 import io.stephub.provider.api.model.ProviderOptions;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -118,6 +120,10 @@ public class ProvidersFacade implements StepExecutionSource {
                         )
         );
         return steps;
+    }
+
+    public List<ProviderInfo<JsonSchema>> getRegisteredProviders() {
+        return this.builtInProviders.stream().map(p -> (ProviderInfo<JsonSchema>) p.getInfo()).collect(Collectors.toList());
     }
 
     public Provider<JsonObject, JsonSchema, Json> getProvider(final ProviderSpec providerSpec) {

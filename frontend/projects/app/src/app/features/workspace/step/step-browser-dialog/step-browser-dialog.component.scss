@@ -1,0 +1,15 @@
+@import "projects/app/src/styles-variables";
+
+.request {
+  margin: 1rem 0;
+}
+
+.inline-meta {
+  .name {
+    font-weight: bold;
+  }
+
+  .details {
+    padding: 0 1em 1em 1em;
+  }
+}

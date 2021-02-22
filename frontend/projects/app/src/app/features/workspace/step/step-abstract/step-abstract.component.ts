@@ -1,5 +1,12 @@
-import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 import {
+  ChangeDetectionStrategy,
+  Component,
+  Input,
+  OnInit,
+} from "@angular/core";
+import {
+  DataTable,
+  DocString,
   StepInstruction,
   StepLine,
   StepLinePart,
@@ -8,6 +15,7 @@ import {
   StepLinePartKeyword,
   StepLinePartText,
 } from "../parser/instruction-parser";
+import { PayloadType } from "../step.model";
 
 @Component({
   selector: "sh-step-abstract",
@@ -15,16 +23,31 @@ import {
   styleUrls: ["./step-abstract.component.scss"],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class StepAbstractComponent {
+export class StepAbstractComponent implements OnInit {
   @Input() instruction: StepInstruction;
+  @Input() indicatePayload = true;
+  stepLine: StepLine;
+  payload: PayloadType = null;
 
   constructor() {}
 
-  stepLine(): StepLine {
+  ngOnInit(): void {
+    if (
+      this.instruction.fragments.filter((value) => value instanceof DocString)
+        .length > 0
+    ) {
+      this.payload = PayloadType.DOC_STRING;
+    }
+    if (
+      this.instruction.fragments.filter((value) => value instanceof DataTable)
+        .length > 0
+    ) {
+      this.payload = PayloadType.DATA_TABLE;
+    }
     let sl = this.instruction.fragments.filter(
       (value) => value instanceof StepLine
     );
-    return sl.length > 0 ? (sl[0] as StepLine) : null;
+    this.stepLine = sl.length > 0 ? (sl[0] as StepLine) : null;
   }
 
   keyword(part: StepLinePart): StepLinePartKeyword {

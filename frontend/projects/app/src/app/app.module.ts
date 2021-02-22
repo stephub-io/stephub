@@ -9,6 +9,7 @@ import { AppRoutingModule } from "./app-routing.module";
 import { AppComponent } from "./app/app.component";
 import { HIGHLIGHT_OPTIONS } from "ngx-highlightjs";
 import { ACE_CONFIG, AceConfigInterface } from "ngx-ace-wrapper";
+import { MarkdownModule } from "ngx-markdown";
 
 const DEFAULT_ACE_CONFIG: AceConfigInterface = {};
 
@@ -24,6 +25,7 @@ const DEFAULT_ACE_CONFIG: AceConfigInterface = {};
 
     // app
     AppRoutingModule,
+    MarkdownModule.forRoot(),
   ],
   declarations: [AppComponent],
   bootstrap: [AppComponent],

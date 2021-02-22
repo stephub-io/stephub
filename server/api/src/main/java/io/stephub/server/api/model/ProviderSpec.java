@@ -3,6 +3,7 @@ package io.stephub.server.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.stephub.json.JsonObject;
 import io.stephub.provider.api.model.ProviderOptions;
+import io.stephub.server.api.validation.ValidProviderSpec;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import java.util.regex.Matcher;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @SuperBuilder
+@ValidProviderSpec
 public class ProviderSpec extends ProviderOptions<JsonObject> implements Identifiable {
     private static final String VERSION_PATTERN = "\\s*(>|>=|=|^)\\s*(\\d+(\\.\\d+(\\.\\d+)?)?).*?";
 

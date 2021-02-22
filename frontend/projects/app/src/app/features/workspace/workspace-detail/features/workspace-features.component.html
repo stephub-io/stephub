@@ -217,13 +217,20 @@
       [autoCompleteGroup]="true"
     >
       <ng-template multiStringView let-item="item">
-        <div class="step">
+        <div class="step" hover-class="active-step">
           <fa-icon
             class="warn-text"
             *ngIf="!instruction(item).matchingSpec"
             icon="exclamation-circle"
             matTooltip="No matching step found! Please check for correct syntax."
             matTooltipClass="warn-tooltip"
+          ></fa-icon>
+          <fa-icon
+            class="text-muted step-action"
+            *ngIf="instruction(item).matchingSpec"
+            icon="search-plus"
+            (click)="openStepSpec(instruction(item), $event)"
+            title="Open step specification"
           ></fa-icon>
           <sh-step-request [instruction]="instruction(item)"></sh-step-request>
         </div>

@@ -20,24 +20,31 @@
       </mat-expansion-panel-header>
       <ng-template matExpansionPanelContent>
         <mat-divider></mat-divider>
-        <div>
+        <div *ngIf="providerInfoHolders$[fi] | async | async as infoHolder">
           <div class="inline-meta">
             <div class="section-actions">
               <button
+                mat-stroked-button
+                (click)="showSteps(infoHolder.info, infoHolder.info?.steps)"
+                [disabled]="infoHolder.error || infoHolder.loading"
+              >
+                <fa-icon icon="magic"></fa-icon> Show steps
+              </button>
+              <button
                 *ngIf="editMode"
-                mat-icon-button
+                mat-stroked-button
                 color="warn"
                 (click)="deleteProvider(fi)"
               >
-                <fa-icon icon="trash"></fa-icon>
+                <fa-icon icon="trash"></fa-icon> Delete
               </button>
             </div>
             <div class="row">
               <div class="col"></div>
               <div class="col-9">
                 <sh-server-field-error
-                  path="providers[{{ fi }}]"
-                  [fieldErrors]="errors"
+                  [path]="['providers[' + fi + ']', null]"
+                  [fieldErrors]="concat(errors, infoHolder.errors)"
                   [exact]="true"
                 ></sh-server-field-error>
               </div>
@@ -49,7 +56,7 @@
                   [editable]="editMode"
                   [value]="provider.name"
                   [controlFactory]="nameControlFactory"
-                  (save)="provider.name = $event"
+                  (save)="setName(fi, $event)"
                 >
                   <ng-template inlineView>
                     <sh-empty-value [value]="provider.name">{{
@@ -75,8 +82,8 @@
                   </ng-template>
                 </sh-inline-edit>
                 <sh-server-field-error
-                  path="providers[{{ fi }}].name"
-                  [fieldErrors]="errors"
+                  [path]="['providers[' + fi + '].name', 'name']"
+                  [fieldErrors]="concat(errors, infoHolder.errors)"
                 ></sh-server-field-error>
                 <mat-autocomplete #autoName>
                   <mat-option
@@ -93,7 +100,7 @@
                 <sh-inline-edit
                   [editable]="editMode"
                   [value]="provider.version"
-                  (save)="provider.version = $event"
+                  (save)="setVersion(fi, $event)"
                   [controlFactory]="versionControlFactoryByName(provider.name)"
                 >
                   <ng-template inlineView>{{
@@ -118,8 +125,8 @@
                   </ng-template>
                 </sh-inline-edit>
                 <sh-server-field-error
-                  path="providers[{{ fi }}].version"
-                  [fieldErrors]="errors"
+                  [path]="['providers[' + fi + '].version', 'version']"
+                  [fieldErrors]="concat(errors, infoHolder.errors)"
                 ></sh-server-field-error>
                 <mat-autocomplete #autoVersion>
                   <mat-option [value]="null">- any -</mat-option>
@@ -137,7 +144,7 @@
               </div>
               <div class="col-9">
                 <mat-slide-toggle
-                  [checked]="provider.remoteConfig"
+                  [checked]="!!provider.remoteConfig"
                   (change)="changeRemoteConfig(provider, $event)"
                   [disabled]="!editMode"
                 >
@@ -154,7 +161,7 @@
                     [editable]="editMode"
                     [value]="provider.remoteConfig?.url"
                     [validator]="urlValidator"
-                    (save)="provider.remoteConfig.url = $event"
+                    (save)="setRemoteConfig(fi, { url: $event })"
                   >
                     <ng-template inlineView>
                       <sh-empty-value [value]="provider.remoteConfig?.url">
@@ -173,11 +180,11 @@
                           cancelOnEsc
                         />
                         <mat-error *ngIf="fc.errors?.required"
-                          >Required input</mat-error
-                        >
+                          >Required input
+                        </mat-error>
                         <mat-error *ngIf="fc.errors?.pattern"
-                          >Invalid URL</mat-error
-                        >
+                          >Invalid URL
+                        </mat-error>
                       </mat-form-field>
                     </ng-template>
                   </sh-inline-edit>
@@ -186,6 +193,31 @@
                     [fieldErrors]="errors"
                   ></sh-server-field-error>
                 </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col font-weight-bold">
+                Options:
+              </div>
+              <div class="col-9">
+                <sh-inline-edit
+                  *ngIf="
+                    !nullSchema(infoHolder.info?.optionsSchema);
+                    else noOptions
+                  "
+                  [editable]="editMode"
+                  (externalEdit)="editProviderOptions(provider, infoHolder)"
+                >
+                  <ng-template inlineView>
+                    <sh-json-view [json]="provider.options"></sh-json-view>
+                  </ng-template>
+                </sh-inline-edit>
+                <ng-template #noOptions>- none required -</ng-template>
+                <sh-server-field-error
+                  path="providers[{{ fi }}].options"
+                  [fieldErrors]="errors"
+                ></sh-server-field-error>
               </div>
             </div>
           </div>

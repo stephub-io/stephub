@@ -6,6 +6,9 @@
     "schema": {
       "type": "object",
       "title": "JSON schema for output"
+    },
+    "doc": {
+      "$ref": "step-spec-doc.json"
     }
   }
 }

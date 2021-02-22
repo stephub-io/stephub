@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
-import java.lang.reflect.AnnotatedType;
+import java.lang.reflect.Type;
 
 @Configuration
 @ComponentScan(basePackageClasses = {BaseProvider.class, RemoteProviderFactory.class})
@@ -30,8 +30,8 @@ public class ProvidersConfig {
         }
 
         @Override
-        protected Object wrapSchema(final AnnotatedType type) {
-            return JsonSchema.ofType(Json.JsonType.valueOf((Class<?>) type.getType()));
+        protected Object wrapSchema(final Type type) {
+            return JsonSchema.ofType(Json.JsonType.valueOf((Class<?>) type));
         }
     }
 }

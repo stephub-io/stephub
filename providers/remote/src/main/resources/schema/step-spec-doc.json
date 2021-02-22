@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Documentation",
+  "type": "object",
+  "properties": {
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "description": "Description in markdown format"
+    },
+    "examples": {
+      "type": "array",
+      "title": "Examples",
+      "items": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "title": "Value",
+            "description": "Example JSON value serialized to string"
+          },
+          "description": {
+            "title": "Description",
+            "description": "Example description in markdown format"
+          }
+        }
+      }
+    }
+  }
+}

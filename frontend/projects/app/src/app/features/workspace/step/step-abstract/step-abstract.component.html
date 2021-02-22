@@ -1,4 +1,4 @@
-<span class="abstract" *ngIf="stepLine() as stepLine">
+<span class="abstract" *ngIf="stepLine">
   <span *ngFor="let part of stepLine.parts">
     <span *ngIf="keyword(part) as keyword" class="keyword">{{
       keyword.keyword
@@ -13,4 +13,14 @@
       <span class="text">{{ assigment.right }}</span>
     </span>
   </span>
+  <fa-icon
+    *ngIf="indicatePayload && payload == 'doc_string'"
+    [icon]="['far', 'file-code']"
+    class="payload"
+  ></fa-icon>
+  <fa-icon
+    *ngIf="indicatePayload && payload == 'data_table'"
+    icon="table"
+    class="payload"
+  ></fa-icon>
 </span>

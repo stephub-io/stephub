@@ -13,22 +13,28 @@ mat-expansion-panel {
     overflow-x: auto;
     white-space: nowrap;
 
-    fa-icon.warn-text {
+    fa-icon {
       float: left;
       padding-right: 4px;
+    }
+
+    fa-icon.step-action {
+      cursor: pointer;
     }
   }
 }
 
 .feature-action,
-.scenario-action {
+.scenario-action,
+.step-action {
   visibility: hidden;
   opacity: 0;
   transition: visibility 0s 0.25s, opacity 0.25s linear;
 }
 
 .active-feature .feature-action,
-.active-scenario .scenario-action {
+.active-scenario .scenario-action,
+.active-step .step-action {
   visibility: visible;
   opacity: 1;
   transition: opacity 0.5s linear;

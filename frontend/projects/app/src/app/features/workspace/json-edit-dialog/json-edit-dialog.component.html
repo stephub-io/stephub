@@ -1,0 +1,38 @@
+<h1 mat-dialog-title>JSON editor</h1>
+<mat-dialog-content [formGroup]="form" class="json-editor">
+  <mat-tab-group>
+    <mat-tab label="JSON">
+      <div class="tab-content">
+        <ace [mode]="'json'" [theme]="'github'" [(value)]="aceValue"></ace>
+      </div>
+    </mat-tab>
+    <mat-tab label="Form" *ngIf="schema">
+      <div class="tab-content">
+        <sf-form
+          *ngIf="!nullSchema(formSchema); else noOptions"
+          [schema]="formSchema"
+          [(model)]="value"
+        ></sf-form>
+        <ng-template #noOptions>
+          <p>JSON schema doesn't allow any value, only <code>null</code>.</p>
+        </ng-template>
+      </div>
+    </mat-tab>
+    <mat-tab label="Schema" *ngIf="schema">
+      <div class="tab-content">
+        <sh-json-view [json]="schema"></sh-json-view>
+      </div>
+    </mat-tab>
+  </mat-tab-group>
+</mat-dialog-content>
+<mat-dialog-actions>
+  <button mat-raised-button (click)="close()">Close</button>
+  <button
+    mat-raised-button
+    color="primary"
+    (click)="save()"
+    [disabled]="form.invalid"
+  >
+    Save
+  </button>
+</mat-dialog-actions>

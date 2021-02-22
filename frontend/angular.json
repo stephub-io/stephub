@@ -32,7 +32,7 @@
               "projects/app/src/styles-app-loading.scss",
               "projects/app/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": ["node_modules/marked/lib/marked.js"]
           },
           "configurations": {
             "production": {

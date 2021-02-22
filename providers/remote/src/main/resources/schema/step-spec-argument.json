@@ -12,13 +12,15 @@
     "schema": {
       "type": "object",
       "title": "JSON schema for argument value",
-      "default": {
-      }
+      "default": {}
     },
     "strict": {
       "type": "boolean",
       "title": "Strictness of argument schema validation",
       "default": false
+    },
+    "doc": {
+      "$ref": "step-spec-doc.json"
     }
   }
 }

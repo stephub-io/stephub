@@ -9,7 +9,9 @@ import { ChangeDetectionStrategy, Component, Input } from "@angular/core";
 export class JsonViewComponent {
   @Input() json: any;
 
+  @Input() jsonStr: any;
+
   highlightString(): string {
-    return JSON.stringify(this.json, null, 2);
+    return this.jsonStr ? this.jsonStr : JSON.stringify(this.json, null, 2);
   }
 }

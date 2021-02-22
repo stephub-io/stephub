@@ -2,18 +2,15 @@ package io.stephub.server.controller;
 
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.ProviderInfo;
-import io.stephub.providers.base.BaseProvider;
+import io.stephub.server.api.model.ProviderSpec;
+import io.stephub.server.api.validation.ValidProviderSpec;
 import io.stephub.server.model.Context;
-import lombok.Builder;
-import lombok.Data;
+import io.stephub.server.service.ProvidersFacade;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
+import javax.validation.Valid;
 import java.util.List;
 
 @Slf4j
@@ -21,28 +18,17 @@ import java.util.List;
 public class ProviderController {
 
     @Autowired
-    private BaseProvider baseProvider;
+    private ProvidersFacade providersFacade;
 
     @GetMapping("/providers/registered")
     @ResponseBody
-    public List<RegisteredProvider> getKnowProviders(@ModelAttribute final Context ctx) {
-        final List<RegisteredProvider> providers = new ArrayList<>();
-        providers.add(RegisteredProvider.from(this.baseProvider.getInfo()));
-        return providers;
+    public List<ProviderInfo<JsonSchema>> getKnowProviders(@ModelAttribute final Context ctx) {
+        return this.providersFacade.getRegisteredProviders();
     }
 
-    @Data
-    @Builder
-    public static class RegisteredProvider {
-        private String name;
-        private String version;
-        private JsonSchema optionsSchema;
-
-        public static RegisteredProvider from(final ProviderInfo<JsonSchema> providerInfo) {
-            return RegisteredProvider.builder().name(providerInfo.getName())
-                    .version(providerInfo.getVersion())
-                    .optionsSchema(providerInfo.getOptionsSchema())
-                    .build();
-        }
+    @PostMapping("/providers/lookup")
+    @ResponseBody
+    public ProviderInfo<JsonSchema> getKnowProviders(@ModelAttribute final Context ctx, @RequestBody @Valid @ValidProviderSpec final ProviderSpec spec) {
+        return this.providersFacade.getProvider(spec).getInfo();
     }
 }

@@ -5,6 +5,10 @@
   }
 }
 
+body {
+  font-size: 14px;
+}
+
 pre {
   margin: 1em 0px;
 }
@@ -33,6 +37,7 @@ p {
 
 .hljs {
   background: none;
+  padding: 0;
 }
 
 mat-accordion .mat-expansion-panel-header-title {
@@ -57,6 +62,14 @@ mat-accordion .mat-expansion-panel-header-description div.info {
   white-space: nowrap;
 }
 
+mat-accordion mat-expansion-panel {
+  margin-bottom: 1em !important;
+
+  mat-divider {
+    margin: 0.5em 0 !important;
+  }
+}
+
 button.add {
   margin: 1em auto 0;
   display: block;
@@ -68,6 +81,7 @@ mat-form-field.full {
 
 .fab-create {
   position: relative;
+
   button,
   a {
     position: absolute;
@@ -102,4 +116,31 @@ fa-icon.heading {
 
 .inline-meta .row {
   padding: 4px 0;
+}
+
+.main-actions {
+  margin-bottom: 0.5em;
+
+  button,
+  a,
+  mat-slide-toggle {
+    margin-right: 1rem;
+    line-height: 24px;
+  }
+}
+
+.section-actions {
+  margin-top: 0.5em;
+  text-align: right;
+
+  button,
+  a,
+  mat-slide-toggle {
+    margin-left: 1rem;
+    line-height: 24px;
+  }
+}
+
+markdown > p {
+  margin: 0;
 }

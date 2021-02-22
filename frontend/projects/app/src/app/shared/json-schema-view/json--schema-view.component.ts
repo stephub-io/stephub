@@ -47,12 +47,35 @@ export function getSchemaType(schema) {
   return JsonSchemaType.custom;
 }
 
-export function isNullable(schema) {
+export function getSchemaExample(schema) {
+  switch (getSchemaType(schema)) {
+    case JsonSchemaType.any:
+      return undefined;
+    case JsonSchemaType.custom:
+      if (matchesSchemaVariant(schema, "object")) {
+        return {};
+      } else if (matchesSchemaVariant(schema, "array")) {
+        return [];
+      }
+      return undefined;
+    case JsonSchemaType.boolean:
+      return true;
+    case JsonSchemaType.string:
+      return "lorem ipsum";
+    case JsonSchemaType.number:
+      return 75;
+  }
+  return undefined;
+}
+
+export function isNullable(schema: any, only: boolean = false) {
   return (
     schema &&
     schema.type &&
     (schema.type == "null" ||
-      (Array.isArray(schema.type) && schema.type.indexOf("null") >= 0))
+      (Array.isArray(schema.type) &&
+        schema.type.indexOf("null") >= 0 &&
+        (only ? schema.type.length == 1 : true)))
   );
 }
 

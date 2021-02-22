@@ -30,6 +30,8 @@ import {
 } from "../../step/parser/instruction-parser";
 import { SpecSuggest } from "../../step/spec-suggest/spec-suggest";
 import { SuggestGroup, SuggestOption } from "../../../../util/auto-suggest";
+import { MatDialog, MatDialogConfig } from "@angular/material/dialog";
+import { StepBrowserDialogComponent } from "../../step/step-browser-dialog/step-browser-dialog.component";
 
 @Component({
   selector: "sh-workspace-features",
@@ -60,7 +62,7 @@ export class WorkspaceFeaturesComponent implements OnChanges {
     this.autoCompleteFilter(value);
   private instructionCache = new Map<string, StepInstruction>();
 
-  constructor() {}
+  constructor(private dialog: MatDialog) {}
 
   ngOnChanges() {
     console.log("Clearing instructions cache");
@@ -193,6 +195,20 @@ export class WorkspaceFeaturesComponent implements OnChanges {
     instruction = parse(step, null, false, this.workspace.gherkinPreferences);
     this.instructionCache.set(step, instruction);
     return instruction;
+  }
+
+  openStepSpec(stepInstruction: StepInstruction, $event: MouseEvent) {
+    const dialogConfig = new MatDialogConfig();
+    dialogConfig.autoFocus = false;
+    dialogConfig.data = {
+      stepsCollection: this.stepsCollection,
+      filterBySpec: stepInstruction.matchingSpec,
+    };
+    dialogConfig.width = "80%";
+    dialogConfig.minHeight = "80%";
+
+    this.dialog.open(StepBrowserDialogComponent, dialogConfig);
+    $event.preventDefault();
   }
 }
 

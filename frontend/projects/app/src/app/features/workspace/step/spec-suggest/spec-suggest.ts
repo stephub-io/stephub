@@ -1,5 +1,8 @@
-import { StepSpec } from "../step.model";
+import { ColumnSpec, PayloadType, StepSpec } from "../step.model";
 import {
+  DataTable,
+  DocString,
+  Fragment,
   StepInstruction,
   StepLine,
   StepLinePart,
@@ -9,15 +12,47 @@ import {
   StepLinePartText,
 } from "../parser/instruction-parser";
 import { GherkinPreferences } from "../../workspace/workspace.model";
+import { getSchemaExample } from "../../../../shared/json-schema-view/json--schema-view.component";
 
 export class SpecSuggest {
   private textParts: string[];
-  private spec: StepSpec;
+  public spec: StepSpec;
+  private payloadFragments: Fragment[] = [];
 
   constructor(spec: StepSpec) {
     this.spec = spec;
     this.textParts = spec.pattern.split(
       /(?<=^|[^\\])\{(?:[a-zA-Z_][a-zA-Z0-9_]*)\}/
+    );
+    if (spec.payload == PayloadType.DOC_STRING) {
+      this.payloadFragments.push(
+        new DocString(
+          spec.docString?.doc?.examples?.length > 0
+            ? spec.docString.doc.examples[0].value.split("\n")
+            : [""]
+        )
+      );
+    } else if (spec.payload == PayloadType.DATA_TABLE) {
+      const rows: string[][] = [];
+      if (spec.dataTable.header) {
+        rows[0] = [];
+        spec.dataTable.columns.forEach((colSpec) => rows[0].push(colSpec.name));
+      }
+      const i = rows.length;
+      rows[i] = [];
+      spec.dataTable.columns.forEach((colSpec) =>
+        rows[i].push(this.getExample(colSpec))
+      );
+      const tableRows: string[] = [];
+      rows.forEach((row) => tableRows.push("| " + row.join(" | ") + " |"));
+      this.payloadFragments.push(new DataTable(tableRows));
+    }
+  }
+
+  private getExample(colSpec: ColumnSpec): string {
+    return (
+      colSpec.doc?.examples[0]?.value ||
+      JSON.stringify(getSchemaExample(colSpec.schema))
     );
   }
 
@@ -37,7 +72,7 @@ export class SpecSuggest {
     return [];
   }
 
-  private buildSuggestion(
+  public buildSuggestion(
     keyword: string,
     prefs: GherkinPreferences
   ): StepInstruction[] {
@@ -67,10 +102,18 @@ export class SpecSuggest {
             ]),
           ]);
         }),
-        new StepInstruction([new StepLine(stepLineParts)]),
+        new StepInstruction([
+          new StepLine(stepLineParts),
+          ...this.payloadFragments,
+        ]),
       ];
     } else {
-      return [new StepInstruction([new StepLine(stepLineParts)])];
+      return [
+        new StepInstruction([
+          new StepLine(stepLineParts),
+          ...this.payloadFragments,
+        ]),
+      ];
     }
   }
 }

@@ -43,6 +43,7 @@ import {
   faExclamationTriangle,
   faFilter,
   faGripVertical,
+  faInfo,
   faLanguage,
   faLightbulb,
   faMagic,
@@ -53,9 +54,11 @@ import {
   faPlus,
   faReceipt,
   faRocket,
+  faSearch,
+  faSearchPlus,
   faSlidersH,
-  faSquare,
   faStream,
+  faTable,
   faTasks,
   faTimes,
   faTimesCircle,
@@ -96,6 +99,11 @@ import { MultiStringViewDirective } from "./multi-string-input/multi-string-view
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
 import { MultiStringAutoSuggestOptionDirective } from "./multi-string-input/multi-string-auto-suggest-option.directive";
 import { EmptyValueComponent } from "./empty-value/empty-value.component";
+import {
+  faCheckSquare,
+  faFileCode,
+  faSquare,
+} from "@fortawesome/free-regular-svg-icons";
 
 @NgModule({
   imports: [
@@ -229,7 +237,6 @@ export class SharedModule {
       faFilter,
       faTasks,
       faCheck,
-      faSquare,
       faLanguage,
       faPaintBrush,
       faLightbulb,
@@ -253,7 +260,12 @@ export class SharedModule {
       faEraser,
       faExclamationCircle,
       faToolbox,
-      faPen
+      faPen,
+      faSquare,
+      faCheckSquare,
+      faFileCode,
+      faTable,
+      faSearchPlus
     );
   }
 }

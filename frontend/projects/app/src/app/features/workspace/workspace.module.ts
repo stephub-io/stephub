@@ -27,6 +27,14 @@ import { MatStepperModule } from "@angular/material/stepper";
 import { STEPPER_GLOBAL_OPTIONS } from "@angular/cdk/stepper";
 import { WorkspaceProvidersComponent } from "./workspace-detail/providers/workspace-providers.component";
 import { MatAutocompleteModule } from "@angular/material/autocomplete";
+import {
+  DefaultWidgetRegistry,
+  SchemaFormModule,
+  WidgetRegistry,
+} from "ngx-schema-form";
+import { JsonEditDialogComponent } from "./json-edit-dialog/json-edit-dialog.component";
+import { StepBrowserDialogComponent } from "./step/step-browser-dialog/step-browser-dialog.component";
+import { MarkdownModule } from "ngx-markdown";
 
 @NgModule({
   declarations: [
@@ -44,6 +52,8 @@ import { MatAutocompleteModule } from "@angular/material/autocomplete";
     StepViewComponent,
     ExecutionNewComponent,
     WorkspaceProvidersComponent,
+    JsonEditDialogComponent,
+    StepBrowserDialogComponent,
   ],
   imports: [
     CommonModule,
@@ -58,12 +68,15 @@ import { MatAutocompleteModule } from "@angular/material/autocomplete";
     DragDropModule,
     MatStepperModule,
     MatAutocompleteModule,
+    SchemaFormModule.forRoot(),
+    MarkdownModule.forChild(),
   ],
   providers: [
     {
       provide: STEPPER_GLOBAL_OPTIONS,
       useValue: { displayDefaultIndicatorType: false },
     },
+    { provide: WidgetRegistry, useClass: DefaultWidgetRegistry },
   ],
 })
 export class WorkspaceModule {}

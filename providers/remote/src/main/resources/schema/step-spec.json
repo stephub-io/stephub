@@ -2,12 +2,7 @@
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "Step specification",
   "type": "object",
-  "required": [
-    "id",
-    "pattern",
-    "patternType",
-    "arguments"
-  ],
+  "required": ["id", "pattern", "patternType", "arguments"],
   "properties": {
     "id": {
       "type": "string",
@@ -20,9 +15,7 @@
     "patternType": {
       "type": "string",
       "title": "Pattern type",
-      "enum": [
-        "simple"
-      ],
+      "enum": ["simple"],
       "default": "simple"
     },
     "arguments": {
@@ -35,12 +28,7 @@
     "payload": {
       "type": "string",
       "title": "Optional payload type",
-      "enum": [
-        "none",
-        "doc_string",
-        "data_table"
-      ],
-      "default": "none"
+      "enum": ["doc_string", "data_table"]
     },
     "output": {
       "$ref": "step-spec-output.json"
@@ -50,6 +38,11 @@
     },
     "dataTable": {
       "$ref": "step-spec-datatable.json"
+    },
+    "description": {
+      "type": "string",
+      "title": "Description",
+      "description": "Description in markdown format"
     }
   }
 }
