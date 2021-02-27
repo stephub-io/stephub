@@ -12,7 +12,7 @@
         [ngClass]="routeAnimationsElements"
       >
         <input #handset type="hidden" [value]="isHandset$ | async" />
-        <mat-toolbar class="workspace">
+        <mat-toolbar class="sub">
           <mat-toolbar-row>
             <h3>
               <fa-icon [icon]="['fas', 'box']"></fa-icon>
@@ -38,7 +38,7 @@
       </mat-sidenav>
 
       <mat-sidenav-content>
-        <mat-toolbar class="workspace">
+        <mat-toolbar class="sub">
           <mat-toolbar-row>
             <button
               mat-icon-button

@@ -17,4 +17,7 @@ public interface WorkspaceService {
 
     Workspace update(Context ctx, Workspace workspace);
 
+    Workspace getTemplate(Context ctx);
+
+    void deleteWorkspace(Context ctx, String wid);
 }

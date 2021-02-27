@@ -7,12 +7,18 @@ import { ExecutionListComponent } from "./execution-list/execution-list.componen
 import { WorkspaceDetailComponent } from "./workspace-detail/workspace-detail.component";
 import { ExecutionDetailComponent } from "./execution-detail/execution-detail.component";
 import { ExecutionNewComponent } from "./execution-new/execution-new.component";
+import { WorkspaceNewComponent } from "./workspace-new/workspace-new.component";
 
 const routes: Routes = [
   {
     path: "",
     component: WorkspaceListComponent,
     data: { title: "sh.menu.workspaces", breadcrumb: "Workspaces" },
+  },
+  {
+    path: "new",
+    component: WorkspaceNewComponent,
+    data: { title: "New workspace", breadcrumb: "Create new..." },
   },
   {
     path: ":wid",
@@ -41,7 +47,7 @@ const routes: Routes = [
             path: "new",
             component: ExecutionNewComponent,
             data: {
-              breadcrumb: "New",
+              breadcrumb: "Start execution...",
             },
           },
           {

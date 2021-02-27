@@ -110,7 +110,7 @@ public class StepEvaluationDelegate {
                     return evaluatedValue;
                 }
             }
-            throw new ExpressionException("Expected types for " + valueContext + " are '" + ArrayUtils.toString(expectedTypes) + "', but was '" + givenType + "'");
+            throw new ExpressionException("Expected type(s) " + ArrayUtils.toString(expectedTypes) + " for " + valueContext + ", but was '" + givenType + "'");
         } else {
             return spec.getSchema().convertFrom(evaluatedValue);
         }

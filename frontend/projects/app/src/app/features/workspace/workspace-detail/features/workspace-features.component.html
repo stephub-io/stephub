@@ -4,7 +4,7 @@
     multi
     *ngFor="let feature of workspace.features; let fi = index"
   >
-    <mat-expansion-panel>
+    <mat-expansion-panel [expanded]="feature._expanded">
       <mat-expansion-panel-header>
         <mat-panel-title>
           <fa-icon [icon]="featureIcon" title="Feature"></fa-icon>
@@ -99,7 +99,7 @@
           class="items-headers-align"
           multi
         >
-          <mat-expansion-panel>
+          <mat-expansion-panel [expanded]="scenario._expanded">
             <mat-expansion-panel-header>
               <mat-panel-title>
                 <fa-icon [icon]="scenarioIcon" title="Scenario"></fa-icon>
@@ -193,6 +193,13 @@
       </ng-template>
     </mat-expansion-panel>
   </mat-accordion>
+  <div *ngIf="workspace.features.length == 0 && !editMode">
+    <p>
+      <fa-icon [icon]="['far', 'question-circle']"></fa-icon>
+      Missing a test?
+    </p>
+    Enable the edit mode and start with the first test feature!
+  </div>
   <button
     *ngIf="editMode"
     mat-mini-fab

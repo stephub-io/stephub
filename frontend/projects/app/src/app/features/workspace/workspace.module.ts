@@ -35,6 +35,7 @@ import {
 import { JsonEditDialogComponent } from "./json-edit-dialog/json-edit-dialog.component";
 import { StepBrowserDialogComponent } from "./step/step-browser-dialog/step-browser-dialog.component";
 import { MarkdownModule } from "ngx-markdown";
+import { WorkspaceNewComponent } from "./workspace-new/workspace-new.component";
 
 @NgModule({
   declarations: [
@@ -54,6 +55,7 @@ import { MarkdownModule } from "ngx-markdown";
     WorkspaceProvidersComponent,
     JsonEditDialogComponent,
     StepBrowserDialogComponent,
+    WorkspaceNewComponent,
   ],
   imports: [
     CommonModule,

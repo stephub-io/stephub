@@ -1,0 +1,56 @@
+<mat-toolbar class="sub">
+  <mat-toolbar-row>
+    <xng-breadcrumb [separator]="iconTemplate"></xng-breadcrumb>
+    <ng-template #iconTemplate>
+      <fa-icon icon="angle-right"></fa-icon>
+    </ng-template>
+  </mat-toolbar-row>
+</mat-toolbar>
+<div class="container">
+  <div
+    *ngIf="workspace$.asObservable() | async as workspace"
+    [ngClass]="routeAnimationsElements"
+  >
+    <div class="media">
+      <fa-icon
+        [icon]="['fas', 'box']"
+        class="heading align-self-start mr-3"
+      ></fa-icon>
+      <div class="media-body">
+        <h3>New workspace</h3>
+      </div>
+    </div>
+
+    <form [formGroup]="formGroup" class="inline-meta">
+      <div class="row">
+        <div class="col-md-8 col-lg-8">
+          <mat-form-field appearance="fill" class="full">
+            <mat-label>Name</mat-label>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="Some name"
+              required
+              [(ngModel)]="workspace.name"
+            />
+            <mat-error *ngIf="formGroup.controls.name.errors?.required"
+              >Required input</mat-error
+            >
+          </mat-form-field>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md-8 col-lg-8">
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="create()"
+            [formGroup]="formGroup"
+          >
+            Start
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>

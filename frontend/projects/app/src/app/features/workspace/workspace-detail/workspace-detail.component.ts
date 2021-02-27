@@ -12,7 +12,7 @@ import {
 } from "../workspace/workspace.model";
 import { BehaviorSubject } from "rxjs";
 import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, Router } from "@angular/router";
 import { Title } from "@angular/platform-browser";
 import { environment as env } from "../../../../environments/environment";
 import { MatChipInputEvent } from "@angular/material/chips";
@@ -60,6 +60,7 @@ export class WorkspaceDetailComponent implements OnInit {
 
   constructor(
     private workspaceService: WorkspaceService,
+    private router: Router,
     private route: ActivatedRoute,
     private titleService: Title,
     private notificationService: NotificationService,
@@ -214,5 +215,16 @@ export class WorkspaceDetailComponent implements OnInit {
     return this.editMode
       ? ["key", "schema", "defaultValue", "action"]
       : ["key", "schema", "defaultValue"];
+  }
+
+  delete() {
+    if (confirm("Delete really?")) {
+      this.workspaceService.delete(this.id).subscribe(() => {
+        this.notificationService.success(
+          "Workspace '" + this.workspace.name + "' deleted"
+        );
+        this.router.navigate(["/workspaces"]);
+      });
+    }
   }
 }

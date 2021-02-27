@@ -184,7 +184,7 @@ public class GherkinPatternMatcher {
                 }
                 rows.add(cells);
             } else {
-                throw new ParseException("Row " + i + " in data table should have " + cols + " cells split by '|': " + instruction);
+                throw new ParseException("Row " + i + " in data table should have " + cols + " cell(s) split/enclosed by '|': " + instruction);
             }
         }
         stepMatchBuilder.dataTable(rows);
@@ -193,7 +193,7 @@ public class GherkinPatternMatcher {
     private void checkAndExtractDocString(final StepSpec<JsonSchema> stepSpec, final String instruction, final String[] lines, final StepMatch.StepMatchBuilder stepMatchBuilder) {
         // Check syntax
         if (lines.length < 2) {
-            throw new ParseException("DocString expected, but missed in: " + instruction);
+            throw new ParseException("DocString expected, but not given in: " + instruction);
         }
         final Matcher markerStart = DOC_STRING_MARKER.matcher(lines[1]);
         if (!markerStart.matches()) {

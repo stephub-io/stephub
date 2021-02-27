@@ -1,9 +1,9 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import {
-  WorkspacesResult,
-  Workspace,
   StepsCollection,
+  Workspace,
+  WorkspacesResult,
 } from "./workspace.model";
 import { Observable } from "rxjs";
 
@@ -33,5 +33,17 @@ export class WorkspaceService {
 
   patch(id: string, patch: Workspace) {
     return this.http.patch<Workspace>(`/api/v1/workspaces/${id}`, patch);
+  }
+
+  getTemplate() {
+    return this.http.get<Workspace>(`/api/v1/workspaces/template`);
+  }
+
+  create(workspace: Workspace) {
+    return this.http.post<Workspace>(`/api/v1/workspaces`, workspace);
+  }
+
+  delete(id: string) {
+    return this.http.delete<void>(`/api/v1/workspaces/${id}`);
   }
 }

@@ -91,29 +91,36 @@ export class SpecSuggest {
       return [
         ...prefs.assignmentKeywords.map((assignment) => {
           const aParts = assignment.split(/@attribute/i);
-          return new StepInstruction([
-            new StepLine([
-              ...stepLineParts,
-              new StepLinePartAssignment(
-                " " + aParts[0],
-                "${attribute}",
-                aParts[1]
-              ),
-            ]),
-          ]);
+          return new StepInstruction(
+            this.addPayloadFragments([
+              new StepLine([
+                ...stepLineParts,
+                new StepLinePartAssignment(
+                  " " + aParts[0],
+                  "${attribute}",
+                  aParts[1]
+                ),
+              ]),
+            ])
+          );
         }),
-        new StepInstruction([
-          new StepLine(stepLineParts),
-          ...this.payloadFragments,
-        ]),
+        new StepInstruction(
+          this.addPayloadFragments([new StepLine(stepLineParts)])
+        ),
       ];
     } else {
       return [
-        new StepInstruction([
-          new StepLine(stepLineParts),
-          ...this.payloadFragments,
-        ]),
+        new StepInstruction(
+          this.addPayloadFragments([new StepLine(stepLineParts)])
+        ),
       ];
     }
+  }
+
+  private addPayloadFragments(fragments: Fragment[]): Fragment[] {
+    if (this.payloadFragments.length > 0) {
+      return [...fragments, ...this.payloadFragments];
+    }
+    return fragments;
   }
 }

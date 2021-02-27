@@ -51,6 +51,7 @@ mat-card {
 .request,
 .response {
   margin: 1rem 0;
+  overflow-x: auto;
 }
 
 .response .error-message {

@@ -14,7 +14,7 @@ import java.util.Map;
 @Component
 @Slf4j
 public class AssertionSteps {
-    @StepMethod(pattern = "assert that all are truthy:", provider = BaseProvider.class,
+    @StepMethod(pattern = "assert that all are truthy", provider = BaseProvider.class,
             description = "Use this step to verify multiple JSON expressions to be truthy")
     public void assertAllTruthy(@StepDataTable(header = false,
             description = "A single-column table with a JSON expression per row",

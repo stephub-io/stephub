@@ -21,27 +21,6 @@
   }
 }
 
-mat-toolbar.workspace {
-  min-height: 35px;
-  font-size: 14px;
-
-  mat-toolbar-row {
-    min-height: 35px;
-    height: auto;
-    font-size: 14px;
-    white-space: normal;
-  }
-
-  h3 {
-    font-size: 14px;
-    font-weight: bolder;
-
-    fa-icon {
-      margin-right: 0.5em;
-    }
-  }
-}
-
 mat-sidenav {
   width: 220px;
   overflow-y: auto;

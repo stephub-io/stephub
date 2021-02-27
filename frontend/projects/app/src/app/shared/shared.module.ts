@@ -43,7 +43,6 @@ import {
   faExclamationTriangle,
   faFilter,
   faGripVertical,
-  faInfo,
   faLanguage,
   faLightbulb,
   faMagic,
@@ -54,7 +53,6 @@ import {
   faPlus,
   faReceipt,
   faRocket,
-  faSearch,
   faSearchPlus,
   faSlidersH,
   faStream,
@@ -102,6 +100,7 @@ import { EmptyValueComponent } from "./empty-value/empty-value.component";
 import {
   faCheckSquare,
   faFileCode,
+  faQuestionCircle,
   faSquare,
 } from "@fortawesome/free-regular-svg-icons";
 
@@ -265,7 +264,8 @@ export class SharedModule {
       faCheckSquare,
       faFileCode,
       faTable,
-      faSearchPlus
+      faSearchPlus,
+      faQuestionCircle
     );
   }
 }

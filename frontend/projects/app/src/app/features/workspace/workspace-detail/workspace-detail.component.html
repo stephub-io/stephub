@@ -40,7 +40,12 @@
             <fa-icon icon="play"></fa-icon>
             Execute
           </a>
-          <button *ngIf="editMode" mat-stroked-button color="warn">
+          <button
+            *ngIf="editMode"
+            mat-stroked-button
+            color="warn"
+            (click)="delete()"
+          >
             <fa-icon icon="trash"></fa-icon>
             Delete
           </button>

@@ -11,6 +11,7 @@ import io.stephub.server.service.WorkspaceService;
 import io.stephub.server.service.WorkspaceValidator;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.SmartValidator;
@@ -49,12 +50,24 @@ public class WorkspaceController {
         return PageResult.<Workspace>builder().items(workspaces).total(workspaces.size()).build();
     }
 
+    @GetMapping("/workspaces/template")
+    @ResponseBody
+    public Workspace findWorkspaces(@ModelAttribute final Context ctx) {
+        return this.workspaceService.getTemplate(ctx);
+    }
+
     @GetMapping("/workspaces/{wid}")
     @ResponseBody
     public Workspace getWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
         final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
         this.workspaceValidator.validate(workspace);
         return workspace;
+    }
+
+    @DeleteMapping("/workspaces/{wid}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
+        this.workspaceService.deleteWorkspace(ctx, wid);
     }
 
     @PatchMapping("/workspaces/{wid}")

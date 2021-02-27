@@ -61,6 +61,16 @@ public class MemoryWorkspaceService implements WorkspaceService {
         return workspace;
     }
 
+    @Override
+    public Workspace getTemplate(final Context ctx) {
+        return new Workspace();
+    }
+
+    @Override
+    public void deleteWorkspace(final Context ctx, final String wid) {
+        this.workspaces.remove(wid, this.getWorkspace(ctx, wid));
+    }
+
     private boolean matches(final Workspace workspace, final WorkspaceFinder finder) {
         if (StringUtils.isNotBlank(finder.getWorkspace())) {
             return finder.getWorkspace().equals(workspace.getId()) || finder.getWorkspace().equals(workspace.getName());

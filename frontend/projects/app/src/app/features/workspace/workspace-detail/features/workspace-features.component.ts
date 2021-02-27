@@ -101,17 +101,23 @@ export class WorkspaceFeaturesComponent implements OnChanges {
     feature.scenarios.push({
       name: "New scenario",
       steps: [],
+      _expanded: true,
     } as Scenario);
   }
 
   addFeature() {
-    this.workspace.features.push({
-      name: "New feature",
-      scenarios: [],
-      background: {
-        steps: [],
-      },
-    } as Feature);
+    let feature;
+    this.workspace.features.push(
+      (feature = {
+        name: "New feature",
+        scenarios: [],
+        background: {
+          steps: [],
+        },
+        _expanded: true,
+      } as Feature)
+    );
+    this.addScenario(feature);
   }
 
   private autoCompleteFilter(value: string): SuggestGroup[] {

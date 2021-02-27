@@ -34,7 +34,7 @@ public class UtilitySteps {
     }
 
     @StepMethod(
-            pattern = "a value:", provider = BaseProvider.class,
+            pattern = "a value", provider = BaseProvider.class,
             description = "Evaluates and returns the value for given JSON expression from multi-line DocString payload",
             outputDoc = @StepDoc(description = "The evaluated value")
     )
