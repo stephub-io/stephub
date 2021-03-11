@@ -6,41 +6,25 @@ import io.stephub.expression.FunctionFactory;
 import io.stephub.json.Json;
 import io.stephub.json.JsonObject;
 import io.stephub.server.api.SessionExecutionContext;
-import io.stephub.server.api.model.Execution;
-import io.stephub.server.api.model.ExecutionInstruction;
+import io.stephub.server.api.model.ProviderSpec;
 import io.stephub.server.api.model.RuntimeSession;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.exception.ExecutionException;
 import io.stephub.server.service.exception.ExecutionPrerequisiteException;
-import io.stephub.server.service.executor.ExecutorDelegate;
-import io.stephub.server.service.executor.StepExecutor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.BindException;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static io.stephub.server.api.model.RuntimeSession.SessionStatus.INACTIVE;
 
 @Slf4j
 public abstract class SessionService {
 
     @Autowired
-    private StepExecutor stepExecutor;
-
-    @Autowired
     private FunctionFactory functionFactory;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    @Autowired
-    private ExecutionPersistence executionPersistence;
 
     @Autowired
     protected WorkspaceService workspaceService;
@@ -49,7 +33,7 @@ public abstract class SessionService {
     private WorkspaceValidator workspaceValidator;
 
     @Autowired
-    private ExecutorDelegate executorDelegate;
+    private ProvidersFacade providersFacade;
 
     public abstract List<RuntimeSession> getSessions(Context ctx, String wid);
 
@@ -86,9 +70,31 @@ public abstract class SessionService {
 
     protected abstract RuntimeSession startSession(Workspace workspace, RuntimeSession.SessionSettings sessionSettings, Map<String, Json> attributes);
 
-    public abstract void stopSession(Context ctx, String wid, String sid);
+    public final void stopSession(final Context ctx, final String wid, final String sid) {
+        this.stopSession(this.getSession(ctx, wid, sid));
+    }
 
-    public abstract void stopSession(RuntimeSession session);
+    public abstract void deactivateSession(RuntimeSession session);
+
+    protected abstract Map<ProviderSpec, String> getProviderSessions(RuntimeSession session);
+
+    public final void stopSession(final RuntimeSession session) {
+        log.info("Stopping session={}", session);
+        this.getProviderSessions(session).entrySet().forEach(
+                entry -> {
+                    final String pid = entry.getValue();
+                    final ProviderSpec providerSpec = entry.getKey();
+                    log.debug("Stopping provider's '{}' session: {}", providerSpec.getId(), pid);
+                    try {
+                        this.providersFacade.getProvider(providerSpec).destroySession(pid);
+                    } catch (final Exception e) {
+                        log.warn("Failed to destroy session for provider '" + providerSpec.getId() + "': " + pid, e);
+                    }
+                }
+        );
+        this.deactivateSession(session);
+        log.info("Session stopped {}", session.getId());
+    }
 
     public abstract RuntimeSession getSession(Context ctx, String wid, String sid);
 
@@ -117,16 +123,16 @@ public abstract class SessionService {
     }
 
     public interface WithinSessionExecutor {
-        void execute(Workspace workspace, RuntimeSession session, SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
+        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
     }
 
     protected interface WithinSessionExecutorInternal {
-        void execute(Workspace workspace, RuntimeSession session, SessionExecutionContext sessionExecutionContext, AttributesContext attributesContext);
+        void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, AttributesContext attributesContext);
     }
 
     protected void executeWithinSession(final String wid, final String sid, final WithinSessionExecutor executor) {
-        this.executeWithinSessionInternal(wid, sid, (workspace, session, sessionExecutionContext, attributesContext) ->
-                executor.execute(workspace, session, sessionExecutionContext, new EvaluationContext() {
+        this.executeWithinSessionInternal(wid, sid, (workspace, sessionExecutionContext, attributesContext) ->
+                executor.execute(workspace, sessionExecutionContext, new EvaluationContext() {
                     @Override
                     public Json get(final String key) {
                         return attributesContext.get(key);
@@ -147,7 +153,7 @@ public abstract class SessionService {
     protected abstract void executeWithinSessionInternal(String wid, String sid, WithinSessionExecutorInternal executor);
 
 
-    public final void doWithinSession(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings, final WithinSessionExecutor withinSessionExecutor) {
+    public final void doWithinIsolatedSession(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings, final WithinSessionExecutor withinSessionExecutor) {
         final RuntimeSession session = this.startSession(workspace, sessionSettings);
         try {
             this.executeWithinSession(workspace.getId(), session.getId(), withinSessionExecutor);
@@ -156,66 +162,6 @@ public abstract class SessionService {
         }
     }
 
-    public final Execution startExecution(final Context ctx, final String wid, final String sid, final ExecutionInstruction instruction) {
-        final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
-        final RuntimeSession session = this.getSession(ctx, wid, sid);
-        if (session.getStatus() == INACTIVE) {
-            throw new ExecutionException("Session isn't active with id=" + sid);
-        }
-        final Execution execution = this.executionPersistence.initExecution(workspace, instruction, new RuntimeSession.SessionSettings());
-        final JobKey jobKey = JobKey.jobKey(wid + "-" + sid, "executions");
-        final JobDetail job = JobBuilder.newJob(SessionExecutionJob.class).withIdentity(jobKey).
-                usingJobData(SessionExecutionJob.createJobDataMap(workspace, session, execution)).
-                build();
-        try {
-            this.scheduler.scheduleJob(job, Collections.singleton(
-                    TriggerBuilder.newTrigger().startNow().forJob(jobKey).build()
-            ), false);
-        } catch (final ObjectAlreadyExistsException e) {
-            throw new ExecutionException("Multiple executions not allowed per session");
-        } catch (final Exception e) {
-            throw new ExecutionException("Failed to schedule execution: " + e.getMessage(), e);
-        }
-        return execution;
-    }
-
-    public final void execute(final String wid, final String sid, final String execId) {
-        this.executeWithinSession(wid, sid, (workspace, session, sessionExecutionContext, evaluationContext) -> {
-                    this.executionPersistence.processPendingExecutionItems(wid, execId,
-                            (item, resultCollector) -> {
-                                if (session.getStatus() == INACTIVE) {
-                                    throw new ExecutionException("Session isn't active with id=" + sid);
-                                }
-                                log.debug("Execute {} within session={}", item, session);
-                                this.executorDelegate.execute(workspace, item, sessionExecutionContext, evaluationContext, resultCollector);
-                            });
-                }
-        );
-    }
-
-    @DisallowConcurrentExecution
-    @Slf4j
-    public static class SessionExecutionJob implements Job {
-        @Autowired
-        private SessionService sessionService;
-
-        @Override
-        public void execute(final JobExecutionContext jec) throws JobExecutionException {
-            final String sid = jec.getMergedJobDataMap().getString("sid");
-            final String wid = jec.getMergedJobDataMap().getString("wid");
-            final String execId = jec.getMergedJobDataMap().getString("execId");
-            log.debug("Executing execution={} for session={} and worksapce={}", execId, sid, wid);
-            this.sessionService.execute(wid, sid, execId);
-        }
-
-        private static JobDataMap createJobDataMap(final Workspace workspace, final RuntimeSession session, final Execution execution) {
-            final JobDataMap dataMap = new JobDataMap();
-            dataMap.put("sid", session.getId());
-            dataMap.put("wid", workspace.getId());
-            dataMap.put("execId", execution.getId());
-            return dataMap;
-        }
-    }
 
     public interface VariableBindingRejector {
         void reject(String key, String message);

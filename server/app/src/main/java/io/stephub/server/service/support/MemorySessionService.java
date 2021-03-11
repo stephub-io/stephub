@@ -1,18 +1,26 @@
 package io.stephub.server.service.support;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.stephub.expression.AttributesContext;
 import io.stephub.json.Json;
 import io.stephub.server.api.SessionExecutionContext;
+import io.stephub.server.api.model.ProviderSpec;
 import io.stephub.server.api.model.RuntimeSession;
 import io.stephub.server.api.model.RuntimeSession.SessionSettings;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.ResourceNotFoundException;
 import io.stephub.server.service.SessionService;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpiringMap;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -26,9 +34,20 @@ import static io.stephub.server.api.model.RuntimeSession.SessionStatus.INACTIVE;
 @Slf4j
 public class MemorySessionService extends SessionService {
 
-    private final ExpiringMap<String, RuntimeSession> sessionStore = ExpiringMap.builder()
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Data
+    @SuperBuilder
+    public static class MemoryRuntimeSession extends RuntimeSession {
+        @JsonIgnore
+        @Builder.Default
+        private Map<ProviderSpec, String> providerSessions = new HashMap<>();
+
+    }
+
+    private final ExpiringMap<String, MemoryRuntimeSession> sessionStore = ExpiringMap.builder()
             .expirationListener((sessionId, s) -> {
-                RuntimeSession session = (RuntimeSession) s;
+                RuntimeSession session = (MemoryRuntimeSession) s;
                 if (session.getStatus() == ACTIVE) {
                     this.stopSession(session);
                 }
@@ -46,7 +65,7 @@ public class MemorySessionService extends SessionService {
 
     @Override
     public RuntimeSession startSession(final Workspace workspace, final SessionSettings sessionSettings, final Map<String, Json> attributes) {
-        final RuntimeSession session = RuntimeSession.builder().id(UUID.randomUUID().toString()).
+        final MemoryRuntimeSession session = MemoryRuntimeSession.builder().id(UUID.randomUUID().toString()).
                 status(ACTIVE).
                 attributes(attributes).
                 build();
@@ -56,14 +75,14 @@ public class MemorySessionService extends SessionService {
     }
 
     @Override
-    public void stopSession(final RuntimeSession session) {
-        log.info("Stopping session={}", session);
+    public void deactivateSession(final RuntimeSession session) {
+        log.debug("Deactivated session={}", session);
         session.setStatus(INACTIVE);
     }
 
     @Override
-    public void stopSession(final Context ctx, final String wid, final String sid) {
-        this.stopSession(this.getSessionSafe(wid, sid));
+    protected Map<ProviderSpec, String> getProviderSessions(final RuntimeSession session) {
+        return ((MemoryRuntimeSession) session).getProviderSessions();
     }
 
     @Override
@@ -73,18 +92,17 @@ public class MemorySessionService extends SessionService {
 
     @Override
     public void executeWithinSessionInternal(final String wid, final String sid, final WithinSessionExecutorInternal executor) {
-        final RuntimeSession session = this.getSessionSafe(wid, sid);
-        final Workspace workspace = this.workspaceService.getWorkspaceInternal(wid);
-        executor.execute(workspace, session,
+        final MemoryRuntimeSession session = this.getSessionSafe(wid, sid);
+        executor.execute(session,
                 new SessionExecutionContext() {
                     @Override
-                    public void setProviderSession(final String providerName, final String sid) {
-                        session.getProviderSessions().put(providerName, sid);
+                    public void setProviderSession(final ProviderSpec providerSpec, final String sid) {
+                        session.getProviderSessions().put(providerSpec, sid);
                     }
 
                     @Override
-                    public String getProviderSession(final String providerName) {
-                        return session.getProviderSessions().get(providerName);
+                    public String getProviderSession(final ProviderSpec providerSpec) {
+                        return session.getProviderSessions().get(providerSpec);
                     }
                 },
                 new AttributesContext() {
@@ -101,8 +119,8 @@ public class MemorySessionService extends SessionService {
         );
     }
 
-    private RuntimeSession getSessionSafe(final String wid, final String sid) {
-        final RuntimeSession session = this.sessionStore.get(wid + "/" + sid);
+    private MemoryRuntimeSession getSessionSafe(final String wid, final String sid) {
+        final MemoryRuntimeSession session = this.sessionStore.get(wid + "/" + sid);
         if (session == null) {
             throw new ResourceNotFoundException("Session doesn't exist or is invalid for id=" + sid + " and workspace=" + wid);
         }

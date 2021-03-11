@@ -1,9 +1,11 @@
 package io.stephub.server.service;
 
+import io.stephub.expression.EvaluationContext;
 import io.stephub.json.Json;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
+import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.ExecutionInstruction;
 import io.stephub.server.api.model.RuntimeSession;
@@ -18,7 +20,7 @@ import java.util.concurrent.CompletableFuture;
 public interface ExecutionPersistence {
     Execution initExecution(Workspace workspace, ExecutionInstruction instruction, RuntimeSession.SessionSettings sessionSettings);
 
-    void processPendingExecutionItems(String wid, String execId, WithinExecutionCommand command);
+    void processPendingExecutionSteps(Workspace workspace, String execId, WithinExecutionStepCommand command);
 
     Execution getExecution(String wid, String execId);
 
@@ -28,15 +30,9 @@ public interface ExecutionPersistence {
     List<Execution> getExecutions(String wid);
 
 
-    interface WithinExecutionCommand {
-        void execute(Execution.ExecutionItem item, StepExecutionFacade stepExecutionFacade);
-    }
-
-
-    interface StepExecutionFacade {
-        StepResponse<Json> doStep(Execution.StepExecutionItem item, StepExecutionItemCommand command);
-
-        void cancelStep(Execution.StepExecutionItem item);
+    interface WithinExecutionStepCommand {
+        StepExecutionResult execute(Execution.StepExecutionItem stepItem,
+                                   SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
     }
 
     @Getter

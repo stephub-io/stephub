@@ -103,6 +103,7 @@ public abstract class Execution implements Identifiable {
         public abstract ExecutionStatus getStatus();
 
         public abstract Stats getStats();
+
     }
 
     @NoArgsConstructor
@@ -189,18 +190,10 @@ public abstract class Execution implements Identifiable {
         @Singular
         private List<StepExecutionItem> steps = new ArrayList<>();
 
-        @Builder.Default
-        private List<FixtureExecutionWrapper> beforeFixtures = new ArrayList<>();
-
-        @Builder.Default
-        private List<FixtureExecutionWrapper> afterFixtures = new ArrayList<>();
-
         @Override
         public ExecutionStatus getStatus() {
             final List<ExecutionStatus> statusList = new ArrayList<>();
-            statusList.addAll(this.beforeFixtures.stream().map(FixtureExecutionWrapper::getStatus).collect(Collectors.toList()));
             statusList.addAll(this.steps.stream().map(StepExecutionItem::getStatus).collect(Collectors.toList()));
-            statusList.addAll(this.afterFixtures.stream().map(FixtureExecutionWrapper::getStatus).collect(Collectors.toList()));
             return FeatureExecutionItem.getAggregatedStatus(statusList);
         }
 
@@ -209,9 +202,7 @@ public abstract class Execution implements Identifiable {
             final ExecutionStatus status = this.getStatus();
             if (status == COMPLETED || status == CANCELLED) {
                 final Stats stepStats = new Stats();
-                this.beforeFixtures.stream().forEach(f -> stepStats.add(f.getStats()));
                 this.steps.stream().forEach(s -> stepStats.add(s.getStats()));
-                this.afterFixtures.stream().forEach(f -> stepStats.add(f.getStats()));
                 if (stepStats.erroneous > 0) {
                     return new Stats(0, 0, 1);
                 } else if (stepStats.failed > 0) {
@@ -221,32 +212,6 @@ public abstract class Execution implements Identifiable {
                 }
             }
             return new Stats();
-        }
-    }
-
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @SuperBuilder
-    @Data
-    @ToString(of = "name")
-    public static class FixtureExecutionWrapper {
-        private String name;
-        private List<StepExecutionItem> steps = new ArrayList<>();
-
-        @JsonProperty
-        public ExecutionStatus getStatus() {
-            return FeatureExecutionItem.getAggregatedStatus(
-                    this.steps.stream().map(s -> s.getStatus()).collect(Collectors.toList())
-            );
-        }
-
-        @JsonIgnore
-        public Stats getStats() {
-            final Stats stats = new Stats();
-            for (final StepExecutionItem step : this.steps) {
-                stats.add(step.getStats());
-            }
-            return stats;
         }
     }
 

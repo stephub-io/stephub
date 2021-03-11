@@ -155,14 +155,14 @@ public class ProvidersFacade implements StepExecutionSource {
 
     private StepResponse<Json> execute(final Provider<JsonObject, JsonSchema, Json> provider,
                                        final SessionExecutionContext sessionExecutionContext,
-                                       final ProviderOptions<JsonObject> providerOptions,
+                                       final ProviderSpec providerSpec,
                                        final StepRequest<Json> request) {
         final String providerName = provider.getInfo().getName();
-        String pSid = sessionExecutionContext.getProviderSession(providerName);
+        String pSid = sessionExecutionContext.getProviderSession(providerSpec);
         if (pSid == null) {
-            pSid = provider.createSession(providerOptions);
+            pSid = provider.createSession(providerSpec);
             log.debug("Retrieved new session id={} from provider={}", pSid, providerName);
-            sessionExecutionContext.setProviderSession(providerName, pSid);
+            sessionExecutionContext.setProviderSession(providerSpec, pSid);
         }
         return provider.execute(pSid, request);
     }

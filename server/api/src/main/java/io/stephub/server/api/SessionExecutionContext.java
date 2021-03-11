@@ -1,7 +1,9 @@
 package io.stephub.server.api;
 
-public interface SessionExecutionContext {
-    void setProviderSession(String providerName, String sid);
+import io.stephub.server.api.model.ProviderSpec;
 
-    String getProviderSession(String providerName);
+public interface SessionExecutionContext {
+    void setProviderSession(ProviderSpec providerSpec, String sid);
+
+    String getProviderSession(ProviderSpec providerSpec);
 }

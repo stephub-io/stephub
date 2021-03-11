@@ -1,19 +1,24 @@
 package io.stephub.server.service.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.model.Execution.FeatureExecutionItem;
+import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
+import io.stephub.server.api.model.Execution.StepExecutionItem;
 import io.stephub.server.api.model.ExecutionInstruction;
 import io.stephub.server.api.model.RuntimeSession;
 import io.stephub.server.api.model.RuntimeSession.SessionSettings.ParallelizationMode;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.service.ExecutionPersistence;
+import io.stephub.server.service.SessionService;
 import io.stephub.server.service.exception.ExecutionException;
+import lombok.Builder;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -36,18 +41,33 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     private ExpiringMap<String, MemoryExecution> store;
 
+    @Autowired
+    private SessionService sessionService;
+
+    @Builder
+    private static class IsolatedBucket {
+        private final Execution.ExecutionItem source;
+        private final Queue<StepExecutionItem> pendingSteps;
+    }
+
+    @Builder
+    private static class SerialBucket {
+        private final Execution.ExecutionItem source;
+        private final Queue<IsolatedBucket> serialBuckets;
+    }
+
     @SuperBuilder
     private static class MemoryExecution extends Execution {
         @JsonIgnore
-        private final Queue<ExecutionItem> pendingItems;
+        private final Queue<SerialBucket> pendingBuckets;
 
         @JsonIgnore
-        private int uncompletedCount;
+        private int uncompletedBuckets;
 
         @Override
         @JsonIgnore
         public int getMaxParallelizationCount() {
-            return this.pendingItems.size();
+            return this.pendingBuckets.size();
         }
     }
 
@@ -63,18 +83,52 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Override
     public Execution initExecution(final Workspace workspace, final ExecutionInstruction instruction, final RuntimeSession.SessionSettings sessionSettings) {
         final List<Execution.ExecutionItem> executionItems = instruction.buildItems(workspace);
-        final Queue<Execution.ExecutionItem> pendingItems = new LinkedList<>();
-        if (sessionSettings.getParallelizationMode() == ParallelizationMode.SCENARIO) {
-            for (final Execution.ExecutionItem item : executionItems) {
-                if (item instanceof Execution.FeatureExecutionItem) {
-                    pendingItems.addAll(((Execution.FeatureExecutionItem) item).getScenarios());
+        final Queue<SerialBucket> pendingItems = new LinkedList<>();
+        executionItems.forEach(executionItem ->
+        {
+            if (executionItem instanceof StepExecutionItem) {
+                pendingItems.add(SerialBucket.builder().serialBuckets(
+                        new LinkedList<>(Collections.singleton(
+                                IsolatedBucket.builder().pendingSteps(
+                                        new LinkedList<>(Collections.singleton((StepExecutionItem) executionItem))
+                                ).build()
+                        ))
+                ).build());
+            } else if (executionItem instanceof ScenarioExecutionItem) {
+                pendingItems.add(SerialBucket.builder().serialBuckets(
+                        new LinkedList<>(Collections.singleton(
+                                IsolatedBucket.builder().pendingSteps(
+                                        new LinkedList<>(
+                                                ((ScenarioExecutionItem) executionItem).getSteps()
+                                        )
+                                ).build()
+                        ))).build());
+            } else if (executionItem instanceof FeatureExecutionItem) {
+                if (sessionSettings.getParallelizationMode() == ParallelizationMode.SCENARIO) {
+                    pendingItems.addAll(
+                            ((FeatureExecutionItem) executionItem).getScenarios().stream()
+                                    .map(scenario -> SerialBucket.builder().serialBuckets(
+                                            new LinkedList<>(Collections.singleton(
+                                                    IsolatedBucket.builder().pendingSteps(
+                                                            new LinkedList<>(
+                                                                    scenario.getSteps()
+                                                            )
+                                                    ).build()
+                                            ))).build()).collect(Collectors.toList()));
                 } else {
-                    pendingItems.add(item);
+                    pendingItems.add(SerialBucket.builder().serialBuckets(
+                            new LinkedList<>(
+                                    ((FeatureExecutionItem) executionItem).getScenarios().stream().map(
+                                            scenario -> IsolatedBucket.builder().pendingSteps(
+                                                    new LinkedList<>(
+                                                            scenario.getSteps()
+                                                    )
+                                            ).build()
+                                    ).collect(Collectors.toList())
+                            )).build());
                 }
             }
-        } else {
-            pendingItems.addAll(executionItems);
-        }
+        });
         if (pendingItems.isEmpty()) {
             throw new ExecutionException("Empty selection, expected at least one item to execute");
         }
@@ -85,26 +139,26 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 gherkinPreferences(workspace.getGherkinPreferences()).
                 initiatedAt(new Date()).
                 backlog(executionItems).
-                pendingItems(pendingItems).
-                uncompletedCount(pendingItems.size()).
+                pendingBuckets(pendingItems).
+                uncompletedBuckets(pendingItems.size()).
                 build();
         this.store.put(this.getStoreId(workspace.getId(), execution.getId()), execution);
         return execution;
     }
 
-    private Execution.ExecutionItem doLifecycleAndGetNext(final MemoryExecution execution) {
+    private SerialBucket doLifecycleAndGetNext(final MemoryExecution execution) {
         synchronized (execution) {
             if (execution.getStatus() == INITIATED) {
                 log.debug("Execution={} started", execution);
                 execution.setStatus(EXECUTING);
                 execution.setStartedAt(new Date());
             }
-            final Execution.ExecutionItem next = execution.pendingItems.poll();
+            final SerialBucket next = execution.pendingBuckets.poll();
             if (next != null) {
-                log.debug("Next item={} in execution={}", next, execution);
+                log.debug("Next bucket={} in execution={}", next, execution);
                 return next;
             }
-            if (execution.uncompletedCount > 0) {
+            if (execution.uncompletedBuckets > 0) {
                 return null;
             }
             execution.setStatus(COMPLETED);
@@ -116,39 +170,58 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @Override
-    public void processPendingExecutionItems(final String wid, final String execId, final WithinExecutionCommand command) {
-        final MemoryExecution execution = this.getSafeExecution(wid, execId);
-        Execution.ExecutionItem executionItem;
-        while ((executionItem = this.doLifecycleAndGetNext(execution)) != null) {
+    public void processPendingExecutionSteps(final Workspace workspace, final String execId, final WithinExecutionStepCommand command) {
+        final MemoryExecution execution = this.getSafeExecution(workspace.getId(), execId);
+        SerialBucket serialBucket;
+        while ((serialBucket = this.doLifecycleAndGetNext(execution)) != null) {
             try {
-                command.execute(executionItem, new StepExecutionFacade() {
-                    @Override
-                    public StepResponse<Json> doStep(final Execution.StepExecutionItem item, final StepExecutionItemCommand command) {
-                        item.setStatus(EXECUTING);
-                        log.debug("Starting execution of step item={} of execution={}", item, execution);
-                        try {
-                            final StepExecutionResult result = command.execute();
-                            item.setResponse(result.getResponse());
-                            item.setStepSpec(result.getStepSpec());
-                            return result.getResponse();
-                        } finally {
-                            item.setStatus(COMPLETED);
-                            log.debug("Completed execution of step item={} of execution={}", item, execution);
-                        }
+                IsolatedBucket isolatedBucket;
+                while ((isolatedBucket = serialBucket.serialBuckets.poll()) != null) {
+                    try {
+                        final IsolatedBucket fisb = isolatedBucket;
+                        this.sessionService.doWithinIsolatedSession(workspace, execution.getSessionSettings(),
+                                (session, sessionExecutionContext, evaluationContext) -> {
+                                    StepExecutionItem stepExecutionItem;
+                                    boolean cancelled = false;
+                                    while ((stepExecutionItem = fisb.pendingSteps.poll()) != null) {
+                                        if (cancelled) {
+                                            log.debug("Cancel execution of step item={} in execution={} due to previous errors", stepExecutionItem, execId);
+                                            stepExecutionItem.setStatus(CANCELLED);
+                                            continue;
+                                        }
+                                        stepExecutionItem.setStatus(EXECUTING);
+                                        log.debug("Starting execution of step item={} of execution={}", stepExecutionItem, execId);
+                                        try {
+                                            final StepExecutionResult result = command.execute(stepExecutionItem, sessionExecutionContext, evaluationContext);
+                                            stepExecutionItem.setResponse(result.getResponse());
+                                            stepExecutionItem.setStepSpec(result.getStepSpec());
+                                            if (result.getResponse().getStatus() == StepResponse.StepStatus.FAILED) {
+                                                cancelled = true;
+                                            }
+                                        } catch (final Exception e) {
+                                            log.warn("Failed to proceed step item={} on workspace={} and execution={}", stepExecutionItem, workspace.getId(), execId, e);
+                                            stepExecutionItem.setErroneous(true);
+                                            stepExecutionItem.setErrorMessage(e.getMessage());
+                                            cancelled = true;
+                                        } finally {
+                                            stepExecutionItem.setStatus(COMPLETED);
+                                            log.debug("Completed execution of step item={} of execution={}", stepExecutionItem, execId);
+                                        }
+                                    }
+                                });
+                    } catch (final Exception e) {
+                        log.warn("Failed to proceed isolated bucket={} on workspace={} and execution={}", isolatedBucket, workspace.getId(), execId, e);
+                        isolatedBucket.source.setErroneous(true);
+                        isolatedBucket.source.setErrorMessage(e.getMessage());
                     }
-
-                    @Override
-                    public void cancelStep(final Execution.StepExecutionItem item) {
-                        item.setStatus(CANCELLED);
-                    }
-                });
+                }
             } catch (final Exception e) {
-                log.warn("Failed to proceed execution item={} on workspace={} and execution={}", executionItem, wid, execId, e);
-                executionItem.setErroneous(true);
-                executionItem.setErrorMessage("Failed to proceed execution due to: " + e.getMessage());
+                log.warn("Failed to proceed serial bucket={} on workspace={} and execution={}", serialBucket, workspace.getId(), execId, e);
+                serialBucket.source.setErroneous(true);
+                serialBucket.source.setErrorMessage(e.getMessage());
             } finally {
                 synchronized (execution) {
-                    execution.uncompletedCount--;
+                    execution.uncompletedBuckets--;
                 }
             }
         }

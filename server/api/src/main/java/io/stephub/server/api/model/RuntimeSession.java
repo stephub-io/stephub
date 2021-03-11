@@ -1,11 +1,11 @@
 package io.stephub.server.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.Json;
 import io.stephub.provider.api.util.Patterns;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
@@ -17,7 +17,7 @@ import java.util.Map;
 @Data
 @EqualsAndHashCode(of = {"id"})
 @ToString(of = {"id", "status"})
-@Builder
+@SuperBuilder
 public class RuntimeSession implements Identifiable {
     public enum SessionStatus {
         ACTIVE,
@@ -38,10 +38,6 @@ public class RuntimeSession implements Identifiable {
 
     @Builder.Default
     private Map<String, Json> attributes = new HashMap<>();
-
-    @JsonIgnore
-    @Builder.Default
-    private Map<String, String> providerSessions = new HashMap<>();
 
     @AllArgsConstructor
     @NoArgsConstructor

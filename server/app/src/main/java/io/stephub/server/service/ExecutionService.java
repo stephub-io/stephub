@@ -4,7 +4,7 @@ import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.exception.ExecutionException;
-import io.stephub.server.service.executor.ExecutorDelegate;
+import io.stephub.server.service.executor.StepExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,8 +31,9 @@ public class ExecutionService {
     @Autowired
     private Scheduler scheduler;
 
+
     @Autowired
-    private ExecutorDelegate executorDelegate;
+    private StepExecutor stepExecutor;
 
 
     public Execution startExecution(final Context ctx,
@@ -83,15 +84,13 @@ public class ExecutionService {
     private void doExecution(final String wid, final String execId) {
         final Execution execution = this.executionPersistence.getExecution(wid, execId);
         final Workspace workspace = this.workspaceService.getWorkspaceInternal(wid);
-        this.sessionService.doWithinSession(workspace, execution.getSessionSettings(),
-                (workspace1, session, sessionExecutionContext, evaluationContext) ->
-                        this.executionPersistence.processPendingExecutionItems(wid, execId, (executionItem, resultCollector) ->
-                        {
-                            log.debug("Execute item={} of execution={} within session={}", executionItem, execution, session);
-                            this.executorDelegate.execute(workspace, executionItem, sessionExecutionContext, evaluationContext, resultCollector);
-                        })
-        );
+        this.executionPersistence.processPendingExecutionSteps(workspace, execId, (executionItem, sessionExecutionContext, evaluationContext) ->
+        {
+            log.debug("Execute step={} of execution={} and workspace={}", execId, execution, wid);
+            return this.stepExecutor.execute(workspace, executionItem, sessionExecutionContext, evaluationContext);
+        });
     }
+
 
     @Slf4j
     public static class ParallelExecutionJob implements Job {
