@@ -61,6 +61,7 @@
     "humanize-duration": "^3.24.0",
     "jexl": "^2.3.0",
     "ngx-ace-wrapper": "^10.0.1",
+    "ngx-filesize": "^2.0.16",
     "ngx-highlightjs": "^4.1.2",
     "ngx-markdown": "^11.1.0",
     "ngx-schema-form": "^2.6.0",

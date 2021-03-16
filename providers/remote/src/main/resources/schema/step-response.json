@@ -14,14 +14,14 @@
       "format": "duration",
       "title": "Duration"
     },
-    "outputs": {
-      "type": "object",
-      "title": "Output arguments",
-      "patternProperties": {
-        "^[a-zA-Z_][a-zA-Z0-9_]*$": {}
-      },
-      "additionalProperties": false,
-      "default": {}
+    "output": {
+      "title": "Step output"
+    },
+    "logs": {
+      "type": "array",
+      "items": {
+        "$ref": "./step-log-entry.json"
+      }
     }
   }
 }

@@ -99,7 +99,9 @@ import { MultiStringAutoSuggestOptionDirective } from "./multi-string-input/mult
 import { EmptyValueComponent } from "./empty-value/empty-value.component";
 import {
   faCheckSquare,
+  faFileAlt,
   faFileCode,
+  faFileImage,
   faQuestionCircle,
   faSquare,
 } from "@fortawesome/free-regular-svg-icons";
@@ -265,7 +267,9 @@ export class SharedModule {
       faFileCode,
       faTable,
       faSearchPlus,
-      faQuestionCircle
+      faQuestionCircle,
+      faFileAlt,
+      faFileImage
     );
   }
 }

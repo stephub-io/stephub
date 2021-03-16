@@ -12,8 +12,10 @@ import io.stephub.server.api.model.RuntimeSession;
 import io.stephub.server.api.model.Workspace;
 import lombok.Builder;
 import lombok.Getter;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.scheduling.annotation.Async;
 
+import java.io.InputStream;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -29,10 +31,11 @@ public interface ExecutionPersistence {
 
     List<Execution> getExecutions(String wid);
 
+    Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(String wid, String execId, String attachmentId);
 
     interface WithinExecutionStepCommand {
         StepExecutionResult execute(Execution.StepExecutionItem stepItem,
-                                   SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
+                                    SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
     }
 
     @Getter

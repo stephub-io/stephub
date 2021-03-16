@@ -1,4 +1,4 @@
-import { StepResponse } from "./step.model";
+import { StepStatus } from "./step.model";
 import { GherkinPreferences } from "./workspace/workspace.model";
 import { StepSpec } from "./step/step.model";
 
@@ -35,7 +35,27 @@ export interface StepExecutionItem extends ExecutionItem {
   id: string;
   step: string;
   stepSpec: StepSpec;
-  response: StepResponse;
+  response: RoughStepResponse;
+}
+
+export interface RoughStepResponse {
+  status: StepStatus;
+  duration: string;
+  errorMessage: string;
+  output?: any;
+  logs?: ExecutionLogEntry[];
+}
+
+export interface ExecutionLogEntry {
+  message: string;
+  attachments: ExecutionLogAttachment[];
+}
+
+export interface ExecutionLogAttachment {
+  id: string;
+  fileName: string;
+  contentType: string;
+  size: number;
 }
 
 export enum ExecutionStatus {

@@ -1,6 +1,11 @@
 import { Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
-import { Execution, ExecutionsResult, ExecutionStart } from "./execution.model";
+import {
+  Execution,
+  ExecutionLogAttachment,
+  ExecutionsResult,
+  ExecutionStart,
+} from "./execution.model";
 import { Observable } from "rxjs";
 
 @Injectable({
@@ -26,5 +31,9 @@ export class ExecutionService {
       `/api/v1/workspaces/${wid}/executions`,
       start
     );
+  }
+
+  getAttachmentHref(wid: string, execId: string, a: ExecutionLogAttachment) {
+    return `/api/v1/workspaces/${wid}/executions/${execId}/attachments/${a.id}`;
   }
 }

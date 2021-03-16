@@ -3,6 +3,7 @@ package io.stephub.server.api.model;
 import com.fasterxml.jackson.annotation.*;
 import io.stephub.json.Json;
 import io.stephub.json.schema.JsonSchema;
+import io.stephub.provider.api.model.LogEntry;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
 import lombok.*;
@@ -11,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 import javax.validation.Valid;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
+import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -84,6 +86,10 @@ public abstract class Execution implements Identifiable {
         }
     }
 
+    public static interface DetailView {
+
+    }
+
     @JsonTypeInfo(
             use = JsonTypeInfo.Id.NAME,
             include = JsonTypeInfo.As.PROPERTY,
@@ -118,7 +124,7 @@ public abstract class Execution implements Identifiable {
         @Builder.Default
         private ExecutionStatus status = ExecutionStatus.INITIATED;
         private String step;
-        private StepResponse<Json> response;
+        private RoughStepResponse response;
         private StepSpec<JsonSchema> stepSpec;
 
         @Override
@@ -138,6 +144,61 @@ public abstract class Execution implements Identifiable {
                 }
             }
             return stats;
+        }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    public static class RoughStepResponse {
+        @NotNull
+        private StepResponse.StepStatus status;
+
+        @NotNull
+        @JsonFormat(shape = JsonFormat.Shape.STRING)
+        private Duration duration;
+
+        private String errorMessage;
+
+        @Valid
+        private Json output;
+
+        private List<ExecutionLogEntry> logs;
+
+        public RoughStepResponse(final StepResponse<Json> from, final List<ExecutionLogEntry> logs) {
+            this.status = from.getStatus();
+            this.duration = from.getDuration();
+            this.errorMessage = from.getErrorMessage();
+            this.output = from.getOutput();
+            this.logs = logs;
+        }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    @Builder
+    public static class ExecutionLogEntry {
+        private String message;
+        @Singular
+        private List<ExecutionLogAttachment> attachments;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
+    @Builder
+    public static class ExecutionLogAttachment {
+        private String id;
+        private String fileName;
+        private String contentType;
+        private long size;
+
+        public ExecutionLogAttachment(final String id, final LogEntry.LogAttachment attachment) {
+            this.id = id;
+            this.fileName = attachment.getFileName();
+            this.contentType = attachment.getContentType();
+            this.size = attachment.getContent().length;
         }
     }
 

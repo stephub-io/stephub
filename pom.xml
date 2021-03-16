@@ -15,11 +15,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dependency versions -->
-        <spring-provider.version>0.1.1</spring-provider.version>
+        <spring-provider.version>0.1.4</spring-provider.version>
         <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
         <expiringmap.version>0.5.9</expiringmap.version>
         <junit-jupiter.version>5.2.0</junit-jupiter.version>
         <org.antlr.version>4.8-1</org.antlr.version>
+        <org.mapstruct.version>1.4.2.Final</org.mapstruct.version>
     </properties>
 
     <modules>
@@ -87,7 +88,7 @@
             <dependency>
                 <groupId>com.networknt</groupId>
                 <artifactId>json-schema-validator</artifactId>
-                <version>1.0.40</version>
+                <version>1.0.49</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

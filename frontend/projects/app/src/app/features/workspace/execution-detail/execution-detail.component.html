@@ -171,6 +171,10 @@
             <mat-panel-description>
               <div>
                 <div class="info">
+                  <fa-icon
+                    *ngIf="aggAttachmentIcon(step)"
+                    [icon]="aggAttachmentIcon(step)"
+                  ></fa-icon>
                   <sh-execution-stats
                     class="indicator"
                     [stats]="step.stats"
@@ -209,6 +213,28 @@
                   <fa-icon icon="exclamation-triangle"></fa-icon>
                   {{ step.response?.errorMessage }}
                 </div>
+              </div>
+            </div>
+            <div *ngIf="step.response?.logs" class="logs">
+              <p class="font-weight-bold">Logs:</p>
+              <div *ngFor="let log of step.response?.logs" class="log">
+                <p class="code">{{ log.message }}</p>
+                <p
+                  class="image"
+                  *ngFor="let image of imageAttachments(log.attachments)"
+                >
+                  <img [src]="image" class="img-fluid" />
+                </p>
+                <p class="attachments">
+                  <a
+                    *ngFor="let a of log.attachments"
+                    [href]="attachmentUrl(a)"
+                    target="_blank"
+                  >
+                    <fa-icon [icon]="attachmentIcon(a)"></fa-icon>
+                    {{ a.fileName }} ({{ a.size | filesize }})</a
+                  >
+                </p>
               </div>
             </div>
             <mat-divider></mat-divider>

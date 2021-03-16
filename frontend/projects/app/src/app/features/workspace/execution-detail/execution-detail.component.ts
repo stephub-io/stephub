@@ -5,6 +5,7 @@ import { ExecutionService } from "../execution.service";
 import {
   Execution,
   ExecutionItem,
+  ExecutionLogAttachment,
   ExecutionStatus,
   FeatureExecutionItem,
   ScenarioExecutionItem,
@@ -20,6 +21,8 @@ import {
 import { ActivatedRoute } from "@angular/router";
 import {
   faCheckCircle,
+  faFileAlt,
+  faFileImage,
   faPauseCircle,
   faTimesCircle,
 } from "@fortawesome/free-regular-svg-icons";
@@ -144,6 +147,38 @@ export class ExecutionDetailComponent implements OnInit {
       step.response?.status == StepStatus.erroneous ||
       step.response?.status == StepStatus.failed
     );
+  }
+
+  aggAttachmentIcon(step: StepExecutionItem) {
+    const attachments: ExecutionLogAttachment[] = [];
+    step.response?.logs?.forEach((log) =>
+      log?.attachments.forEach((a) => attachments.push(a))
+    );
+    if (attachments.findIndex((a) => a.contentType.startsWith("image")) >= 0) {
+      return faFileImage;
+    } else if (attachments.length > 0) {
+      return faFileAlt;
+    }
+    return null;
+  }
+
+  imageAttachments(attachments: ExecutionLogAttachment[]) {
+    return attachments
+      .filter((a) => a.contentType.startsWith("image"))
+      .map((a) =>
+        this.executionService.getAttachmentHref(this.wid, this.id, a)
+      );
+  }
+
+  attachmentUrl(a: ExecutionLogAttachment) {
+    return this.executionService.getAttachmentHref(this.wid, this.id, a);
+  }
+
+  attachmentIcon(a: ExecutionLogAttachment) {
+    if (a.contentType.startsWith("image")) {
+      return faFileImage;
+    }
+    return faFileAlt;
   }
 }
 

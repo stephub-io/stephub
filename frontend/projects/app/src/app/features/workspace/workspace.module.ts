@@ -36,6 +36,7 @@ import { JsonEditDialogComponent } from "./json-edit-dialog/json-edit-dialog.com
 import { StepBrowserDialogComponent } from "./step/step-browser-dialog/step-browser-dialog.component";
 import { MarkdownModule } from "ngx-markdown";
 import { WorkspaceNewComponent } from "./workspace-new/workspace-new.component";
+import { NgxFilesizeModule } from "ngx-filesize";
 
 @NgModule({
   declarations: [
@@ -72,6 +73,7 @@ import { WorkspaceNewComponent } from "./workspace-new/workspace-new.component";
     MatAutocompleteModule,
     SchemaFormModule.forRoot(),
     MarkdownModule.forChild(),
+    NgxFilesizeModule,
   ],
   providers: [
     {

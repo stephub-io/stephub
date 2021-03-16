@@ -78,7 +78,7 @@
         </dependency>
 
 
-        <!-- 3rd partry -->
+        <!-- 3rd party -->
         <dependency>
             <groupId>net.jodah</groupId>
             <artifactId>expiringmap</artifactId>
@@ -88,6 +88,17 @@
             <groupId>org.antlr</groupId>
             <artifactId>antlr4-runtime</artifactId>
             <version>${org.antlr.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct</artifactId>
+            <version>${org.mapstruct.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mapstruct</groupId>
+            <artifactId>mapstruct-processor</artifactId>
+            <version>${org.mapstruct.version}</version>
+            <optional>true</optional>
         </dependency>
     </dependencies>
 </project>

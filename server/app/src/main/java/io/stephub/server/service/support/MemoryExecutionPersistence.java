@@ -1,6 +1,8 @@
 package io.stephub.server.service.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonView;
+import io.stephub.provider.api.model.LogEntry;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.Execution.FeatureExecutionItem;
@@ -18,11 +20,16 @@ import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
 import net.jodah.expiringmap.ExpiringMap;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
+import javax.validation.constraints.NotNull;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -63,6 +70,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
         @JsonIgnore
         private int uncompletedBuckets;
+
+        @JsonIgnore
+        private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
 
         @Override
         @JsonIgnore
@@ -193,7 +203,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                                         log.debug("Starting execution of step item={} of execution={}", stepExecutionItem, execId);
                                         try {
                                             final StepExecutionResult result = command.execute(stepExecutionItem, sessionExecutionContext, evaluationContext);
-                                            stepExecutionItem.setResponse(result.getResponse());
+                                            stepExecutionItem.setResponse(new Execution.RoughStepResponse(result.getResponse(), this.storeLogs(execution, stepExecutionItem, result.getResponse().getLogs())));
                                             stepExecutionItem.setStepSpec(result.getStepSpec());
                                             if (result.getResponse().getStatus() == StepResponse.StepStatus.FAILED) {
                                                 cancelled = true;
@@ -225,6 +235,21 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 }
             }
         }
+    }
+
+    private List<Execution.ExecutionLogEntry> storeLogs(final MemoryExecution execution, final StepExecutionItem stepExecutionItem, final List<LogEntry> logs) {
+        if (!CollectionUtils.isEmpty(logs)) {
+            return logs.stream().map(logEntry -> Execution.ExecutionLogEntry.builder()
+                    .message(logEntry.getMessage()).attachments(
+                            logEntry.getAttachments().stream().map(logAttachment -> {
+                                final Execution.ExecutionLogAttachment target =
+                                        new Execution.ExecutionLogAttachment(UUID.randomUUID().toString(), logAttachment);
+                                execution.attachmentStore.put(target.getId(), logAttachment);
+                                return target;
+                            }).collect(Collectors.toList())
+                    ).build()).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 
     @Override
@@ -260,6 +285,15 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         return this.store.entrySet().stream().filter(e -> e.getKey().startsWith(wid + "/")).
                 map(e -> e.getValue()).sorted((e1, e2) -> e2.getInitiatedAt().compareTo(e1.getInitiatedAt())).
                 collect(Collectors.toList());
+    }
+
+    @Override
+    public Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(final String wid, final String execId, final String attachmentId) {
+        final LogEntry.LogAttachment logAttachment = this.getSafeExecution(wid, execId).attachmentStore.get(attachmentId);
+        if (logAttachment == null) {
+            throw new ExecutionException("No attachment with id=" + attachmentId + " found");
+        }
+        return Pair.of(new Execution.ExecutionLogAttachment(attachmentId, logAttachment), new ByteArrayInputStream(logAttachment.getContent()));
     }
 
     private String getStoreId(final String wid, final String execId) {

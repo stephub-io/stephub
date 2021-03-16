@@ -3,6 +3,7 @@ package io.stephub.server.config;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.json.jackson.ObjectMapperConfigurer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class ObjectMapperConfig {
     public void setUp() {
         ObjectMapperConfigurer.configure(this.objectMapper);
         this.objectMapper.addMixIn(ObjectError.class, JsonObjectError.class);
+        this.objectMapper.enable(MapperFeature.DEFAULT_VIEW_INCLUSION);
     }
 
     @JsonIgnoreProperties({"bindingFailure", "objectName"})

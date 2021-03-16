@@ -11,10 +11,7 @@ import com.networknt.schema.ValidationMessage;
 import io.stephub.json.*;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.ProviderException;
-import io.stephub.provider.api.model.ProviderInfo;
-import io.stephub.provider.api.model.ProviderOptions;
-import io.stephub.provider.api.model.StepRequest;
-import io.stephub.provider.api.model.StepResponse;
+import io.stephub.provider.api.model.*;
 import io.stephub.provider.api.model.spec.ArgumentSpec;
 import io.stephub.provider.api.model.spec.DataTableSpec;
 import io.stephub.provider.api.model.spec.PatternType;
@@ -266,6 +263,73 @@ class RemoteProviderTest {
             this.provider.execute(sid, givenRequest);
         });
         log.debug("Expected exception", exception);
+    }
+
+    @Test
+    public void testExecStepWithLogs() throws JsonProcessingException {
+        this.testStep(StepRequest.<Json>builder().id("456").build(),
+                StepResponse.<Json>builder().
+                        status(PASSED).
+                        duration(Duration.ofSeconds(7)).
+                        output(
+                                new JsonNumber(3)
+                        ).
+                        log(LogEntry.builder().
+                                message("log message")
+                                .build()).
+                        build());
+    }
+
+    @Test
+    public void testExecStepWithLogAttachment() throws JsonProcessingException {
+        this.testStep(StepRequest.<Json>builder().id("456").build(),
+                StepResponse.<Json>builder().
+                        status(PASSED).
+                        duration(Duration.ofSeconds(7)).
+                        output(
+                                new JsonNumber(3)
+                        ).
+                        log(LogEntry.builder().
+                                message("log message")
+                                .attachment(
+                                        LogEntry.LogAttachment.builder()
+                                                .fileName("abc.png")
+                                                .contentType("image/png")
+                                                .content("some dummy png".getBytes()).build()
+                                )
+                                .build()).
+                        build());
+    }
+
+    private void testStep(final StepRequest<Json> givenRequest, final StepResponse<Json> expectedResponse) throws JsonProcessingException {
+        // Given
+        final String sid = "3x3";
+        final String serializedResponse = this.objectMapper.writeValueAsString(expectedResponse);
+        log.debug("Given response: {}", serializedResponse);
+        this.assertValidSchema(serializedResponse, "/schema/step-response.json");
+        final String url = this.baseUrlBuilder.
+                addPathSegment("sessions").
+                addPathSegment(sid).addPathSegment("execute").build().encodedPath();
+        stubFor(post(urlEqualTo(url)).
+                willReturn(
+                        aResponse().
+                                withStatus(200).
+                                withHeader(HttpHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON_VALUE).
+                                withBody(serializedResponse)
+                ));
+        final String serializedRequest = this.objectMapper.writeValueAsString(givenRequest);
+        log.debug("Given request: {}", serializedRequest);
+        this.assertValidSchema(serializedRequest, "/schema/step-request.json");
+
+        // Call
+        final StepResponse<Json> actualResponse = this.provider.execute(sid, givenRequest);
+
+        // Expect
+        assertThat(actualResponse, equalTo(expectedResponse));
+        verify(postRequestedFor(urlEqualTo(url))
+                .withHeader(RemoteProvider.HEADER_CONTENT_TYPE, WireMock.equalTo(RemoteProvider.APPLICATION_JSON)).
+                        withRequestBody(equalToJson(serializedRequest))
+        );
     }
 
     @BeforeEach

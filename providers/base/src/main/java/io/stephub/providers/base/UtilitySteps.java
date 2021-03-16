@@ -2,7 +2,9 @@ package io.stephub.providers.base;
 
 import io.stephub.json.Json;
 import io.stephub.json.JsonNumber;
+import io.stephub.provider.api.model.LogEntry;
 import io.stephub.provider.api.model.spec.PatternType;
+import io.stephub.provider.util.spring.StepExecutionContext;
 import io.stephub.provider.util.spring.annotation.StepArgument;
 import io.stephub.provider.util.spring.annotation.StepDoc;
 import io.stephub.provider.util.spring.annotation.StepDoc.StepDocExample;
@@ -20,7 +22,9 @@ public class UtilitySteps {
     public void wait(@StepArgument(name = "seconds", doc =
     @StepDoc(description = "number in seconds",
             examples = {@StepDocExample(value = "5", description = "to wait 5s"),
-                    @StepDocExample(value = "0.250", description = "to wait for 250ms")})) final JsonNumber seconds) throws InterruptedException {
+                    @StepDocExample(value = "0.250", description = "to wait for 250ms")})) final JsonNumber seconds,
+                     final StepExecutionContext executionContext) throws InterruptedException {
+        executionContext.addLog(LogEntry.builder().message("Suspending test for " + seconds + " seconds").build());
         Thread.sleep(Math.max(0, Math.round(seconds.getValue().floatValue() * 1000)));
     }
 

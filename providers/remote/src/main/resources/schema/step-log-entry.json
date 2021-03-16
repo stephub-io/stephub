@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "Log entry",
+  "type": "object",
+  "required": ["message"],
+  "definitions": {
+    "LogAttachment": {
+      "type": "object",
+      "required": ["fileName", "contentType", "content"],
+      "properties": {
+        "fileName": {
+          "type": "string",
+          "title": "Filename"
+        },
+        "contentType": {
+          "type": "string",
+          "title": "Content type"
+        },
+        "content": {
+          "type": "string",
+          "contentEncoding": "base64",
+          "title": "Binary data"
+        }
+      }
+    }
+  },
+  "properties": {
+    "message": {
+      "type": "string",
+      "title": "Log message",
+      "description": "Message in markdown format"
+    },
+    "attachments": {
+      "type": "array",
+      "title": "Attachments",
+      "items": {
+        "$ref": "#/definitions/LogAttachment"
+      }
+    }
+  }
+}
