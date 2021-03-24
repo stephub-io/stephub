@@ -97,6 +97,18 @@ public class JsonTypeTest {
         this.verifyMappingException(ARRAY, new JsonNumber(1));
     }
 
+    @Test
+    public void testToNumber() {
+        assertThat(
+                NUMBER.convertFrom(new JsonInteger(123)),
+                equalTo(new JsonNumber(123))
+        );
+        assertThat(
+                INTEGER.convertFrom(new JsonNumber(123.5)),
+                equalTo(new JsonInteger(123))
+        );
+    }
+
     private void verifyMappingException(final Json.JsonType targetType, final Json input) {
         final JsonException e = assertThrows(JsonException.class, () -> {
             targetType.convertFrom(input);

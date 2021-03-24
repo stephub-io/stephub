@@ -1,6 +1,9 @@
 package io.stephub.server.service;
 
 import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.model.FunctionalExecution;
+import io.stephub.server.api.model.FunctionalExecution.FunctionalExecutionStart;
+import io.stephub.server.api.model.LoadExecution;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.exception.ExecutionException;
@@ -36,9 +39,9 @@ public class ExecutionService {
     private StepExecutor stepExecutor;
 
 
-    public Execution startExecution(final Context ctx,
-                                    final String wid,
-                                    final Execution.ExecutionStart executionStart) {
+    public <E extends Execution> E startExecution(final Context ctx,
+                                                  final String wid,
+                                                  final Execution.ExecutionStart<E> executionStart) {
         final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
         this.workspaceValidator.validate(workspace);
         if (workspace.getErrors() != null && !workspace.getErrors().isEmpty()) {
@@ -62,13 +65,24 @@ public class ExecutionService {
                 return this.bindException;
             }
         });
-        final Execution execution = this.executionPersistence.initExecution(workspace, executionStart.getInstruction(), executionStart.getSessionSettings());
+        final E execution = this.executionPersistence.initExecution(workspace, executionStart);
+        if (execution instanceof FunctionalExecution) {
+            this.initFunctionalExecution((FunctionalExecutionStart) executionStart, workspace, (FunctionalExecution) execution);
+        }
+        return execution;
+    }
+
+    private void initLoadExecution(final LoadExecution.LoadExecutionStart executionStart, final Workspace workspace, final LoadExecution execution) {
+        
+    }
+
+    private void initFunctionalExecution(final FunctionalExecutionStart executionStart, final Workspace workspace, final FunctionalExecution execution) {
         final int parallelizationCount = Math.min(execution.getMaxParallelizationCount(), executionStart.getParallelSessionCount());
         log.debug("Initializing {} parallel jobs for executing {}", parallelizationCount, execution);
         for (int i = 0; i < parallelizationCount; i++) {
             final JobKey jobKey = JobKey.jobKey(execution.getId() + "-" + i, "executions");
             final JobDetail job = JobBuilder.newJob(ParallelExecutionJob.class).withIdentity(jobKey).
-                    usingJobData(ParallelExecutionJob.createJobDataMap(workspace, execution)).
+                    usingJobData(ParallelExecutionJob.createJobDataMap(workspace, execution, i)).
                     build();
             try {
                 this.scheduler.scheduleJob(job, Collections.singleton(
@@ -78,11 +92,10 @@ public class ExecutionService {
                 throw new ExecutionException("Failed to schedule parallel job " + i + " for execution " + execution.getId() + ": " + e.getMessage(), e);
             }
         }
-        return execution;
     }
 
-    private void doExecution(final String wid, final String execId) {
-        final Execution execution = this.executionPersistence.getExecution(wid, execId);
+    private void doFunctionalExecution(final String wid, final String execId) {
+        final FunctionalExecution execution = (FunctionalExecution) this.executionPersistence.getExecution(wid, execId);
         final Workspace workspace = this.workspaceService.getWorkspaceInternal(wid);
         this.executionPersistence.processPendingExecutionSteps(workspace, execId, (executionItem, sessionExecutionContext, evaluationContext) ->
         {
@@ -93,6 +106,7 @@ public class ExecutionService {
 
 
     @Slf4j
+    @DisallowConcurrentExecution
     public static class ParallelExecutionJob implements Job {
         @Autowired
         private ExecutionService executionService;
@@ -101,13 +115,15 @@ public class ExecutionService {
         public void execute(final JobExecutionContext jec) throws JobExecutionException {
             final String wid = jec.getMergedJobDataMap().getString("wid");
             final String execId = jec.getMergedJobDataMap().getString("execId");
-            log.debug("Executing execution={} for workspace={}", execId, wid);
-            this.executionService.doExecution(wid, execId);
+            final int runner = jec.getMergedJobDataMap().getInt("runner");
+            log.debug("Executing execution={} for workspace={} on runner={}", execId, wid, runner);
+            this.executionService.doFunctionalExecution(wid, execId);
         }
 
-        private static JobDataMap createJobDataMap(final Workspace workspace, final Execution execution) {
+        private static JobDataMap createJobDataMap(final Workspace workspace, final FunctionalExecution execution, final int runner) {
             final JobDataMap dataMap = new JobDataMap();
             dataMap.put("wid", workspace.getId());
+            dataMap.put("runner", runner);
             dataMap.put("execId", execution.getId());
             return dataMap;
         }

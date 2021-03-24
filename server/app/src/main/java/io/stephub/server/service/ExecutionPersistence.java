@@ -7,8 +7,7 @@ import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.model.Execution;
-import io.stephub.server.api.model.ExecutionInstruction;
-import io.stephub.server.api.model.RuntimeSession;
+import io.stephub.server.api.model.FunctionalExecution;
 import io.stephub.server.api.model.Workspace;
 import lombok.Builder;
 import lombok.Getter;
@@ -20,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public interface ExecutionPersistence {
-    Execution initExecution(Workspace workspace, ExecutionInstruction instruction, RuntimeSession.SessionSettings sessionSettings);
+    <E extends Execution> E initExecution(Workspace workspace, Execution.ExecutionStart<E> executionStart);
 
     void processPendingExecutionSteps(Workspace workspace, String execId, WithinExecutionStepCommand command);
 
@@ -29,12 +28,12 @@ public interface ExecutionPersistence {
     @Async
     CompletableFuture<Execution> getExecution(String wid, String execId, boolean waitForCompletion);
 
-    List<Execution> getExecutions(String wid);
+    <E extends Execution> List<E> getExecutions(String wid, Class<? extends E> clazz);
 
     Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(String wid, String execId, String attachmentId);
 
     interface WithinExecutionStepCommand {
-        StepExecutionResult execute(Execution.StepExecutionItem stepItem,
+        StepExecutionResult execute(FunctionalExecution.StepExecutionItem stepItem,
                                     SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext);
     }
 
@@ -45,7 +44,4 @@ public interface ExecutionPersistence {
         private final StepSpec<JsonSchema> stepSpec;
     }
 
-    interface StepExecutionItemCommand {
-        StepExecutionResult execute();
-    }
 }

@@ -2,13 +2,22 @@ import { StepStatus } from "./step.model";
 import { GherkinPreferences } from "./workspace/workspace.model";
 import { StepSpec } from "./step/step.model";
 
+export enum ExecutionType {
+  FUNCTIONAL = "functional",
+  LOAD = "load",
+}
+
 export interface Execution {
+  type: ExecutionType;
   id: string;
   startedAt: string;
   initiatedAt: string;
   completedAt: string;
   erroneous: boolean;
   status: ExecutionStatus;
+}
+
+export interface FunctionalExecution extends Execution {
   stats: Stats;
   backlog: ExecutionItem[];
   gherkinPreferences: GherkinPreferences;
@@ -71,15 +80,20 @@ export interface Stats {
   erroneous: number;
 }
 
-export interface ExecutionsResult {
+export interface ExecutionsResult<E extends Execution> {
   total: number;
-  items: Execution[];
+  items: E[];
 }
 
 export interface ExecutionStart {
-  instruction: ExecutionInstruction;
+  type: ExecutionType;
   sessionSettings: SessionSettings;
+}
+
+export interface FunctionalExecutionStart extends ExecutionStart {
+  instruction: ExecutionInstruction;
   parallelSessionCount?: number;
+  parallelizationMode: ParallelizationMode.scenario;
 }
 
 export interface ExecutionInstruction {
@@ -96,7 +110,6 @@ export interface ScenarioFilter {
 
 export interface SessionSettings {
   variables: VariableMap;
-  parallelizationMode: ParallelizationMode.scenario;
 }
 
 export interface VariableMap {

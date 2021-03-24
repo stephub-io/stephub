@@ -55,6 +55,10 @@ export class WorkspaceComponent implements OnInit {
             link: ["/workspaces", workspace.id, "executions"],
             label: "Executions",
           },
+          {
+            link: ["/workspaces", workspace.id, "loadExecutions"],
+            label: "Load tests",
+          },
         ];
         this.breadcrumbService.set("@workspace", workspace.name);
         return workspace;

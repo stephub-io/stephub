@@ -8,6 +8,7 @@ import {
   ExecutionLogAttachment,
   ExecutionStatus,
   FeatureExecutionItem,
+  FunctionalExecution,
   ScenarioExecutionItem,
   StepExecutionItem,
 } from "../execution.model";
@@ -45,7 +46,7 @@ export class ExecutionDetailComponent implements OnInit {
 
   wid: string;
   id: string;
-  execution$: Observable<Execution>;
+  execution$: Observable<FunctionalExecution>;
 
   constructor(
     private executionService: ExecutionService,
@@ -62,17 +63,19 @@ export class ExecutionDetailComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.execution$ = this.executionService.get(this.wid, this.id).pipe(
-      map((execution) => {
-        this.breadcrumbService.set(
-          "@execution",
-          execution.startedAt
-            ? this.datePipe.transform(execution.startedAt, "medium")
-            : "Starting soon"
-        );
-        return execution;
-      })
-    );
+    this.execution$ = this.executionService
+      .get<FunctionalExecution>(this.wid, this.id)
+      .pipe(
+        map((execution) => {
+          this.breadcrumbService.set(
+            "@execution",
+            execution.startedAt
+              ? this.datePipe.transform(execution.startedAt, "medium")
+              : "Starting soon"
+          );
+          return execution;
+        })
+      );
   }
 
   statusIcon(status: ExecutionStatus) {

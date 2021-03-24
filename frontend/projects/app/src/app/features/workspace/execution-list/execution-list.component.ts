@@ -3,7 +3,12 @@ import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
 import { ROUTE_ANIMATIONS_ELEMENTS } from "../../../core/core.module";
 import { WorkspaceService } from "../workspace/workspace.service";
 import { ExecutionService } from "../execution.service";
-import { ExecutionsResult, ExecutionStatus } from "../execution.model";
+import {
+  ExecutionsResult,
+  ExecutionStatus,
+  ExecutionType,
+  FunctionalExecution,
+} from "../execution.model";
 import { Observable } from "rxjs";
 import { ActivatedRoute } from "@angular/router";
 import {
@@ -21,7 +26,7 @@ export class ExecutionListComponent implements OnInit {
   routeAnimationsElements = ROUTE_ANIMATIONS_ELEMENTS;
 
   wid: string;
-  executions$: Observable<ExecutionsResult>;
+  executions$: Observable<ExecutionsResult<FunctionalExecution>>;
 
   constructor(
     private workspaceService: WorkspaceService,
@@ -34,7 +39,10 @@ export class ExecutionListComponent implements OnInit {
   }
 
   ngOnInit() {
-    this.executions$ = this.executionService.fetch(this.wid);
+    this.executions$ = this.executionService.fetch(
+      this.wid,
+      ExecutionType.FUNCTIONAL
+    );
   }
 
   statusIcon(status: ExecutionStatus) {

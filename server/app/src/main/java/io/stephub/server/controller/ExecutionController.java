@@ -1,7 +1,10 @@
 package io.stephub.server.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.model.Execution.ExecutionType;
+import io.stephub.server.api.model.FunctionalExecution;
 import io.stephub.server.api.rest.PageResult;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.ExecutionPersistence;
@@ -12,11 +15,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.mapstruct.Mapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.convert.converter.Converter;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -41,9 +46,18 @@ public class ExecutionController {
     @Autowired
     private ListExecutionMapper executionMapper;
 
+    @Component
+    public static class ExecutionTypeConverter implements Converter<String, ExecutionType> {
+
+        @Override
+        public ExecutionType convert(final String value) {
+            return ExecutionType.valueOf(value.toUpperCase());
+        }
+    }
+
     @PostMapping("/workspaces/{wid}/executions")
     public Execution startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
-                                    @RequestBody @Valid final Execution.ExecutionStart executionStart,
+                                    @RequestBody @Valid final Execution.ExecutionStart<? extends Execution> executionStart,
                                     final HttpServletResponse response) throws IOException, BindException {
         try {
             final Execution execution = this.executionService.startExecution(ctx, wid, executionStart);
@@ -59,10 +73,11 @@ public class ExecutionController {
     @GetMapping("/workspaces/{wid}/executions")
     @ResponseBody
     public PageResult<Execution> getExecutions(@ModelAttribute final Context ctx,
-                                               @PathVariable("wid") final String wid) {
-        final List<Execution> executions = this.executionPersistence.getExecutions(wid);
+                                               @PathVariable("wid") final String wid,
+                                               @RequestParam(value = "type", required = false) final ExecutionType type) {
+        final List<Execution> executions = this.executionPersistence.getExecutions(wid, type != null ? type.getType() : Execution.class);
         return PageResult.<Execution>builder().items(executions.stream()
-                .map(execution -> this.executionMapper.mapWithoutBacklog(execution)).collect(Collectors.toList())).total(executions.size()).build();
+                .map(execution -> execution instanceof FunctionalExecution ? this.executionMapper.mapWithoutBacklog((FunctionalExecution) execution) : execution).collect(Collectors.toList())).total(executions.size()).build();
     }
 
     @GetMapping("/workspaces/{wid}/executions/{execId}")
@@ -111,7 +126,8 @@ public class ExecutionController {
     }
 
     @NoArgsConstructor
-    public static class ListExecution extends Execution {
+    @JsonTypeName(Execution.FUNCTIONAL_STR)
+    public static class ListFunctionalExecution extends FunctionalExecution {
 
         @Override
         @JsonIgnore
@@ -128,6 +144,6 @@ public class ExecutionController {
 
     @Mapper(componentModel = "spring")
     public interface ListExecutionMapper {
-        ListExecution mapWithoutBacklog(Execution execution);
+        ListFunctionalExecution mapWithoutBacklog(FunctionalExecution execution);
     }
 }

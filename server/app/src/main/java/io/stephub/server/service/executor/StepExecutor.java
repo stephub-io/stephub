@@ -5,7 +5,7 @@ import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
-import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.model.FunctionalExecution;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.service.ExecutionPersistence.StepExecutionResult;
 import io.stephub.server.service.StepExecutionResolver;
@@ -22,7 +22,7 @@ public class StepExecutor {
     @Autowired
     private StepExecutionResolver stepExecutionResolver;
 
-    public StepExecutionResult execute(final Workspace workspace, final Execution.StepExecutionItem stepItem, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
+    public StepExecutionResult execute(final Workspace workspace, final FunctionalExecution.StepExecutionItem stepItem, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
         try {
             final String stepInstruction = stepItem.getStep();
             final StepExecution stepExecution = this.stepExecutionResolver.resolveStepExecution(stepInstruction, workspace);

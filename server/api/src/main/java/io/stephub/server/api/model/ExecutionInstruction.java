@@ -2,11 +2,11 @@ package io.stephub.server.api.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.stephub.server.api.model.Execution.ExecutionItem;
-import io.stephub.server.api.model.Execution.FeatureExecutionItem;
-import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
-import io.stephub.server.api.model.Execution.ScenarioExecutionItem.ScenarioExecutionItemBuilder;
-import io.stephub.server.api.model.Execution.StepExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.ExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.FeatureExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem.ScenarioExecutionItemBuilder;
+import io.stephub.server.api.model.FunctionalExecution.StepExecutionItem;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Scenario;
 import io.stephub.server.api.validation.ValidRegex;

@@ -1,21 +1,21 @@
 package io.stephub.server.service.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonView;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import io.stephub.provider.api.model.LogEntry;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.Execution;
-import io.stephub.server.api.model.Execution.FeatureExecutionItem;
-import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
-import io.stephub.server.api.model.Execution.StepExecutionItem;
-import io.stephub.server.api.model.ExecutionInstruction;
-import io.stephub.server.api.model.RuntimeSession;
+import io.stephub.server.api.model.FunctionalExecution;
+import io.stephub.server.api.model.FunctionalExecution.FeatureExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.StepExecutionItem;
 import io.stephub.server.api.model.RuntimeSession.SessionSettings.ParallelizationMode;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.service.ExecutionPersistence;
 import io.stephub.server.service.SessionService;
 import io.stephub.server.service.exception.ExecutionException;
 import lombok.Builder;
+import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -27,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
-import javax.validation.constraints.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.*;
@@ -46,33 +45,48 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Value("${io.stephub.execution.memory.store.expirationDays}")
     private int expirationDays;
 
-    private ExpiringMap<String, MemoryExecution> store;
+    private ExpiringMap<String, ExecutionWrapper> store;
+
+    @JsonIgnore
+    private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
+
 
     @Autowired
     private SessionService sessionService;
 
+    @Getter
+    private static class ExecutionWrapper<E extends Execution> {
+        private final E execution;
+        @JsonIgnore
+        private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
+
+        public ExecutionWrapper(final E execution) {
+            this.execution = execution;
+        }
+    }
+
     @Builder
     private static class IsolatedBucket {
-        private final Execution.ExecutionItem source;
+        private final FunctionalExecution.ExecutionItem source;
         private final Queue<StepExecutionItem> pendingSteps;
     }
 
     @Builder
     private static class SerialBucket {
-        private final Execution.ExecutionItem source;
+        private final FunctionalExecution.ExecutionItem source;
         private final Queue<IsolatedBucket> serialBuckets;
     }
 
+
     @SuperBuilder
-    private static class MemoryExecution extends Execution {
+    @Getter
+    @JsonTypeName(Execution.FUNCTIONAL_STR)
+    private static class MemoryFunctionalExecution extends FunctionalExecution {
         @JsonIgnore
         private final Queue<SerialBucket> pendingBuckets;
 
         @JsonIgnore
         private int uncompletedBuckets;
-
-        @JsonIgnore
-        private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
 
         @Override
         @JsonIgnore
@@ -90,9 +104,8 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 .build();
     }
 
-    @Override
-    public Execution initExecution(final Workspace workspace, final ExecutionInstruction instruction, final RuntimeSession.SessionSettings sessionSettings) {
-        final List<Execution.ExecutionItem> executionItems = instruction.buildItems(workspace);
+    private FunctionalExecution initExecution(final Workspace workspace, final FunctionalExecution.FunctionalExecutionStart executionStart) {
+        final List<FunctionalExecution.ExecutionItem> executionItems = executionStart.getInstruction().buildItems(workspace);
         final Queue<SerialBucket> pendingItems = new LinkedList<>();
         executionItems.forEach(executionItem ->
         {
@@ -114,7 +127,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                                 ).build()
                         ))).build());
             } else if (executionItem instanceof FeatureExecutionItem) {
-                if (sessionSettings.getParallelizationMode() == ParallelizationMode.SCENARIO) {
+                if (executionStart.getParallelizationMode() == ParallelizationMode.SCENARIO) {
                     pendingItems.addAll(
                             ((FeatureExecutionItem) executionItem).getScenarios().stream()
                                     .map(scenario -> SerialBucket.builder().serialBuckets(
@@ -142,21 +155,30 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         if (pendingItems.isEmpty()) {
             throw new ExecutionException("Empty selection, expected at least one item to execute");
         }
-        final MemoryExecution execution = MemoryExecution.builder().
-                instruction(instruction).
+        final MemoryFunctionalExecution execution = MemoryFunctionalExecution.builder().
+                instruction(executionStart.getInstruction()).
                 id(UUID.randomUUID().toString()).
-                sessionSettings(sessionSettings).
+                sessionSettings(executionStart.getSessionSettings()).
                 gherkinPreferences(workspace.getGherkinPreferences()).
                 initiatedAt(new Date()).
                 backlog(executionItems).
                 pendingBuckets(pendingItems).
                 uncompletedBuckets(pendingItems.size()).
                 build();
-        this.store.put(this.getStoreId(workspace.getId(), execution.getId()), execution);
+        this.store.put(this.getStoreId(workspace.getId(), execution.getId()),
+                new ExecutionWrapper<>(execution));
         return execution;
     }
 
-    private SerialBucket doLifecycleAndGetNext(final MemoryExecution execution) {
+    @Override
+    public <E extends Execution> E initExecution(final Workspace workspace, final Execution.ExecutionStart<E> executionStart) {
+        if (executionStart instanceof FunctionalExecution.FunctionalExecutionStart) {
+            return (E) this.initExecution(workspace, (FunctionalExecution.FunctionalExecutionStart) executionStart);
+        }
+        return null;
+    }
+
+    private SerialBucket doLifecycleAndGetNext(final MemoryFunctionalExecution execution) {
         synchronized (execution) {
             if (execution.getStatus() == INITIATED) {
                 log.debug("Execution={} started", execution);
@@ -181,7 +203,8 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     @Override
     public void processPendingExecutionSteps(final Workspace workspace, final String execId, final WithinExecutionStepCommand command) {
-        final MemoryExecution execution = this.getSafeExecution(workspace.getId(), execId);
+        final ExecutionWrapper<MemoryFunctionalExecution> executionWrapper = this.getSafeExecution(workspace.getId(), execId, MemoryFunctionalExecution.class);
+        final MemoryFunctionalExecution execution = executionWrapper.getExecution();
         SerialBucket serialBucket;
         while ((serialBucket = this.doLifecycleAndGetNext(execution)) != null) {
             try {
@@ -203,9 +226,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                                         log.debug("Starting execution of step item={} of execution={}", stepExecutionItem, execId);
                                         try {
                                             final StepExecutionResult result = command.execute(stepExecutionItem, sessionExecutionContext, evaluationContext);
-                                            stepExecutionItem.setResponse(new Execution.RoughStepResponse(result.getResponse(), this.storeLogs(execution, stepExecutionItem, result.getResponse().getLogs())));
+                                            stepExecutionItem.setResponse(new FunctionalExecution.RoughStepResponse(result.getResponse(), this.storeLogs(executionWrapper, stepExecutionItem, result.getResponse().getLogs())));
                                             stepExecutionItem.setStepSpec(result.getStepSpec());
-                                            if (result.getResponse().getStatus() == StepResponse.StepStatus.FAILED) {
+                                            if (result.getResponse().getStatus() != StepResponse.StepStatus.PASSED) {
                                                 cancelled = true;
                                             }
                                         } catch (final Exception e) {
@@ -237,7 +260,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         }
     }
 
-    private List<Execution.ExecutionLogEntry> storeLogs(final MemoryExecution execution, final StepExecutionItem stepExecutionItem, final List<LogEntry> logs) {
+    private List<Execution.ExecutionLogEntry> storeLogs(final ExecutionWrapper<? extends Execution> execution, final StepExecutionItem stepExecutionItem, final List<LogEntry> logs) {
         if (!CollectionUtils.isEmpty(logs)) {
             return logs.stream().map(logEntry -> Execution.ExecutionLogEntry.builder()
                     .message(logEntry.getMessage()).attachments(
@@ -254,11 +277,11 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     @Override
     public Execution getExecution(final String wid, final String execId) {
-        return this.getSafeExecution(wid, execId);
+        return this.getSafeExecution(wid, execId, Execution.class).getExecution();
     }
 
-    private MemoryExecution getSafeExecution(final String wid, final String execId) {
-        final MemoryExecution execution = this.store.get(this.getStoreId(wid, execId));
+    private <E extends Execution> ExecutionWrapper<E> getSafeExecution(final String wid, final String execId, final Class<E> clazz) {
+        final ExecutionWrapper<E> execution = this.store.get(this.getStoreId(wid, execId));
         if (execution == null) {
             throw new ExecutionException("No execution with id=" + execId + " and workspace=" + wid + " found");
         }
@@ -267,7 +290,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     @Override
     public CompletableFuture<Execution> getExecution(final String wid, final String execId, final boolean waitForCompletion) {
-        final Execution execution = this.getSafeExecution(wid, execId);
+        final Execution execution = this.getSafeExecution(wid, execId, Execution.class).getExecution();
         try {
             while (waitForCompletion && execution.getStatus() != Execution.ExecutionStatus.COMPLETED) {
                 synchronized (execution) {
@@ -281,15 +304,16 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @Override
-    public List<Execution> getExecutions(final String wid) {
+    public <E extends Execution> List<E> getExecutions(final String wid, final Class<? extends E> clazz) {
         return this.store.entrySet().stream().filter(e -> e.getKey().startsWith(wid + "/")).
-                map(e -> e.getValue()).sorted((e1, e2) -> e2.getInitiatedAt().compareTo(e1.getInitiatedAt())).
+                filter(e -> clazz.isInstance(e.getValue().getExecution())).
+                map(e -> clazz.cast(e.getValue().getExecution())).sorted((e1, e2) -> e2.getInitiatedAt().compareTo(e1.getInitiatedAt())).
                 collect(Collectors.toList());
     }
 
     @Override
     public Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(final String wid, final String execId, final String attachmentId) {
-        final LogEntry.LogAttachment logAttachment = this.getSafeExecution(wid, execId).attachmentStore.get(attachmentId);
+        final LogEntry.LogAttachment logAttachment = this.getSafeExecution(wid, execId, Execution.class).attachmentStore.get(attachmentId);
         if (logAttachment == null) {
             throw new ExecutionException("No attachment with id=" + attachmentId + " found");
         }

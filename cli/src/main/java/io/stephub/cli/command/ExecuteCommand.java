@@ -5,9 +5,9 @@ import io.stephub.cli.client.ExecutionClient;
 import io.stephub.cli.client.WorkspaceClient;
 import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
-import io.stephub.server.api.model.Execution;
-import io.stephub.server.api.model.Execution.FeatureExecutionItem;
-import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution;
+import io.stephub.server.api.model.FunctionalExecution.FeatureExecutionItem;
+import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem;
 import io.stephub.server.api.model.ExecutionInstruction;
 import io.stephub.server.api.model.ExecutionInstruction.NamedFeatureFilter;
 import io.stephub.server.api.model.ExecutionInstruction.NamedScenarioFilter;
@@ -83,7 +83,7 @@ public class ExecuteCommand extends BaseCommand {
             return seconds < 0 ? "-" + positive : positive;
         }
 
-        protected String formatExecutionStatus(final Execution.ExecutionItem ei) {
+        protected String formatExecutionStatus(final FunctionalExecution.ExecutionItem ei) {
             final String eStatus;
             if (ei.isErroneous()) {
                 eStatus = "ERRONEOUS\n" + ei.getErrorMessage();
@@ -93,7 +93,7 @@ public class ExecuteCommand extends BaseCommand {
             return eStatus;
         }
 
-        protected boolean isDone(final Execution.ExecutionItem item) {
+        protected boolean isDone(final FunctionalExecution.ExecutionItem item) {
             return item.getStatus() == COMPLETED || item.getStatus() == CANCELLED;
         }
 
@@ -113,8 +113,8 @@ public class ExecuteCommand extends BaseCommand {
             final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace, true);
             log.info("Start execution of steps: {}", this.steps);
             final AtomicReference<ProgressBar> progressBar = new AtomicReference<>();
-            final Execution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
-                    Execution.ExecutionStart.builder().instruction(
+            final FunctionalExecution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
+                    FunctionalExecution.FunctionalExecutionStart.builder().instruction(
                             ExecutionInstruction.StepsExecutionInstruction.builder().
                                     steps(this.steps).build()
                     ).parallelSessionCount(this.parallelSessionCount).build(),
@@ -144,12 +144,12 @@ public class ExecuteCommand extends BaseCommand {
             }
         }
 
-        private String formatResult(final Execution execution) {
+        private String formatResult(final FunctionalExecution execution) {
             final String[] headers = {"Step", "Execution", "Status", "Duration"};
             final int c = execution.getBacklog().size();
             final String[][] data = new String[c][];
             for (int i = 0; i < c; i++) {
-                final Execution.StepExecutionItem sei = (Execution.StepExecutionItem) execution.getBacklog().get(i);
+                final FunctionalExecution.StepExecutionItem sei = (FunctionalExecution.StepExecutionItem) execution.getBacklog().get(i);
                 String response = "-";
                 String duration = "-";
                 if (sei.getResponse() != null) {
@@ -206,8 +206,8 @@ public class ExecuteCommand extends BaseCommand {
             final Workspace foundWorkspace = this.workspaceClient.findWorkspace(this.getServerContext(), this.workspace, true);
             log.info("Start execution of scenarios");
             final AtomicReference<ProgressBar> progressBar = new AtomicReference<>();
-            final Execution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
-                    Execution.ExecutionStart.builder().instruction(
+            final FunctionalExecution execution = this.executionClient.executeAndWaitForCompletion(this.getServerContext(), foundWorkspace,
+                    FunctionalExecution.FunctionalExecutionStart.builder().instruction(
                             ScenariosExecutionInstruction.builder().filter(
                                     this.filterOptions != null ? this.filterOptions.buildFilter() : new ExecutionInstruction.AllScenarioFilter()
                             ).build()
@@ -243,7 +243,7 @@ public class ExecuteCommand extends BaseCommand {
             }
         }
 
-        private Object formatResult(final Execution execution) {
+        private Object formatResult(final FunctionalExecution execution) {
             final String[] headers = {"Feature", "Scenario", "Execution", "Status", "Duration"};
             final int c = execution.getBacklog().size();
             final List<String[]> data = new ArrayList<>();
@@ -267,7 +267,7 @@ public class ExecuteCommand extends BaseCommand {
         }
 
         private String formatDuration(final ScenarioExecutionItem sei) {
-            final List<Duration> durations = sei.getSteps().stream().map(Execution.StepExecutionItem::getResponse).
+            final List<Duration> durations = sei.getSteps().stream().map(FunctionalExecution.StepExecutionItem::getResponse).
                     map(response -> response != null ? response.getDuration() : Duration.ZERO).
                     collect(Collectors.toList());
             Duration duration = Duration.ofMinutes(0);
@@ -293,7 +293,7 @@ public class ExecuteCommand extends BaseCommand {
         }
 
 
-        private List<ScenarioExecutionItem> getFlattedScenarios(final List<Execution.ExecutionItem> backlog) {
+        private List<ScenarioExecutionItem> getFlattedScenarios(final List<FunctionalExecution.ExecutionItem> backlog) {
             final List<ScenarioExecutionItem> scenarios = new ArrayList<>();
             backlog.stream().forEach(executionItem -> {
                 if (executionItem instanceof ScenarioExecutionItem) {

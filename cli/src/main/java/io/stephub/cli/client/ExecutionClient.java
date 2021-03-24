@@ -1,8 +1,11 @@
 package io.stephub.cli.client;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.cli.exception.RemoteException;
 import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.model.FunctionalExecution;
 import io.stephub.server.api.model.Workspace;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -28,11 +31,11 @@ public class ExecutionClient extends BaseClient {
     private ObjectMapper objectMapper;
 
     public interface ExecutionListener {
-        void onChange(Execution execution);
+        void onChange(FunctionalExecution execution);
     }
 
-    public Execution executeAndWaitForCompletion(final ServerContext serverContext, final Workspace workspace, final Execution.ExecutionStart executionStart,
-                                                 final ExecutionListener executionListener) {
+    public FunctionalExecution executeAndWaitForCompletion(final ServerContext serverContext, final Workspace workspace, final FunctionalExecution.FunctionalExecutionStart executionStart,
+                                                           final ExecutionListener executionListener) {
         log.debug("Starting {} in {} at {}", executionStart, workspace, serverContext);
         final OkHttpClient client = this.httpClientBuilder.build();
         try {
@@ -46,19 +49,19 @@ public class ExecutionClient extends BaseClient {
                     .build();
             try (final Response response = client.newCall(request).execute()) {
                 if (response.isSuccessful()) {
-                    final Execution execution = this.objectMapper.readValue(response.body().byteStream(), DefaultExecution.class);
+                    final FunctionalExecution execution = this.objectMapper.readValue(response.body().byteStream(), DefaultFunctionalExecution.class);
                     log.info("Execution started with id: {}", execution.getId());
-                    final AtomicReference<Execution> currentExecution = new AtomicReference<>(execution);
+                    final AtomicReference<FunctionalExecution> currentExecution = new AtomicReference<>(execution);
                     executionListener.onChange(execution);
                     await().pollInSameThread().atMost(1, TimeUnit.HOURS).pollInterval(5, TimeUnit.SECONDS).until(() -> {
-                        if (currentExecution.get().getStatus() != Execution.ExecutionStatus.COMPLETED) {
-                            final Execution newExecution = this.getExecution(serverContext, workspace.getId(), execution.getId());
+                        if (currentExecution.get().getStatus() != FunctionalExecution.ExecutionStatus.COMPLETED) {
+                            final FunctionalExecution newExecution = this.getExecution(serverContext, workspace.getId(), execution.getId());
                             if (this.getAllBacklogStatus(newExecution).equals(this.getAllBacklogStatus(currentExecution.get()))) {
                                 executionListener.onChange(newExecution);
                             }
                             currentExecution.set(newExecution);
                         }
-                        return currentExecution.get().getStatus() == Execution.ExecutionStatus.COMPLETED;
+                        return currentExecution.get().getStatus() == FunctionalExecution.ExecutionStatus.COMPLETED;
                     });
                     return currentExecution.get();
                 } else {
@@ -70,11 +73,11 @@ public class ExecutionClient extends BaseClient {
         }
     }
 
-    private List<Execution.ExecutionStatus> getAllBacklogStatus(final Execution execution) {
-        return execution.getBacklog().stream().map(Execution.ExecutionItem::getStatus).collect(Collectors.toList());
+    private List<FunctionalExecution.ExecutionStatus> getAllBacklogStatus(final FunctionalExecution execution) {
+        return execution.getBacklog().stream().map(FunctionalExecution.ExecutionItem::getStatus).collect(Collectors.toList());
     }
 
-    private Execution getExecution(final ServerContext serverContext, final String wid, final String execId) {
+    private FunctionalExecution getExecution(final ServerContext serverContext, final String wid, final String execId) {
         final OkHttpClient client = this.httpClientBuilder.build();
         try {
             final Request request = new Request.Builder().
@@ -88,7 +91,7 @@ public class ExecutionClient extends BaseClient {
                     .build();
             final Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
-                return this.objectMapper.readValue(response.body().byteStream(), DefaultExecution.class);
+                return this.objectMapper.readValue(response.body().byteStream(), DefaultFunctionalExecution.class);
             } else {
                 throw new RemoteException("Failed to resolve execution due to unexpected HTTP status code (" + response.code() + ") from " + serverContext);
             }
@@ -97,7 +100,8 @@ public class ExecutionClient extends BaseClient {
         }
     }
 
-    private static class DefaultExecution extends Execution {
+    @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
+    private static class DefaultFunctionalExecution extends FunctionalExecution {
 
         @Override
         public int getMaxParallelizationCount() {

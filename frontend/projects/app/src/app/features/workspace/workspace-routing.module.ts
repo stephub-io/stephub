@@ -61,6 +61,34 @@ const routes: Routes = [
           },
         ],
       },
+      {
+        path: "loadExecutions",
+        data: {
+          breadcrumb: "Load tests",
+        },
+        children: [
+          {
+            path: "",
+            component: ExecutionListComponent,
+          },
+          {
+            path: "new",
+            component: ExecutionNewComponent,
+            data: {
+              breadcrumb: "Start load test...",
+            },
+          },
+          {
+            path: ":id",
+            component: ExecutionDetailComponent,
+            data: {
+              breadcrumb: {
+                alias: "execution",
+              },
+            },
+          },
+        ],
+      },
     ],
   },
 ];

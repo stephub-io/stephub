@@ -215,7 +215,7 @@
                 </div>
               </div>
             </div>
-            <div *ngIf="step.response?.logs" class="logs">
+            <div *ngIf="step.response?.logs?.length > 0" class="logs">
               <p class="font-weight-bold">Logs:</p>
               <div *ngFor="let log of step.response?.logs" class="log">
                 <p class="code">{{ log.message }}</p>

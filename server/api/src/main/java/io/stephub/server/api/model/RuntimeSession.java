@@ -57,8 +57,5 @@ public class RuntimeSession implements Identifiable {
                 return this.name().toLowerCase();
             }
         }
-
-        @Builder.Default
-        private ParallelizationMode parallelizationMode = ParallelizationMode.SCENARIO;
     }
 }

@@ -22,6 +22,7 @@ public class ObjectMapperConfig {
         ObjectMapperConfigurer.configure(this.objectMapper);
         this.objectMapper.addMixIn(ObjectError.class, JsonObjectError.class);
         this.objectMapper.enable(MapperFeature.DEFAULT_VIEW_INCLUSION);
+        this.objectMapper.configure(MapperFeature.ACCEPT_CASE_INSENSITIVE_ENUMS, true);
     }
 
     @JsonIgnoreProperties({"bindingFailure", "objectName"})

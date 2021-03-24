@@ -5,6 +5,7 @@ import {
   ExecutionLogAttachment,
   ExecutionsResult,
   ExecutionStart,
+  ExecutionType,
 } from "./execution.model";
 import { Observable } from "rxjs";
 
@@ -14,23 +15,24 @@ import { Observable } from "rxjs";
 export class ExecutionService {
   constructor(private http: HttpClient) {}
 
-  public fetch(wid: string): Observable<ExecutionsResult> {
-    return this.http.get<ExecutionsResult>(
-      `/api/v1/workspaces/${wid}/executions`
+  public fetch<E extends Execution>(
+    wid: string,
+    type?: ExecutionType
+  ): Observable<ExecutionsResult<E>> {
+    return this.http.get<ExecutionsResult<E>>(
+      `/api/v1/workspaces/${wid}/executions` + (type ? "?type=" + type : "")
     );
   }
 
-  public get(wid: string, id: string): Observable<Execution> {
-    return this.http.get<Execution>(
-      `/api/v1/workspaces/${wid}/executions/${id}`
-    );
+  public get<E extends Execution>(wid: string, id: string): Observable<E> {
+    return this.http.get<E>(`/api/v1/workspaces/${wid}/executions/${id}`);
   }
 
-  public start(wid: string, start: ExecutionStart): Observable<Execution> {
-    return this.http.post<Execution>(
-      `/api/v1/workspaces/${wid}/executions`,
-      start
-    );
+  public start<E extends Execution>(
+    wid: string,
+    start: ExecutionStart
+  ): Observable<E> {
+    return this.http.post<E>(`/api/v1/workspaces/${wid}/executions`, start);
   }
 
   getAttachmentHref(wid: string, execId: string, a: ExecutionLogAttachment) {

@@ -19,7 +19,8 @@ import { faForward as faExecutions } from "@fortawesome/free-solid-svg-icons";
 import { Title } from "@angular/platform-browser";
 import { environment as env } from "../../../../environments/environment";
 import {
-  ExecutionStart,
+  ExecutionType,
+  FunctionalExecutionStart,
   ParallelizationMode,
   ScenariosExecutionInstruction,
   SessionSettings,
@@ -55,7 +56,7 @@ export class ExecutionNewComponent implements OnInit {
   faExecutions = faExecutions;
   selectionType = SelectionType.all;
   variableKeys$ = new BehaviorSubject<string[]>([]);
-  executionStart: ExecutionStart;
+  executionStart: FunctionalExecutionStart;
 
   fieldErrors$ = new BehaviorSubject<FieldError[]>(null);
   filterScenarios: string[] = [];
@@ -133,12 +134,13 @@ export class ExecutionNewComponent implements OnInit {
       return workspace;
     });
     this.executionStart = {
+      type: ExecutionType.FUNCTIONAL,
       sessionSettings: {
         variables: {},
-        parallelizationMode: ParallelizationMode.scenario,
       } as SessionSettings,
+      parallelizationMode: ParallelizationMode.scenario,
       parallelSessionCount: 1,
-    } as ExecutionStart;
+    } as FunctionalExecutionStart;
   }
 
   private setTitle(workspace: Workspace) {
@@ -185,8 +187,7 @@ export class ExecutionNewComponent implements OnInit {
   maxParallelSessionCount() {
     let count = 0;
     if (
-      this.executionStart.sessionSettings.parallelizationMode ==
-      ParallelizationMode.scenario
+      this.executionStart.parallelizationMode == ParallelizationMode.scenario
     ) {
       this.workspace.features.forEach(
         (feature) => (count += feature.scenarios.length)

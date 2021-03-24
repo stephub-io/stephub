@@ -22,6 +22,7 @@ public abstract class Json {
         BOOLEAN(JsonBoolean.class),
         STRING(JsonString.class),
         NUMBER(JsonNumber.class),
+        INTEGER(JsonInteger.class),
         NULL(JsonNull.class),
         ANY(Json.class);
 
@@ -63,6 +64,19 @@ public abstract class Json {
                         } catch (final java.text.ParseException e) {
                             throw new JsonException("Can't parse JSON string value '" + input + "' as JSON number");
                         }
+                    } else if (sourceType == INTEGER) {
+                        return input;
+                    }
+                    break;
+                case INTEGER:
+                    if (sourceType == STRING) {
+                        try {
+                            return new JsonInteger(NumberFormat.getInstance().parse(((JsonString) input).getValue()).intValue());
+                        } catch (final java.text.ParseException e) {
+                            throw new JsonException("Can't parse JSON string value '" + input + "' as JSON integer");
+                        }
+                    } else if (sourceType == NUMBER) {
+                        return new JsonInteger(((JsonNumber) input).getValue().intValue());
                     }
                     break;
                 case BOOLEAN:

@@ -11,18 +11,19 @@ import io.stephub.provider.api.model.ProviderOptions;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.ProviderSpec;
-import lombok.Builder;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.io.IOException;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static io.stephub.json.jackson.ObjectMapperConfigurer.createObjectMapper;
@@ -33,11 +34,11 @@ import static org.apache.commons.lang3.Validate.notBlank;
 public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
     public static final String HEADER_CONTENT_TYPE = "Content-Type";
     public static final String APPLICATION_JSON = "application/json; charset=UTF-8";
-    @Builder.Default
-    private final OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+
+    private OkHttpClient.Builder httpClientBuilder;
+
     private String baseUrl;
     private String alias;
-    @Builder.Default
     private ObjectMapper objectMapper = createObjectMapper();
     private Validator validator;
 
@@ -49,6 +50,15 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
         @Autowired
         private ObjectMapper objectMapper;
 
+        @Value("${io.stephub.remoteProvider.readTimeoutSeconds:300}")
+        private int readTimeoutSeconds;
+
+        @Value("${io.stephub.remoteProvider.connectTimeoutSeconds:10}")
+        private int connectTimeoutSeconds;
+
+        @Value("${io.stephub.remoteProvider.writeTimeoutSeconds:10}")
+        private int writeTimeoutSeconds;
+
         @Override
         public RemoteProvider createProvider(final ProviderSpec remoteSpec) {
             final RemoteProvider provider = new RemoteProvider();
@@ -58,6 +68,10 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
             provider.alias = remoteSpec.getName() +
                     (isNotBlank(remoteSpec.getVersion()) ? ":" + remoteSpec.getVersion() : "");
             provider.validator = this.validator;
+            provider.httpClientBuilder = new OkHttpClient.Builder()
+                    .connectTimeout(this.connectTimeoutSeconds, TimeUnit.SECONDS)
+                    .readTimeout(this.readTimeoutSeconds, TimeUnit.SECONDS)
+                    .writeTimeout(this.writeTimeoutSeconds, TimeUnit.SECONDS);
             return provider;
         }
     }
@@ -168,11 +182,11 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
         }
     }
 
-    void setBaseUrl(String baseUrl) {
+    void setBaseUrl(final String baseUrl) {
         this.baseUrl = baseUrl;
     }
 
-    void setValidator(Validator validator) {
+    void setValidator(final Validator validator) {
         this.validator = validator;
     }
 
