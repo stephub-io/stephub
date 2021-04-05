@@ -12,6 +12,7 @@ import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
 import io.stephub.server.api.model.GherkinPreferences;
+import io.stephub.server.api.model.StepResponseContext;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.api.model.customsteps.CustomStepContainer;
 import io.stephub.server.api.model.customsteps.StepDefinition;
@@ -25,6 +26,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static io.stephub.provider.api.model.StepResponse.StepStatus.ERRONEOUS;
+import static io.stephub.server.api.StepExecution.buildResponseForMissingStep;
 
 @Service
 @Slf4j
@@ -41,6 +43,59 @@ public class StepExecutionResolver implements StepExecutionSource {
 
     @Autowired
     private ExpressionEvaluator expressionEvaluator;
+
+    public StepExecution resolveAlways(final String stepInstruction, final Workspace workspace) {
+        try {
+            final StepExecution stepExecution = this.resolveStepExecution(stepInstruction, workspace);
+            if (stepExecution == null) {
+                return new StepExecution() {
+                    @Override
+                    public void execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepResponseContext responseContext) {
+                        responseContext.completeStep(buildResponseForMissingStep(stepInstruction));
+                    }
+
+                    @Override
+                    public StepSpec<JsonSchema> getStepSpec() {
+                        return null;
+                    }
+                };
+            } else {
+                return new StepExecution() {
+                    @Override
+                    public void execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepResponseContext responseContext) {
+                        try {
+                            stepExecution.execute(sessionExecutionContext, evaluationContext, responseContext);
+                        } catch (final Exception e) {
+                            log.error("Unexpected step execution error", e);
+                            responseContext.completeStep(StepResponse.<Json>builder().status(ERRONEOUS).
+                                    errorMessage("Unexpected exception: " + e.getMessage()).
+                                    build());
+                        }
+                    }
+
+                    @Override
+                    public StepSpec<JsonSchema> getStepSpec() {
+                        return stepExecution.getStepSpec();
+                    }
+                };
+            }
+        } catch (final Exception e) {
+            return new StepExecution() {
+                @Override
+                public void execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepResponseContext responseContext) {
+                    log.error("Unexpected step execution error", e);
+                    responseContext.completeStep(StepResponse.<Json>builder().status(ERRONEOUS).
+                            errorMessage("Unexpected exception: " + e.getMessage()).
+                            build());
+                }
+
+                @Override
+                public StepSpec<JsonSchema> getStepSpec() {
+                    return null;
+                }
+            };
+        }
+    }
 
     @Override
     public StepExecution resolveStepExecution(final String stepInstruction, final Workspace workspace) {
@@ -71,28 +126,45 @@ public class StepExecutionResolver implements StepExecutionSource {
                     log.trace("Resolved for instruction={} a custom step={}", instruction, stepDefinition);
                     return new StepExecution() {
                         @Override
-                        public StepResponse<Json> execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
+                        public void execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepResponseContext responseContext) {
                             // Check cycle
                             if (HierarchicalResolver.this.stepDefinitionStack.contains(stepDefinition)) {
-                                return StepResponse.<Json>builder().status(ERRONEOUS).
-                                        errorMessage(RECURSIVE_STEP_CALL_SEQUENCE_DETECTED).build();
+                                responseContext.completeStep(
+                                        StepResponse.<Json>builder().status(ERRONEOUS).
+                                                errorMessage(RECURSIVE_STEP_CALL_SEQUENCE_DETECTED).build());
+                                return;
                             }
                             // Do step
                             HierarchicalResolver.this.stepDefinitionStack.add(stepDefinition);
                             try {
                                 final StepEvaluationDelegate.StepEvaluation stepEvaluation = StepExecutionResolver.this.stepEvaluationDelegate.getStepEvaluation(match, evaluationContext);
                                 final StepRequest<Json> stepRequest = stepEvaluation.getRequestBuilder().build();
-                                final StepResponse<Json> response = stepDefinition.execute(stepRequest, sessionExecutionContext,
+                                stepDefinition.execute(stepRequest, sessionExecutionContext,
                                         new StepScopedEvaluationContext(evaluationContext, stepRequest),
                                         new HierarchicalResolver(
                                                 HierarchicalResolver.this.gherkinPreferences,
                                                 HierarchicalResolver.this,
                                                 stepDefinition,
                                                 HierarchicalResolver.this.stepDefinitionStack),
-                                        StepExecutionResolver.this.expressionEvaluator
+                                        StepExecutionResolver.this.expressionEvaluator,
+                                        new StepResponseContext() {
+                                            @Override
+                                            public void completeStep(final StepResponse<Json> response) {
+                                                stepEvaluation.postEvaluateResponse(response);
+                                                responseContext.completeStep(response);
+                                            }
+
+                                            @Override
+                                            public NestedResponseContext nested() {
+                                                return responseContext.nested();
+                                            }
+
+                                            @Override
+                                            public boolean continuable() {
+                                                return responseContext.continuable();
+                                            }
+                                        }
                                 );
-                                stepEvaluation.postEvaluateResponse(response);
-                                return response;
                             } finally {
                                 HierarchicalResolver.this.stepDefinitionStack.remove(stepDefinition);
                             }

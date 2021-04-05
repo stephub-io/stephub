@@ -4,7 +4,7 @@ import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.json.JsonBoolean;
 import io.stephub.server.api.SessionExecutionContext;
-import io.stephub.server.api.model.NestedStepResponse;
+import io.stephub.server.api.model.StepResponseContext;
 import io.stephub.server.api.validation.ValidExpression;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -12,6 +12,7 @@ import org.springframework.validation.Errors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import static io.stephub.json.Json.JsonType.BOOLEAN;
 
@@ -44,20 +45,20 @@ public class ConditionalStepDefinition extends StepDefinition {
     }
 
     @Override
-    protected NestedStepResponse executeInternally(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final ExpressionEvaluator expressionEvaluator) {
+    protected void executeInternally(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final ExpressionEvaluator expressionEvaluator,
+                                     final StepResponseContext responseContext) {
         final JsonBoolean condition = (JsonBoolean) BOOLEAN.convertFrom(expressionEvaluator.evaluate(this.conditionExpression, evaluationContext));
-        final NestedStepResponse.Context.ContextBuilder subResponses = NestedStepResponse.Context.
-                builder();
+        final StepResponseContext.NestedResponseContext nestedResponseContext = responseContext.nested();
         final List<String> steps;
+        final StepResponseContext.NestedResponseSequenceContext sequenceGroup;
         if (condition.isTrue()) {
             steps = this.truthySteps;
-            subResponses.name("Truthy steps");
+            sequenceGroup = nestedResponseContext.group(Optional.of("Truthy steps"));
         } else {
             steps = this.faultySteps;
-            subResponses.name("Faulty steps");
+            sequenceGroup = nestedResponseContext.group(Optional.of("Faulty steps"));
         }
-        this.executeNestedSteps(sessionExecutionContext, evaluationContext, stepExecutionResolver, subResponses, steps);
-        return NestedStepResponse.builder().subResponse(subResponses.build()).build();
+        this.executeNestedSteps(sessionExecutionContext, evaluationContext, stepExecutionResolver, sequenceGroup, steps);
     }
 
 

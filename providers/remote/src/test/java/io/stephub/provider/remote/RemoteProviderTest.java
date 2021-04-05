@@ -16,6 +16,7 @@ import io.stephub.provider.api.model.spec.ArgumentSpec;
 import io.stephub.provider.api.model.spec.DataTableSpec;
 import io.stephub.provider.api.model.spec.PatternType;
 import io.stephub.provider.api.model.spec.StepSpec;
+import io.stephub.server.api.model.ProviderSpec;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.HttpUrl;
 import org.apache.http.HttpHeaders;
@@ -339,10 +340,10 @@ class RemoteProviderTest {
         this.wireMockServer.start();
         configureFor("localhost", this.wireMockServer.port());
         this.baseUrlBuilder = HttpUrl.parse("http://localhost:" + this.wireMockServer.port() + "/myProvider").newBuilder();
-        this.provider = new RemoteProvider();
-        this.provider.setBaseUrl(this.baseUrlBuilder.build().toString());
-        this.provider.setValidator(
-                Validation.buildDefaultValidatorFactory().getValidator());
+        this.provider = new RemoteProvider.DefaultProviderFactory(
+                Validation.buildDefaultValidatorFactory().getValidator(),
+                this.objectMapper).createProvider(ProviderSpec.builder()
+                .remoteConfig(new ProviderSpec.RemoteProviderConfig(this.baseUrlBuilder.build().toString())).build());
     }
 
     @AfterEach

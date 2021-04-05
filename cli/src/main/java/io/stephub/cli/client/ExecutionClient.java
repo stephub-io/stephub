@@ -1,7 +1,6 @@
 package io.stephub.cli.client;
 
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.cli.exception.RemoteException;
 import io.stephub.server.api.model.Execution;
@@ -74,7 +73,7 @@ public class ExecutionClient extends BaseClient {
     }
 
     private List<FunctionalExecution.ExecutionStatus> getAllBacklogStatus(final FunctionalExecution execution) {
-        return execution.getBacklog().stream().map(FunctionalExecution.ExecutionItem::getStatus).collect(Collectors.toList());
+        return execution.getBacklog().stream().map(Execution.ExecutionItem::getStatus).collect(Collectors.toList());
     }
 
     private FunctionalExecution getExecution(final ServerContext serverContext, final String wid, final String execId) {

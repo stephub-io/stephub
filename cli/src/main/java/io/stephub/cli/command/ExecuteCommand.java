@@ -5,16 +5,13 @@ import io.stephub.cli.client.ExecutionClient;
 import io.stephub.cli.client.WorkspaceClient;
 import io.stephub.json.Json;
 import io.stephub.provider.api.model.StepResponse;
-import io.stephub.server.api.model.FunctionalExecution;
-import io.stephub.server.api.model.FunctionalExecution.FeatureExecutionItem;
-import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem;
-import io.stephub.server.api.model.ExecutionInstruction;
+import io.stephub.server.api.model.*;
 import io.stephub.server.api.model.ExecutionInstruction.NamedFeatureFilter;
 import io.stephub.server.api.model.ExecutionInstruction.NamedScenarioFilter;
 import io.stephub.server.api.model.ExecutionInstruction.ScenariosExecutionInstruction;
 import io.stephub.server.api.model.ExecutionInstruction.TagFilter;
-import io.stephub.server.api.model.RuntimeSession;
-import io.stephub.server.api.model.Workspace;
+import io.stephub.server.api.model.Execution.FeatureExecutionItem;
+import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
 import lombok.extern.slf4j.Slf4j;
 import me.tongfei.progressbar.DelegatingProgressBarConsumer;
 import me.tongfei.progressbar.ProgressBar;
@@ -152,12 +149,12 @@ public class ExecuteCommand extends BaseCommand {
                 final FunctionalExecution.StepExecutionItem sei = (FunctionalExecution.StepExecutionItem) execution.getBacklog().get(i);
                 String response = "-";
                 String duration = "-";
-                if (sei.getResponse() != null) {
-                    response = sei.getResponse().getStatus().toString().toUpperCase();
-                    if (sei.getResponse().getStatus() == StepResponse.StepStatus.ERRONEOUS) {
-                        response += "\n" + sei.getResponse().getErrorMessage();
+                if (sei.getResult() != null) {
+                    response = sei.getResult().getStatus().toString().toUpperCase();
+                    if (sei.getResult().getStatus() == StepResponse.StepStatus.ERRONEOUS) {
+                        response += "\n" + sei.getResult().getErrorMessage();
                     }
-                    duration = formatDuration(sei.getResponse().getDuration());
+                    duration = formatDuration(sei.getResult().getDuration());
                 }
                 data[i] = new String[]{
                         sei.getStep(),
@@ -267,7 +264,7 @@ public class ExecuteCommand extends BaseCommand {
         }
 
         private String formatDuration(final ScenarioExecutionItem sei) {
-            final List<Duration> durations = sei.getSteps().stream().map(FunctionalExecution.StepExecutionItem::getResponse).
+            final List<Duration> durations = sei.getSteps().stream().map(Execution.StepExecutionItem::getResult).
                     map(response -> response != null ? response.getDuration() : Duration.ZERO).
                     collect(Collectors.toList());
             Duration duration = Duration.ofMinutes(0);
@@ -278,7 +275,7 @@ public class ExecuteCommand extends BaseCommand {
         }
 
         private String formatStatus(final ScenarioExecutionItem sei) {
-            final List<StepResponse.StepStatus> statuses = sei.getSteps().stream().map(stepExecutionItem -> stepExecutionItem.getResponse()).
+            final List<StepResponse.StepStatus> statuses = sei.getSteps().stream().map(stepExecutionItem -> stepExecutionItem.getResult()).
                     map(response -> response != null ? response.getStatus() : null).
                     collect(Collectors.toList());
             if (statuses.contains(FAILED)) {

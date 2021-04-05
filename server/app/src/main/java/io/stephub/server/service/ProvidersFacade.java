@@ -7,7 +7,6 @@ import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.Provider;
 import io.stephub.provider.api.ProviderException;
 import io.stephub.provider.api.model.ProviderInfo;
-import io.stephub.provider.api.model.ProviderOptions;
 import io.stephub.provider.api.model.StepRequest;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
@@ -17,6 +16,7 @@ import io.stephub.providers.base.BaseProvider;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
 import io.stephub.server.api.model.ProviderSpec;
+import io.stephub.server.api.model.StepResponseContext;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.service.GherkinPatternMatcher.StepMatch;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +64,8 @@ public class ProvidersFacade implements StepExecutionSource {
         final StepMatch stepMatch = match.getRight();
         return new StepExecution() {
             @Override
-            public StepResponse<Json> execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext) {
+            public void execute(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext,
+                                final StepResponseContext responseContext) {
                 final long start = System.currentTimeMillis();
                 try {
                     final StepEvaluationDelegate.StepEvaluation stepEvaluation = ProvidersFacade.this.stepEvaluationDelegate.getStepEvaluation(stepMatch, evaluationContext);
@@ -74,12 +75,13 @@ public class ProvidersFacade implements StepExecutionSource {
                             providerSpec,
                             stepEvaluation.getRequestBuilder().id(stepSpec.getId()).build());
                     stepEvaluation.postEvaluateResponse(response);
-                    return response;
+                    responseContext.completeStep(response);
                 } catch (final Exception e) {
-                    return StepResponse.<Json>builder().status(ERRONEOUS).
-                            errorMessage(e.getMessage()).
-                            duration(Duration.ofMillis(System.currentTimeMillis() - start)).
-                            build();
+                    responseContext.completeStep(
+                            StepResponse.<Json>builder().status(ERRONEOUS).
+                                    errorMessage(e.getMessage()).
+                                    duration(Duration.ofMillis(System.currentTimeMillis() - start)).
+                                    build());
                 }
             }
 

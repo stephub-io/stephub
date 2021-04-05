@@ -3,13 +3,14 @@ package io.stephub.server.api.model.customsteps;
 import io.stephub.expression.EvaluationContext;
 import io.stephub.expression.ExpressionEvaluator;
 import io.stephub.server.api.SessionExecutionContext;
-import io.stephub.server.api.model.NestedStepResponse;
+import io.stephub.server.api.model.StepResponseContext;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.validation.Errors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @NoArgsConstructor
 @Getter
@@ -32,11 +33,10 @@ public class BasicStepDefinition extends StepDefinition {
     }
 
     @Override
-    protected NestedStepResponse executeInternally(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final ExpressionEvaluator expressionEvaluator) {
-        final NestedStepResponse.Context.ContextBuilder subResponses = NestedStepResponse.Context.
-                builder();
-        this.executeNestedSteps(sessionExecutionContext, evaluationContext, stepExecutionResolver, subResponses, this.steps);
-        return NestedStepResponse.builder().subResponse(subResponses.build()).build();
+    protected void executeInternally(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver,
+                                     final ExpressionEvaluator expressionEvaluator, final StepResponseContext responseContext) {
+        this.executeNestedSteps(sessionExecutionContext, evaluationContext, stepExecutionResolver,
+                responseContext.nested().group(Optional.empty()), this.steps);
     }
 
 }

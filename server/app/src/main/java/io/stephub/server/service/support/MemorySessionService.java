@@ -78,6 +78,7 @@ public class MemorySessionService extends SessionService {
     public void deactivateSession(final RuntimeSession session) {
         log.debug("Deactivated session={}", session);
         session.setStatus(INACTIVE);
+        this.sessionStore.remove(session.getId());
     }
 
     @Override

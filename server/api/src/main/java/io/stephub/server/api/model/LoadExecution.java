@@ -14,9 +14,11 @@ import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 
@@ -25,20 +27,27 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder
-public class LoadExecution extends Execution {
+public abstract class LoadExecution extends Execution {
     private LoadExecutionStart start;
 
+    @Singular
+    private List<LoadSimulation> simulations = new ArrayList<>();
+
 
     @NoArgsConstructor
     @Data
     @EqualsAndHashCode
-    @Builder
+    @SuperBuilder
     @AllArgsConstructor
-    public static class LoadSimulation {
+    public abstract static class LoadSimulation {
         private String name;
-        private int currentUserLoad;
-        private List<UserLoad> userLoadHistory;
-        private List<LoadScenarioItem> scenarios;
+        private List<LoadScenario> scenarios;
+        private UserLoadSpec userLoadSpec;
+
+        public abstract int getCurrentTargetLoad();
+
+        public abstract int getCurrentActualLoad();
+
     }
 
     @NoArgsConstructor
@@ -46,64 +55,59 @@ public class LoadExecution extends Execution {
     @EqualsAndHashCode
     @Builder
     @AllArgsConstructor
-    public static class LoadScenarioItem {
-        private String id;
+    @ToString(of = "id")
+    public static class LoadScenario {
+        @Builder.Default
+        private String id = UUID.randomUUID().toString();
         private String name;
+        private String featureName;
         private LoadStats stats;
-
+        private List<LoadStep> steps;
     }
 
     @NoArgsConstructor
-    @Data
-    @EqualsAndHashCode
-    @Builder
     @AllArgsConstructor
-    public static class LoadHistoryScenario {
-        private String id;
-        @JsonFormat(shape = STRING)
-        private Date timestamp;
-
-        private Duration duration;
-
-        private StepResponse.StepStatus status;
-        private String errorMessage;
-        private List<LoadHistoryStep> steps;
-    }
-
-    @NoArgsConstructor
     @Data
-    @EqualsAndHashCode
     @Builder
-    @AllArgsConstructor
-    public static class LoadHistoryStep {
-        private String id;
-        @JsonFormat(shape = STRING)
-        private Date timestamp;
-        private boolean cancelled;
-        private RoughStepResponse response;
-        private StepSpec<JsonSchema> stepSpec;
-    }
-
-    @NoArgsConstructor
-    @Data
-    @EqualsAndHashCode
-    @Builder
-    @AllArgsConstructor
-    public static class LoadStepItem {
-        private String id;
+    public static class LoadStep {
         private String step;
+        private StepSpec<JsonSchema> spec;
         private LoadStats stats;
+    }
+
+    @NoArgsConstructor
+    @Data
+    @EqualsAndHashCode
+    @Builder
+    @AllArgsConstructor
+    public static class LoadScenarioRun {
+        private String scenarioId;
+        @JsonFormat(shape = STRING)
+        private OffsetDateTime startedAt;
+        @JsonFormat(shape = STRING)
+        private OffsetDateTime completedAt;
+        private StepResponse.StepStatus status;
+
+        private String errorMessage;
+        private List<StepExecutionItem> steps;
     }
 
     @NoArgsConstructor
     @Data
     @EqualsAndHashCode(callSuper = true)
-    @Builder
     @AllArgsConstructor
     public static class LoadStats extends Stats {
-        private Duration min;
-        private Duration max;
-        private Duration avg;
+        int cancelled;
+        private Duration min = null;
+        private Duration max = null;
+        private Duration avg = null;
+
+        public static Duration addOpt(final Duration source, final Duration additive) {
+            if (source == null) {
+                return additive;
+            }
+            return source.plus(additive);
+        }
     }
 
 
@@ -125,7 +129,7 @@ public class LoadExecution extends Execution {
     @EqualsAndHashCode
     @Builder
     @AllArgsConstructor
-    public static class LoadExecutionStart {
+    public static class LoadExecutionStart extends ExecutionStart<LoadExecution> {
         @Valid
         @NotNull
         @Builder.Default
@@ -157,7 +161,7 @@ public class LoadExecution extends Execution {
         @NotNull
         @Builder.Default
         @Valid
-        private ExecutionInstruction.ScenarioFilter scenarioFilter = new ExecutionInstruction.AllScenarioFilter();
+        private ExecutionInstruction.ScenariosExecutionInstruction selection = new ExecutionInstruction.ScenariosExecutionInstruction();
     }
 
     @JsonTypeInfo(
@@ -170,7 +174,7 @@ public class LoadExecution extends Execution {
     @Data
     @NoArgsConstructor
     public abstract static class UserLoadSpec {
-        public abstract Duration nextChangeAfter();
+        public abstract Duration nextChangeAfter(Duration simulationTime);
 
         public abstract int getAmountAt(Duration simulationTime);
     }
@@ -185,7 +189,7 @@ public class LoadExecution extends Execution {
 
 
         @Override
-        public Duration nextChangeAfter() {
+        public Duration nextChangeAfter(final Duration simulationTime) {
             return null;
         }
 

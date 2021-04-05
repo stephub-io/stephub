@@ -14,7 +14,7 @@ import io.stephub.provider.api.model.spec.StepSpec;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
 import io.stephub.server.api.model.Identifiable;
-import io.stephub.server.api.model.NestedStepResponse;
+import io.stephub.server.api.model.StepResponseContext;
 import io.stephub.server.api.validation.ValidStepSpec;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -61,56 +61,57 @@ public abstract class StepDefinition implements CustomStepContainer, Identifiabl
         }
     }
 
-    public final StepResponse<Json> execute(final StepRequest<Json> request, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final ExpressionEvaluator expressionEvaluator) {
+    public final void execute(final StepRequest<Json> request, final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final ExpressionEvaluator expressionEvaluator,
+                              final StepResponseContext responseContext) {
         final long start = System.currentTimeMillis();
         try {
-            final StepResponse<Json> response = this.executeInternally(sessionExecutionContext, evaluationContext, stepExecutionResolver, expressionEvaluator);
-            if (response.getDuration() == Duration.ZERO) {
-                response.setDuration(Duration.ofMillis(System.currentTimeMillis() - start));
-            }
-            return response;
+            this.executeInternally(sessionExecutionContext, evaluationContext, stepExecutionResolver, expressionEvaluator,
+                    responseContext);
+            /**
+             if (response.getDuration() == Duration.ZERO) {
+             response.setDuration(Duration.ofMillis(System.currentTimeMillis() - start));
+             }
+             **/
         } catch (final Exception e) {
-            return StepResponse.<Json>builder().
-                    status(StepResponse.StepStatus.ERRONEOUS).
-                    errorMessage(e.getMessage()).
-                    duration(Duration.ofMillis(System.currentTimeMillis() - start)).
-                    build();
+            responseContext.completeStep(
+                    StepResponse.<Json>builder().
+                            status(StepResponse.StepStatus.ERRONEOUS).
+                            errorMessage(e.getMessage()).
+                            duration(Duration.ofMillis(System.currentTimeMillis() - start)).
+                            build());
         }
     }
 
-    protected void executeNestedSteps(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final NestedStepResponse.Context.ContextBuilder subResponses,
+    protected void executeNestedSteps(final SessionExecutionContext sessionExecutionContext, final EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, final StepResponseContext.NestedResponseSequenceContext responseSequenceContext,
                                       final List<String> steps) {
         for (final String instruction : steps) {
-            final StepExecution subStepExecution = this.getSafeStepExecution(stepExecutionResolver, subResponses, instruction);
+            final StepExecution subStepExecution = this.getSafeStepExecution(stepExecutionResolver, responseSequenceContext, instruction);
             if (subStepExecution == null) {
                 break;
             }
-            final StepResponse<Json> subStepResponse = subStepExecution.execute(sessionExecutionContext, evaluationContext);
-            subResponses.entry(NestedStepResponse.Entry.builder().
-                    instruction(instruction).
-                    response(subStepResponse).
-                    build());
-            if (subStepResponse.getStatus() != StepResponse.StepStatus.PASSED) {
+            final StepResponseContext stepResponseContext = responseSequenceContext.startStep(instruction);
+            subStepExecution.execute(sessionExecutionContext, evaluationContext, stepResponseContext);
+            if (!stepResponseContext.continuable()) {
                 log.debug("Cancel execution of {} due to a faulty instruction: {}", this, instruction);
                 return;
             }
         }
     }
 
-    protected StepExecution getSafeStepExecution(final StepExecutionResolverWrapper stepExecutionResolver, final NestedStepResponse.Context.ContextBuilder responsesBuilder, final String instruction) {
+    protected StepExecution getSafeStepExecution(final StepExecutionResolverWrapper stepExecutionResolver, final StepResponseContext.NestedResponseSequenceContext responseSequenceContext, final String instruction) {
         final StepExecution execution = stepExecutionResolver.resolveStepExecution(instruction);
         if (execution != null) {
             return execution;
         }
-        responsesBuilder.entry(NestedStepResponse.Entry.builder().
-                instruction(instruction).
-                response(
+        responseSequenceContext.startStep(instruction).
+                completeStep(
                         StepExecution.buildResponseForMissingStep(instruction)
-                ).build());
+                );
         return null;
     }
 
-    protected abstract NestedStepResponse executeInternally(SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, ExpressionEvaluator expressionEvaluator);
+    protected abstract void executeInternally(SessionExecutionContext sessionExecutionContext, EvaluationContext evaluationContext, final StepExecutionResolverWrapper stepExecutionResolver, ExpressionEvaluator expressionEvaluator,
+                                              StepResponseContext responseContext);
 
     public interface StepExecutionResolverWrapper {
         StepExecution resolveStepExecution(String instruction);

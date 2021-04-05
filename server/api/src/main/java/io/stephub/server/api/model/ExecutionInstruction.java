@@ -2,11 +2,9 @@ package io.stephub.server.api.model;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import io.stephub.server.api.model.FunctionalExecution.ExecutionItem;
-import io.stephub.server.api.model.FunctionalExecution.FeatureExecutionItem;
-import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem;
-import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem.ScenarioExecutionItemBuilder;
-import io.stephub.server.api.model.FunctionalExecution.StepExecutionItem;
+import io.stephub.server.api.model.Execution.ExecutionItem;
+import io.stephub.server.api.model.Execution.FeatureExecutionItem;
+import io.stephub.server.api.model.Execution.ScenarioExecutionItem;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Scenario;
 import io.stephub.server.api.validation.ValidRegex;
@@ -27,7 +25,7 @@ import java.util.stream.Collectors;
         include = JsonTypeInfo.As.PROPERTY,
         property = "type")
 @JsonSubTypes({
-        @JsonSubTypes.Type(value = ExecutionInstruction.StepsExecutionInstruction.class, name = "step"),
+        @JsonSubTypes.Type(value = ExecutionInstruction.StepsExecutionInstruction.class, name = "steps"),
         @JsonSubTypes.Type(value = ExecutionInstruction.ScenariosExecutionInstruction.class, name = "scenarios")
 })
 public abstract class ExecutionInstruction {
@@ -46,8 +44,12 @@ public abstract class ExecutionInstruction {
 
         @Override
         public List<ExecutionItem> buildItems(final Workspace workspace) {
-            return this.steps.stream().map(s -> StepExecutionItem.builder().step(s).build()).collect(Collectors.toList());
+            return this.steps.stream().map(s -> Execution.StepExecutionItem.builder().step(s).build()).collect(Collectors.toList());
         }
+    }
+
+    public interface ScenarioExecutionSupplier<K> {
+        K supply(String featureName, String scenarioName, List<String> steps);
     }
 
     @EqualsAndHashCode(callSuper = true)
@@ -66,6 +68,20 @@ public abstract class ExecutionInstruction {
             return this.getFiltered(workspace);
         }
 
+
+        public <K> List<K> filter(final Workspace workspace, final ScenarioExecutionSupplier<K> supplier) {
+            final List<K> list = new ArrayList<>();
+            workspace.getFeatures().forEach(
+                    feature ->
+                    {
+                        feature.getScenarios().stream().filter(s -> this.filter.accept(feature, s)).
+                                forEach(scenario -> list.add(supplier.supply(feature.getName(), scenario.getName(), this.buildSteps(feature, scenario))));
+                    }
+            );
+            return list;
+        }
+
+
         private List<ExecutionItem> getFiltered(final Workspace workspace) {
             final List<ExecutionItem> featureItems = new ArrayList<>();
             workspace.getFeatures().forEach(
@@ -73,7 +89,7 @@ public abstract class ExecutionInstruction {
                     {
                         final List<Scenario> scenarios = feature.getScenarios().stream().filter(s -> this.filter.accept(feature, s)).collect(Collectors.toList());
                         if (!scenarios.isEmpty()) {
-                            final FeatureExecutionItem featureItem = FeatureExecutionItem.builder().name(feature.getName()).
+                            final FeatureExecutionItem featureItem = Execution.FeatureExecutionItem.builder().name(feature.getName()).
                                     scenarios(this.buildScenarioItems(feature, scenarios)).build();
                             featureItems.add(featureItem);
                         }
@@ -83,20 +99,20 @@ public abstract class ExecutionInstruction {
         }
 
         private List<ScenarioExecutionItem> buildScenarioItems(final Feature feature, final List<Scenario> scenarios) {
-            return scenarios.stream().map(s -> this.buildScenarioItem(feature, s)).collect(Collectors.toList());
+            return scenarios.stream().map(s ->
+                    Execution.ScenarioExecutionItem.builder().name(s.getName()).steps(
+                            this.buildSteps(feature, s).
+                                    stream().map(step -> Execution.StepExecutionItem.builder().step(step).build()).collect(Collectors.toList())).
+                            build()).collect(Collectors.toList());
         }
 
-        private ScenarioExecutionItem buildScenarioItem(final Feature feature, final Scenario scenario) {
-            final ScenarioExecutionItemBuilder<?, ?> builder = ScenarioExecutionItem.builder().name(scenario.getName());
+        private List<String> buildSteps(final Feature feature, final Scenario scenario) {
+            final List<String> steps = new ArrayList<>();
             if (feature.getBackground() != null) {
-                feature.getBackground().getSteps().forEach(step -> builder.step(
-                        StepExecutionItem.builder().step(step).build()
-                ));
+                steps.addAll(feature.getBackground().getSteps());
             }
-            scenario.getSteps().forEach(step -> builder.step(
-                    StepExecutionItem.builder().step(step).build()
-            ));
-            return builder.build();
+            steps.addAll(scenario.getSteps());
+            return steps;
         }
     }
 

@@ -44,10 +44,8 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
     @Component
     public static class DefaultProviderFactory implements RemoteProviderFactory {
-        @Autowired
         private Validator validator;
 
-        @Autowired
         private ObjectMapper objectMapper;
 
         @Value("${io.stephub.remoteProvider.readTimeoutSeconds:300}")
@@ -58,6 +56,11 @@ public class RemoteProvider implements Provider<JsonObject, JsonSchema, Json> {
 
         @Value("${io.stephub.remoteProvider.writeTimeoutSeconds:10}")
         private int writeTimeoutSeconds;
+
+        public DefaultProviderFactory(Validator validator, ObjectMapper objectMapper) {
+            this.validator = validator;
+            this.objectMapper = objectMapper;
+        }
 
         @Override
         public RemoteProvider createProvider(final ProviderSpec remoteSpec) {

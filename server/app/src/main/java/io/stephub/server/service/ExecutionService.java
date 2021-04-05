@@ -1,20 +1,32 @@
 package io.stephub.server.service;
 
+import com.github.kagkarlsson.scheduler.Scheduler;
+import com.github.kagkarlsson.scheduler.task.CompletionHandler;
+import com.github.kagkarlsson.scheduler.task.helper.Tasks;
+import com.github.kagkarlsson.scheduler.task.schedule.FixedDelay;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.FunctionalExecution;
 import io.stephub.server.api.model.FunctionalExecution.FunctionalExecutionStart;
 import io.stephub.server.api.model.LoadExecution;
+import io.stephub.server.api.model.LoadExecution.LoadExecutionStart;
 import io.stephub.server.api.model.Workspace;
+import io.stephub.server.config.DbSchedulerConfig.MgmtTaskWrapper;
+import io.stephub.server.config.DbSchedulerConfig.RunnerTaskWrapper;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.exception.ExecutionException;
-import io.stephub.server.service.executor.StepExecutor;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.quartz.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BindException;
 
-import java.util.Collections;
+import java.time.Duration;
+import java.time.Instant;
 
 @Slf4j
 @Service
@@ -32,12 +44,110 @@ public class ExecutionService {
     private SessionService sessionService;
 
     @Autowired
-    private Scheduler scheduler;
-
+    @Qualifier("mgmtScheduler")
+    private Scheduler mgmtScheduler;
 
     @Autowired
-    private StepExecutor stepExecutor;
+    @Qualifier("runnerScheduler")
+    private Scheduler runnerScheduler;
 
+    @Autowired
+    @Qualifier("functionalTask")
+    private RunnerTaskWrapper<RunnerExecutionTaskData> functionalTask;
+
+    @Autowired
+    @Qualifier("loadTask")
+    private RunnerTaskWrapper<RunnerExecutionTaskData> loadTask;
+
+    @Autowired
+    @Qualifier("loadRunnerAdapterTask")
+    private MgmtTaskWrapper<ExecutionTaskData> loadRunnerAdapterTask;
+
+    @Autowired
+    @Qualifier("loadExecutionTerminationTask")
+    public MgmtTaskWrapper<ExecutionTaskData> loadExecutionTerminationTask;
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class ExecutionTaskData {
+        private String wid;
+        private String execId;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    private static class RunnerExecutionTaskData extends ExecutionTaskData {
+        private String runnerId;
+
+        public RunnerExecutionTaskData(final String wid, final String execId, final String runnerId) {
+            super(wid, execId);
+            this.runnerId = runnerId;
+        }
+    }
+
+    @Configuration
+    public static class ExecutionTaskConfig {
+        @Autowired
+        private ExecutionPersistence executionPersistence;
+
+        @Autowired
+        private ExecutionService executionService;
+
+        @Bean("functionalTask")
+        public RunnerTaskWrapper<RunnerExecutionTaskData> functionalTask() {
+            return new RunnerTaskWrapper<>(Tasks.oneTime("functional-runner", RunnerExecutionTaskData.class).execute((taskInstance, ctx) -> {
+                log.debug("Executing task {}", taskInstance.getData());
+                this.executionService.doFunctionalExecution(taskInstance.getData());
+            }));
+        }
+
+        @Bean("loadTask")
+        public RunnerTaskWrapper<RunnerExecutionTaskData> loadTask() {
+            return new RunnerTaskWrapper<>(Tasks.oneTime("load-runner", RunnerExecutionTaskData.class).execute((taskInstance, ctx) -> {
+                log.debug("Executing task {}", taskInstance.getData());
+                this.executionService.doLoadRunner(taskInstance.getData());
+            }));
+        }
+
+        @Bean("loadExecutionTerminationTask")
+        public MgmtTaskWrapper<ExecutionTaskData> loadExecutionTerminationTask() {
+            return new MgmtTaskWrapper<>(Tasks.oneTime("load-execution-terminator", ExecutionTaskData.class).execute((taskInstance, ctx) -> {
+                log.debug("Terminating execution {}", taskInstance.getData().getExecId());
+                this.executionPersistence.stopExecution(taskInstance.getData().getWid(), taskInstance.getData().getExecId());
+            }));
+        }
+
+        @Bean("loadRunnerAdapterTask")
+        public MgmtTaskWrapper<ExecutionTaskData> loadRunnerAdapterTask() {
+            return new MgmtTaskWrapper<>(Tasks.custom("load-runner-adapter", ExecutionTaskData.class).
+                    onDeadExecutionRevive().
+                    execute((taskInstance, ctx) -> {
+                        final Duration nextAdaptationIn = this.executionPersistence.adaptLoadRunners(taskInstance.getData().getWid(), taskInstance.getData().getExecId(),
+                                (runnerId) -> {
+                                    this.executionService.scheduleLoadRunner(
+                                            taskInstance.getData(), runnerId
+                                    );
+                                });
+                        if (nextAdaptationIn != null) {
+                            return new CompletionHandler.OnCompleteReschedule<>(FixedDelay.of(nextAdaptationIn));
+                        }
+                        return new CompletionHandler.OnCompleteRemove<>();
+                    }));
+        }
+    }
+
+    private void scheduleLoadRunner(final ExecutionTaskData data, final String runnerId) {
+        log.debug("Scheduling runner={} for execution={}", runnerId, data.getExecId());
+        this.runnerScheduler.schedule(this.loadTask.getTask().instance(
+                data.getExecId() + "-" + runnerId,
+                new RunnerExecutionTaskData(
+                        data.getWid(),
+                        data.getExecId(),
+                        runnerId
+                )), Instant.now());
+    }
 
     public <E extends Execution> E startExecution(final Context ctx,
                                                   final String wid,
@@ -68,64 +178,52 @@ public class ExecutionService {
         final E execution = this.executionPersistence.initExecution(workspace, executionStart);
         if (execution instanceof FunctionalExecution) {
             this.initFunctionalExecution((FunctionalExecutionStart) executionStart, workspace, (FunctionalExecution) execution);
+        } else if (execution instanceof LoadExecution) {
+            this.initLoadExecution((LoadExecutionStart) executionStart, workspace, (LoadExecution) execution);
         }
         return execution;
     }
 
-    private void initLoadExecution(final LoadExecution.LoadExecutionStart executionStart, final Workspace workspace, final LoadExecution execution) {
-        
+    private void initLoadExecution(final LoadExecutionStart executionStart, final Workspace workspace, final LoadExecution execution) {
+        try {
+            log.debug("Initializing load runner adapter for executing {}", execution);
+            this.mgmtScheduler.schedule(this.loadRunnerAdapterTask.getTask().instance(execution.getId(), new ExecutionTaskData(workspace.getId(), execution.getId())), Instant.now());
+            this.mgmtScheduler.schedule(this.loadExecutionTerminationTask.getTask().instance(execution.getId(), new ExecutionTaskData(workspace.getId(), execution.getId())), Instant.now().plus(executionStart.getDuration()));
+        } catch (final Exception e) {
+            log.error("Failed scheduling a task", e);
+            throw new ExecutionException("Failed to schedule load runners for execution " + execution.getId() + ": " + e.getMessage(), e);
+        }
     }
 
     private void initFunctionalExecution(final FunctionalExecutionStart executionStart, final Workspace workspace, final FunctionalExecution execution) {
         final int parallelizationCount = Math.min(execution.getMaxParallelizationCount(), executionStart.getParallelSessionCount());
         log.debug("Initializing {} parallel jobs for executing {}", parallelizationCount, execution);
         for (int i = 0; i < parallelizationCount; i++) {
-            final JobKey jobKey = JobKey.jobKey(execution.getId() + "-" + i, "executions");
-            final JobDetail job = JobBuilder.newJob(ParallelExecutionJob.class).withIdentity(jobKey).
-                    usingJobData(ParallelExecutionJob.createJobDataMap(workspace, execution, i)).
-                    build();
             try {
-                this.scheduler.scheduleJob(job, Collections.singleton(
-                        TriggerBuilder.newTrigger().startNow().forJob(jobKey).build()
-                ), false);
+                this.runnerScheduler.schedule(this.functionalTask.getTask().instance(execution.getId() + "-" + i, new RunnerExecutionTaskData(workspace.getId(), execution.getId(), i + "")), Instant.now());
             } catch (final Exception e) {
+                log.error("Failed scheduling a task", e);
                 throw new ExecutionException("Failed to schedule parallel job " + i + " for execution " + execution.getId() + ": " + e.getMessage(), e);
             }
         }
     }
 
-    private void doFunctionalExecution(final String wid, final String execId) {
-        final FunctionalExecution execution = (FunctionalExecution) this.executionPersistence.getExecution(wid, execId);
-        final Workspace workspace = this.workspaceService.getWorkspaceInternal(wid);
-        this.executionPersistence.processPendingExecutionSteps(workspace, execId, (executionItem, sessionExecutionContext, evaluationContext) ->
+    private void doLoadRunner(final RunnerExecutionTaskData taskData) {
+        final Workspace workspace = this.workspaceService.getWorkspaceInternal(taskData.getWid());
+        this.executionPersistence.processLoadRunner(workspace, taskData.getExecId(), taskData.getRunnerId(), (executionItem, execution, sessionExecutionContext, evaluationContext, responseContext) ->
         {
-            log.debug("Execute step={} of execution={} and workspace={}", execId, execution, wid);
-            return this.stepExecutor.execute(workspace, executionItem, sessionExecutionContext, evaluationContext);
+            log.debug("Execute step={} of execution={} and workspace={} on runner={}", executionItem, taskData.getExecId(), taskData.getWid(), taskData.getRunnerId());
+            execution.execute(sessionExecutionContext, evaluationContext, responseContext);
         });
     }
 
-
-    @Slf4j
-    @DisallowConcurrentExecution
-    public static class ParallelExecutionJob implements Job {
-        @Autowired
-        private ExecutionService executionService;
-
-        @Override
-        public void execute(final JobExecutionContext jec) throws JobExecutionException {
-            final String wid = jec.getMergedJobDataMap().getString("wid");
-            final String execId = jec.getMergedJobDataMap().getString("execId");
-            final int runner = jec.getMergedJobDataMap().getInt("runner");
-            log.debug("Executing execution={} for workspace={} on runner={}", execId, wid, runner);
-            this.executionService.doFunctionalExecution(wid, execId);
-        }
-
-        private static JobDataMap createJobDataMap(final Workspace workspace, final FunctionalExecution execution, final int runner) {
-            final JobDataMap dataMap = new JobDataMap();
-            dataMap.put("wid", workspace.getId());
-            dataMap.put("runner", runner);
-            dataMap.put("execId", execution.getId());
-            return dataMap;
-        }
+    private void doFunctionalExecution(final RunnerExecutionTaskData taskData) {
+        final Workspace workspace = this.workspaceService.getWorkspaceInternal(taskData.getWid());
+        this.executionPersistence.processPendingExecutionSteps(workspace, taskData.getExecId(), (executionItem, execution, sessionExecutionContext, evaluationContext, responseContext) ->
+        {
+            log.debug("Execute step={} of execution={} and workspace={} on runner={}", executionItem, taskData.getExecId(), taskData.getWid(), taskData.getRunnerId());
+            execution.execute(sessionExecutionContext, evaluationContext, responseContext);
+        });
     }
+
 }

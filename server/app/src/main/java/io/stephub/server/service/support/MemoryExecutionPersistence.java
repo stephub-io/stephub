@@ -2,20 +2,22 @@ package io.stephub.server.service.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.stephub.json.Json;
 import io.stephub.provider.api.model.LogEntry;
 import io.stephub.provider.api.model.StepResponse;
-import io.stephub.server.api.model.Execution;
-import io.stephub.server.api.model.FunctionalExecution;
-import io.stephub.server.api.model.FunctionalExecution.FeatureExecutionItem;
-import io.stephub.server.api.model.FunctionalExecution.ScenarioExecutionItem;
-import io.stephub.server.api.model.FunctionalExecution.StepExecutionItem;
+import io.stephub.server.api.StepExecution;
+import io.stephub.server.api.model.*;
+import io.stephub.server.api.model.Execution.*;
+import io.stephub.server.api.model.LoadExecution.LoadSimulation;
 import io.stephub.server.api.model.RuntimeSession.SessionSettings.ParallelizationMode;
-import io.stephub.server.api.model.Workspace;
 import io.stephub.server.service.ExecutionPersistence;
 import io.stephub.server.service.SessionService;
+import io.stephub.server.service.StepExecutionResolver;
 import io.stephub.server.service.exception.ExecutionException;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.expiringmap.ExpirationPolicy;
@@ -29,11 +31,15 @@ import org.springframework.util.CollectionUtils;
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static io.stephub.provider.api.model.StepResponse.StepStatus.*;
 import static io.stephub.server.api.model.Execution.ExecutionStatus.*;
 
 @Service
@@ -47,18 +53,17 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
     private ExpiringMap<String, ExecutionWrapper> store;
 
-    @JsonIgnore
-    private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
-
-
     @Autowired
     private SessionService sessionService;
+
+    @Autowired
+    private StepExecutionResolver stepExecutionResolver;
 
     @Getter
     private static class ExecutionWrapper<E extends Execution> {
         private final E execution;
-        @JsonIgnore
         private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
+        private final List<LoadExecution.LoadScenarioRun> loadRuns = Collections.synchronizedList(new ArrayList<>());
 
         public ExecutionWrapper(final E execution) {
             this.execution = execution;
@@ -68,7 +73,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Builder
     private static class IsolatedBucket {
         private final FunctionalExecution.ExecutionItem source;
-        private final Queue<StepExecutionItem> pendingSteps;
+        private final List<StepExecutionItem> pendingSteps;
     }
 
     @Builder
@@ -160,7 +165,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 id(UUID.randomUUID().toString()).
                 sessionSettings(executionStart.getSessionSettings()).
                 gherkinPreferences(workspace.getGherkinPreferences()).
-                initiatedAt(new Date()).
+                initiatedAt(OffsetDateTime.now()).
                 backlog(executionItems).
                 pendingBuckets(pendingItems).
                 uncompletedBuckets(pendingItems.size()).
@@ -170,20 +175,57 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         return execution;
     }
 
+    private LoadExecution initExecution(final Workspace workspace, final LoadExecution.LoadExecutionStart executionStart) {
+        final MemoryLoadExecution execution = MemoryLoadExecution.builder()
+                .id(UUID.randomUUID().toString())
+                .start(executionStart)
+                .sessionSettings(executionStart.getSessionSettings())
+                .initiatedAt(OffsetDateTime.now())
+                .status(INITIATED)
+                .simulations(
+                        executionStart.getSimulations().stream().map(
+                                simulationSpec ->
+                                        MemoryLoadSimulation.builder().name(
+                                                simulationSpec.getName()
+                                        ).userLoadSpec(
+                                                simulationSpec.getUserLoad()
+                                        ).scenarios(
+                                                simulationSpec.getSelection().filter(workspace, (featureName, scenarioName, steps) ->
+                                                        LoadExecution.LoadScenario.builder().featureName(featureName).
+                                                                name(scenarioName).
+                                                                stats(new MemoryLoadStats()).
+                                                                steps(
+                                                                        steps.stream().map(step ->
+                                                                                LoadExecution.LoadStep.builder().
+                                                                                        step(step).stats(new MemoryLoadStats()).build()
+                                                                        ).collect(Collectors.toList())
+                                                                ).build()
+                                                )
+                                        ).build()
+                        ).collect(Collectors.toList())
+                ).build();
+        this.store.put(this.getStoreId(workspace.getId(), execution.getId()),
+                new ExecutionWrapper<>(execution));
+        return execution;
+    }
+
     @Override
     public <E extends Execution> E initExecution(final Workspace workspace, final Execution.ExecutionStart<E> executionStart) {
         if (executionStart instanceof FunctionalExecution.FunctionalExecutionStart) {
             return (E) this.initExecution(workspace, (FunctionalExecution.FunctionalExecutionStart) executionStart);
+        } else if (executionStart instanceof LoadExecution.LoadExecutionStart) {
+            return (E) this.initExecution(workspace, (LoadExecution.LoadExecutionStart) executionStart);
         }
         return null;
     }
+
 
     private SerialBucket doLifecycleAndGetNext(final MemoryFunctionalExecution execution) {
         synchronized (execution) {
             if (execution.getStatus() == INITIATED) {
                 log.debug("Execution={} started", execution);
                 execution.setStatus(EXECUTING);
-                execution.setStartedAt(new Date());
+                execution.setStartedAt(OffsetDateTime.now());
             }
             final SerialBucket next = execution.pendingBuckets.poll();
             if (next != null) {
@@ -194,10 +236,74 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 return null;
             }
             execution.setStatus(COMPLETED);
-            execution.setCompletedAt(new Date());
+            execution.setCompletedAt(OffsetDateTime.now());
             log.debug("Execution={} completed", execution);
             execution.notifyAll();
             return null;
+        }
+    }
+
+    private class ExecutionStepItemResponseContext implements StepResponseContext {
+        ExecutionWrapper<? extends Execution> executionWrapper;
+        private final StepExecutionItem executionItem;
+        private boolean continuable = true;
+
+        public ExecutionStepItemResponseContext(final ExecutionWrapper<? extends Execution> executionWrapper, final StepExecutionItem executionItem) {
+            this.executionWrapper = executionWrapper;
+            this.executionItem = executionItem;
+        }
+
+        @Override
+        public void completeStep(final StepResponse<Json> response) {
+            this.continuable = response.getStatus() == PASSED;
+            this.executionItem.setResult(new Execution.StepItemResultLeaf(response,
+                    MemoryExecutionPersistence.this.storeLogs(this.executionWrapper, response.getLogs()))
+            );
+        }
+
+        @Override
+        public NestedResponseContext nested() {
+            final StepItemResultNested resultNested = new StepItemResultNested();
+            this.executionItem.setResult(resultNested);
+            return new NestedResponseContext() {
+                @Override
+                public NestedResponseSequenceContext group(final Optional<String> name) {
+                    final StepItemResultGroup resultGroup = new StepItemResultGroup();
+                    resultGroup.setName(name.get());
+                    resultNested.getGroups().add(resultGroup);
+                    return new NestedResponseSequenceContext() {
+                        private final List<StepResponseContext> subContexts = new ArrayList<>();
+
+                        @Override
+                        public StepResponseContext startStep(final String step) {
+                            final StepExecutionItem item = Execution.StepExecutionItem.builder().step(step).build();
+                            resultGroup.getSteps().add(item);
+                            final StepResponseContext stepSubContext = new ExecutionStepItemResponseContext(ExecutionStepItemResponseContext.this.executionWrapper, item);
+                            this.subContexts.add(stepSubContext);
+                            return stepSubContext;
+                        }
+
+                        @Override
+                        public boolean continuable() {
+                            boolean c = true;
+                            for (final StepResponseContext sub : this.subContexts) {
+                                c &= sub.continuable();
+                            }
+                            return c;
+                        }
+                    };
+                }
+
+                @Override
+                public boolean continuable() {
+                    return resultNested.getStatus() == PASSED;
+                }
+            };
+        }
+
+        @Override
+        public boolean continuable() {
+            return this.continuable;
         }
     }
 
@@ -211,37 +317,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 IsolatedBucket isolatedBucket;
                 while ((isolatedBucket = serialBucket.serialBuckets.poll()) != null) {
                     try {
-                        final IsolatedBucket fisb = isolatedBucket;
-                        this.sessionService.doWithinIsolatedSession(workspace, execution.getSessionSettings(),
-                                (session, sessionExecutionContext, evaluationContext) -> {
-                                    StepExecutionItem stepExecutionItem;
-                                    boolean cancelled = false;
-                                    while ((stepExecutionItem = fisb.pendingSteps.poll()) != null) {
-                                        if (cancelled) {
-                                            log.debug("Cancel execution of step item={} in execution={} due to previous errors", stepExecutionItem, execId);
-                                            stepExecutionItem.setStatus(CANCELLED);
-                                            continue;
-                                        }
-                                        stepExecutionItem.setStatus(EXECUTING);
-                                        log.debug("Starting execution of step item={} of execution={}", stepExecutionItem, execId);
-                                        try {
-                                            final StepExecutionResult result = command.execute(stepExecutionItem, sessionExecutionContext, evaluationContext);
-                                            stepExecutionItem.setResponse(new FunctionalExecution.RoughStepResponse(result.getResponse(), this.storeLogs(executionWrapper, stepExecutionItem, result.getResponse().getLogs())));
-                                            stepExecutionItem.setStepSpec(result.getStepSpec());
-                                            if (result.getResponse().getStatus() != StepResponse.StepStatus.PASSED) {
-                                                cancelled = true;
-                                            }
-                                        } catch (final Exception e) {
-                                            log.warn("Failed to proceed step item={} on workspace={} and execution={}", stepExecutionItem, workspace.getId(), execId, e);
-                                            stepExecutionItem.setErroneous(true);
-                                            stepExecutionItem.setErrorMessage(e.getMessage());
-                                            cancelled = true;
-                                        } finally {
-                                            stepExecutionItem.setStatus(COMPLETED);
-                                            log.debug("Completed execution of step item={} of execution={}", stepExecutionItem, execId);
-                                        }
-                                    }
-                                });
+                        this.executeStepSequenceIsolated(workspace, command, executionWrapper, isolatedBucket.pendingSteps);
                     } catch (final Exception e) {
                         log.warn("Failed to proceed isolated bucket={} on workspace={} and execution={}", isolatedBucket, workspace.getId(), execId, e);
                         isolatedBucket.source.setErroneous(true);
@@ -260,7 +336,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         }
     }
 
-    private List<Execution.ExecutionLogEntry> storeLogs(final ExecutionWrapper<? extends Execution> execution, final StepExecutionItem stepExecutionItem, final List<LogEntry> logs) {
+    private List<Execution.ExecutionLogEntry> storeLogs(final ExecutionWrapper<? extends Execution> execution, final List<LogEntry> logs) {
         if (!CollectionUtils.isEmpty(logs)) {
             return logs.stream().map(logEntry -> Execution.ExecutionLogEntry.builder()
                     .message(logEntry.getMessage()).attachments(
@@ -273,6 +349,16 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                     ).build()).collect(Collectors.toList());
         }
         return Collections.emptyList();
+    }
+
+    private void deleteLogs(final ExecutionWrapper<? extends Execution> execution, final StepExecutionItem item) {
+        if (item.getResult() != null && item.getResult().getLogs() != null) {
+            item.getResult().getLogs().forEach(log -> {
+                if (log.getAttachments() != null) {
+                    log.getAttachments().forEach(attachment -> execution.attachmentStore.remove(attachment.getId()));
+                }
+            });
+        }
     }
 
     @Override
@@ -318,6 +404,308 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
             throw new ExecutionException("No attachment with id=" + attachmentId + " found");
         }
         return Pair.of(new Execution.ExecutionLogAttachment(attachmentId, logAttachment), new ByteArrayInputStream(logAttachment.getContent()));
+    }
+
+    @SuperBuilder
+    private static class MemoryLoadExecution extends LoadExecution {
+
+    }
+
+    @AllArgsConstructor
+    @Getter
+    private static class MemoryRunner {
+        private final String id;
+        private boolean alive = true;
+        private RunnerStatus status = RunnerStatus.INITIATED;
+    }
+
+    private enum RunnerStatus {
+        INITIATED, RUNNING, FINISHED
+    }
+
+    @SuperBuilder
+    private static class MemoryLoadSimulation extends LoadSimulation {
+        @JsonIgnore
+        private final List<MemoryRunner> runners = new ArrayList<>();
+
+        @Override
+        public int getCurrentTargetLoad() {
+            return (int) this.runners.stream().filter(r -> r.alive).count();
+        }
+
+        @Override
+        public int getCurrentActualLoad() {
+            return (int) this.runners.stream().filter(r -> r.status == RunnerStatus.RUNNING).count();
+        }
+    }
+
+    @NoArgsConstructor
+    private static class MemoryLoadStats extends LoadExecution.LoadStats {
+        @JsonIgnore
+        private Duration totalDuration = Duration.ZERO;
+
+    }
+
+    @Override
+    public void processLoadRunner(final Workspace workspace, final String execId, final String runnerId, final WithinExecutionStepCommand command) {
+        final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(workspace.getId(), execId, MemoryLoadExecution.class);
+        final MemoryLoadExecution execution = wrapper.getExecution();
+        final Pair<MemoryLoadSimulation, MemoryRunner> simRunner = this.findRunner(execution, runnerId);
+        if (simRunner == null) {
+            log.warn("Runner={} not found for execution={}", runnerId, execution);
+            return;
+        }
+        final MemoryLoadSimulation simulation = simRunner.getKey();
+        final MemoryRunner runner = simRunner.getValue();
+        try {
+            synchronized (execution) {
+                if (execution.getStatus() == INITIATED) {
+                    log.info("Started load execution={}", execution);
+                    execution.setStatus(EXECUTING);
+                    execution.setStartedAt(OffsetDateTime.now());
+                }
+                if (execution.getStatus() != EXECUTING) {
+                    log.debug("Execution isn't longer executing, runner get aborted");
+                    runner.alive = false;
+                    return;
+                }
+            }
+            runner.status = RunnerStatus.RUNNING;
+            log.debug("Runner={} starts work for execution={}", runnerId, execution);
+            while (runner.alive) {
+                for (final LoadExecution.LoadScenario loadScenario : simulation.getScenarios()) {
+                    final List<StepExecutionItem> stepItems = loadScenario.getSteps().stream().map(
+                            step -> StepExecutionItem.builder()
+                                    .status(INITIATED)
+                                    .step(step.getStep())
+                                    .stepSpec(step.getSpec()).build()
+                    ).collect(Collectors.toList());
+                    final LoadExecution.LoadScenarioRun.LoadScenarioRunBuilder runBuilder = LoadExecution.LoadScenarioRun.builder().
+                            scenarioId(loadScenario.getId()).
+                            startedAt(OffsetDateTime.now()).
+                            steps(stepItems);
+                    try {
+                        final boolean passed = this.executeStepSequenceIsolated(workspace, command, wrapper, stepItems);
+                        runBuilder.completedAt(OffsetDateTime.now());
+                        final StepResponse.StepStatus aggStatus = this.applyStats(loadScenario, stepItems);
+                        if (passed) {
+                            // Delete possibly saved log attachments
+                            stepItems.forEach(item -> this.deleteLogs(wrapper, item));
+                            runBuilder.status(PASSED);
+                        } else {
+                            runBuilder.status(aggStatus);
+                        }
+                    } catch (final Exception e) {
+                        runBuilder.completedAt(OffsetDateTime.now());
+                        log.warn("Error", e);
+                        log.warn("Failed to proceed load scenario={} on workspace={} and execution={}", loadScenario, workspace.getId(), execId, e);
+                        runBuilder.status(ERRONEOUS);
+                        runBuilder.errorMessage(e.getMessage());
+                    }
+                    final LoadExecution.LoadScenarioRun run = runBuilder.build();
+                    if (run.getStatus() != PASSED) {
+                        wrapper.getLoadRuns().add(run);
+                    }
+                }
+                log.debug("Runner={} doing something for execution={}", runnerId, execution);
+            }
+        } finally {
+            log.debug("Runner={} finished work for execution={}", runnerId, execution);
+            runner.status = RunnerStatus.FINISHED;
+            this.tryCompleting(execution);
+        }
+    }
+
+    private StepResponse.StepStatus applyStats(final LoadExecution.LoadScenario loadScenario, final List<StepExecutionItem> items) {
+        final MemoryLoadStats stats = (MemoryLoadStats) loadScenario.getStats();
+        Duration total = Duration.ZERO;
+        boolean sErroneous = false;
+        boolean sFailed = false;
+        for (int i = 0; i < items.size(); i++) {
+            final StepExecutionItem item = items.get(i);
+            final MemoryLoadStats stepStats = (MemoryLoadStats) loadScenario.getSteps().get(i).getStats();
+            boolean erroneous = false;
+            boolean failed = false;
+            if (item.isErroneous()) {
+                erroneous = true;
+            }
+            if (item.getResult() != null) {
+                final StepItemResult result = item.getResult();
+                if (result.getStatus() == ERRONEOUS) {
+                    erroneous = true;
+                } else if (result.getStatus() == FAILED) {
+                    failed = true;
+                }
+                total = total.plus(result.getDuration());
+                this.applyStats(stepStats, erroneous, failed, item.getStatus() == CANCELLED, result.getDuration());
+            } else {
+                this.applyStats(stepStats, erroneous, false, item.getStatus() == CANCELLED, null);
+            }
+            sErroneous |= erroneous;
+            sFailed |= failed;
+        }
+        this.applyStats(stats, sErroneous, sFailed, false, total);
+        return sErroneous ? ERRONEOUS : (sFailed ? FAILED : PASSED);
+    }
+
+    private void applyStats(final MemoryLoadStats stats, final boolean erroneous, final boolean failed, final boolean cancelled, final Duration total) {
+        if (erroneous) {
+            stats.setErroneous(stats.getErroneous() + 1);
+            return;
+        } else if (cancelled) {
+            stats.setCancelled(stats.getCancelled() + 1);
+            return;
+        } else if (failed) {
+            stats.setFailed(stats.getFailed() + 1);
+        } else {
+            stats.setPassed(stats.getPassed() + 1);
+        }
+        if (total != null) {
+            stats.totalDuration = stats.totalDuration.plus(total);
+            if (stats.getMin() == null || stats.getMin().compareTo(total) > 0) {
+                stats.setMin(total);
+            }
+            if (stats.getMax() == null || stats.getMax().compareTo(total) < 0) {
+                stats.setMax(total);
+            }
+            stats.setAvg(stats.totalDuration.dividedBy(stats.getPassed() + stats.getFailed() + stats.getErroneous()));
+        }
+    }
+
+    private boolean executeStepSequenceIsolated(final Workspace workspace, final WithinExecutionStepCommand command, final ExecutionWrapper<? extends Execution> executionWrapper, final List<StepExecutionItem> stepItems) {
+        final Execution execution = executionWrapper.getExecution();
+        final String execId = execution.getId();
+        final AtomicBoolean passed = new AtomicBoolean(true);
+        this.sessionService.doWithinIsolatedSession(workspace, executionWrapper.getExecution().getSessionSettings(),
+                (session, sessionExecutionContext, evaluationContext) -> {
+                    boolean cancelled = false;
+                    for (int i = 0; i < stepItems.size(); i++) {
+                        final StepExecutionItem stepExecutionItem = stepItems.get(i);
+                        if (cancelled) {
+                            log.debug("Cancel execution of step item={} in execution={} due to previous errors", stepExecutionItem, execId);
+                            stepExecutionItem.setStatus(CANCELLED);
+                            continue;
+                        }
+                        stepExecutionItem.setStatus(EXECUTING);
+                        log.debug("Starting execution of step item={} of execution={}", stepExecutionItem, execId);
+                        try {
+                            final StepExecution stepExecution = this.stepExecutionResolver.resolveAlways(stepExecutionItem.getStep(), workspace);
+                            stepExecutionItem.setStepSpec(stepExecution.getStepSpec());
+                            command.execute(stepExecutionItem, stepExecution, sessionExecutionContext, evaluationContext,
+                                    new ExecutionStepItemResponseContext(executionWrapper, stepExecutionItem));
+                            if (stepExecutionItem.getResult() == null) {
+                                log.error("Missing result propagated for step item={}", stepExecutionItem);
+                                cancelled = true;
+                                passed.set(false);
+                            } else if (stepExecutionItem.getResult().getStatus() != PASSED) {
+                                cancelled = true;
+                                passed.set(false);
+                            }
+                        } catch (final Exception e) {
+                            log.warn("Failed to proceed step item={} on workspace={} and execution={}", stepExecutionItem, workspace.getId(), execId, e);
+                            stepExecutionItem.setErroneous(true);
+                            stepExecutionItem.setErrorMessage(e.getMessage());
+                            cancelled = true;
+                            passed.set(false);
+                        } finally {
+                            stepExecutionItem.setStatus(COMPLETED);
+                            log.debug("Completed execution of step item={} of execution={}", stepExecutionItem, execId);
+                        }
+                    }
+                });
+        return passed.get();
+    }
+
+    private Pair<MemoryLoadSimulation, MemoryRunner> findRunner(final MemoryLoadExecution execution, final String runnerId) {
+        for (final LoadSimulation simulation : execution.getSimulations()) {
+            for (final MemoryRunner runner : ((MemoryLoadSimulation) simulation).runners) {
+                if (runnerId.equals(runner.id)) {
+                    return Pair.of((MemoryLoadSimulation) simulation, runner);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public void stopExecution(final String wid, final String execId) {
+        final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(wid, execId, MemoryLoadExecution.class);
+        final MemoryLoadExecution execution = wrapper.getExecution();
+        synchronized (execution) {
+            execution.setStatus(STOPPING);
+            execution.getSimulations().forEach(loadSimulation ->
+                    ((MemoryLoadSimulation) loadSimulation).runners.forEach(runner -> runner.alive = false)
+            );
+        }
+        this.tryCompleting(execution);
+    }
+
+    private void tryCompleting(final MemoryLoadExecution execution) {
+        synchronized (execution) {
+            if (execution.getStatus() == COMPLETED || execution.getStatus() == CANCELLED) {
+                return;
+            }
+            final int running = execution.getSimulations().stream().map(loadSimulation ->
+                    ((MemoryLoadSimulation) loadSimulation).runners.stream().filter(memoryRunner -> memoryRunner.status == RunnerStatus.RUNNING).count()
+            ).mapToInt(Long::intValue).sum();
+            if (running == 0) {
+                log.info("Completed load execution={}", execution);
+                execution.setStatus(COMPLETED);
+                execution.setCompletedAt(OffsetDateTime.now());
+            } else {
+                log.debug("Waiting completion of execution={} due to uncompleted runners={}", execution, running);
+            }
+        }
+    }
+
+    @Override
+    public Duration adaptLoadRunners(final String wid, final String execId, final LoadRunnerSpawner loadRunnerSpawner) {
+        final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(wid, execId, MemoryLoadExecution.class);
+        final MemoryLoadExecution execution = wrapper.getExecution();
+        final Duration simulationTime = execution.getStartedAt() != null ? Duration.between(execution.getStartedAt(), OffsetDateTime.now())
+                : Duration.ZERO;
+        final List<Duration> nextChanges = new ArrayList<>();
+        execution.getSimulations().forEach(
+                simulation -> {
+                    final int amountNow = simulation.getUserLoadSpec().getAmountAt(simulationTime);
+                    final Duration nextChangeAfter = simulation.getUserLoadSpec().nextChangeAfter(simulationTime);
+                    if (nextChangeAfter != null) {
+                        nextChanges.add(nextChangeAfter);
+                    }
+                    final int current = simulation.getCurrentTargetLoad();
+                    if (amountNow > current) {
+                        log.debug("Adding {} more runners to execution={}", amountNow - current, execId);
+                        for (int i = 0; i < (amountNow - current); i++) {
+                            final MemoryRunner runner = new MemoryRunner(UUID.randomUUID().toString(), true, RunnerStatus.INITIATED);
+                            ((MemoryLoadSimulation) simulation).runners.add(runner);
+                            loadRunnerSpawner.spawn(runner.id);
+                        }
+                    } else if (amountNow < current) {
+                        log.debug("Removing {} runners from execution={}", current - amountNow, execId);
+                        for (int i = 0; i < (current - amountNow); i++) {
+                            ((MemoryLoadSimulation) simulation).runners.stream().filter(
+                                    MemoryRunner::isAlive
+                            ).findFirst().ifPresentOrElse(
+                                    runner -> {
+                                        log.debug("Deactivating runner={} from execution={}", runner.id, execId);
+                                        runner.alive = false;
+                                    },
+                                    () -> log.warn("Wanted to deactivate runner, but none active found for execution={}", execId)
+                            );
+                        }
+                    }
+                }
+        );
+        Duration closestChange = null;
+        for (final Duration nextChange : nextChanges) {
+            if (closestChange == null || nextChange.compareTo(closestChange) < 0) {
+                closestChange = nextChange;
+            }
+        }
+        if (closestChange != null) {
+            log.debug("Going to adapt runners for execution={} in {}", execId, closestChange);
+        }
+        return closestChange;
     }
 
     private String getStoreId(final String wid, final String execId) {

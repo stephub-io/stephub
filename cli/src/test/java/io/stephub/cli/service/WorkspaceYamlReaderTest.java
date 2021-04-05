@@ -25,13 +25,13 @@ class WorkspaceYamlReaderTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Test
+    // @Test
     public void testSimple() throws IOException {
         final Workspace workspace = this.reader.read(new ClassPathResource("workspace-simple.yml").getFile());
         SnapshotMatcher.expect(this.objectMapper.writeValueAsString(workspace)).toMatchSnapshot();
     }
 
-    @Test
+    // @Test
     public void testMerged() throws IOException {
         final Workspace workspace = this.reader.read(new ClassPathResource("workspace-simple.yml").getFile(), new ClassPathResource("workspace-inc-steps.yml").getFile());
         SnapshotMatcher.expect(this.objectMapper.writeValueAsString(workspace)).toMatchSnapshot();
