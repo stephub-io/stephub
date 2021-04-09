@@ -187,7 +187,6 @@ public abstract class Execution {
     @Builder
     public static class ExecutionLogEntry {
         private String message;
-        @Singular
         private List<ExecutionLogAttachment> attachments;
     }
 
@@ -250,7 +249,7 @@ public abstract class Execution {
             @JsonSubTypes.Type(value = FunctionalExecution.FeatureExecutionItem.class, name = "feature"),
             @JsonSubTypes.Type(value = FunctionalExecution.ScenarioExecutionItem.class, name = "scenario")
     })
-    @SuperBuilder
+    @SuperBuilder(toBuilder = true)
     @Data
     @NoArgsConstructor
     public static abstract class ExecutionItem {
@@ -262,6 +261,7 @@ public abstract class Execution {
         public abstract Stats getStats();
 
     }
+
 
     @NoArgsConstructor
     @AllArgsConstructor
@@ -337,14 +337,11 @@ public abstract class Execution {
         }
     }
 
-    @NoArgsConstructor
-    @AllArgsConstructor
-    @SuperBuilder
+    @SuperBuilder(toBuilder = true)
     @Data
-    @ToString(of = "name")
-    public static class ScenarioExecutionItem extends ExecutionItem {
-        private String name;
-        @Singular
+    @NoArgsConstructor
+    public static abstract class StepSequenceExecutionItem extends ExecutionItem {
+        @Builder.Default
         private List<StepExecutionItem> steps = new ArrayList<>();
 
         @Override
@@ -369,6 +366,42 @@ public abstract class Execution {
                 }
             }
             return new Stats();
+        }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder
+    @Data
+    @ToString(of = "name")
+    public static class ScenarioExecutionItem extends StepSequenceExecutionItem {
+        private String name;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder(toBuilder = true)
+    @Data
+    @ToString(of = "name")
+    public static class FixtureExecutionItem extends StepSequenceExecutionItem implements Comparable<FixtureExecutionItem> {
+        private Fixture.FixtureType type;
+        private int priority;
+        private String name;
+        private boolean abortOnError;
+
+        public FixtureExecutionItem(final Fixture from) {
+            this.type = from.getType();
+            this.name = from.getName();
+            this.priority = from.getPriority();
+            this.abortOnError = from.isAbortOnError();
+            this.setSteps(from.getSteps().stream().map(
+                    step -> StepExecutionItem.builder().step(step).build()
+            ).collect(Collectors.toList()));
+        }
+
+        @Override
+        public int compareTo(final FixtureExecutionItem other) {
+            return this.priority - other.priority;
         }
     }
 }

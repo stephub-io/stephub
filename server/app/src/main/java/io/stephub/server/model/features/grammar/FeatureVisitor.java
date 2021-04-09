@@ -1,5 +1,6 @@
 package io.stephub.server.model.features.grammar;
 
+import io.stephub.server.api.model.gherkin.Annotatable;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Scenario;
 import io.stephub.server.api.model.gherkin.StepSequence;
@@ -7,7 +8,6 @@ import io.stephub.server.model.features.generated.FeaturesBaseVisitor;
 import io.stephub.server.model.features.generated.FeaturesParser;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 import static io.stephub.server.service.GherkinPatternMatcher.DOC_STRING_MARKER;
 import static io.stephub.server.service.GherkinPatternMatcher.extractSpaceOffset;
@@ -15,50 +15,51 @@ import static io.stephub.server.service.GherkinPatternMatcher.extractSpaceOffset
 public class FeatureVisitor extends FeaturesBaseVisitor<Feature> {
     @Override
     public Feature visitFeature(final FeaturesParser.FeatureContext ctx) {
-        final Feature.FeatureBuilder builder = Feature.builder();
-        builder.name(ctx.featureHeader().name().getText().trim());
+        final Feature feature = new Feature();
+        feature.setName(ctx.featureHeader().name().getText().trim());
         if (!ctx.featureHeader().annotationLine().isEmpty()) {
             this.parseAnnotations(ctx.featureHeader().annotationLine(),
-                    builder::tag, builder::comment);
+                    feature);
         }
         if (ctx.featureHeader().background() != null) {
-            this.parseBackend(builder, ctx.featureHeader().background());
+            this.parseBackend(feature, ctx.featureHeader().background());
         }
         if (!ctx.scenario().isEmpty()) {
-            this.parseScenarios(builder, ctx.scenario());
+            this.parseScenarios(feature, ctx.scenario());
         }
-        return builder.build();
+        return feature;
     }
 
-    private void parseScenarios(final Feature.FeatureBuilder builder, final List<FeaturesParser.ScenarioContext> scenarios) {
+    private void parseScenarios(final Feature feature, final List<FeaturesParser.ScenarioContext> scenarios) {
         scenarios.forEach(scenarioContext ->
-                builder.scenario(this.parseScenario(scenarioContext))
+                feature.getScenarios().add(this.parseScenario(scenarioContext))
         );
     }
 
     private Scenario parseScenario(final FeaturesParser.ScenarioContext scenarioContext) {
-        final Scenario.ScenarioBuilder<?, ?> builder = Scenario.builder().name(scenarioContext.name().getText().trim());
+        final Scenario scenario = new Scenario();
+        scenario.setName(scenarioContext.name().getText().trim());
         if (!scenarioContext.annotationLine().isEmpty()) {
             this.parseAnnotations(scenarioContext.annotationLine(),
-                    builder::tag, builder::comment);
+                    scenario);
         }
         if (scenarioContext.steps() != null) {
-            this.parseSteps(builder, scenarioContext.steps());
+            this.parseSteps(scenario, scenarioContext.steps());
         }
-        return builder.build();
+        return scenario;
     }
 
-    private void parseBackend(final Feature.FeatureBuilder builder, final FeaturesParser.BackgroundContext background) {
-        final StepSequence.StepSequenceBuilder<?, ?> stepSequenceBuilder = StepSequence.builder();
+    private void parseBackend(final Feature feature, final FeaturesParser.BackgroundContext background) {
+        final StepSequence stepSequence = new StepSequence();
         if (background.steps() != null) {
-            this.parseSteps(stepSequenceBuilder, background.steps());
+            this.parseSteps(stepSequence, background.steps());
         }
-        builder.background(stepSequenceBuilder.build());
+        feature.setBackground(stepSequence);
     }
 
-    private void parseSteps(final StepSequence.StepSequenceBuilder<?, ?> stepSequenceBuilder, final FeaturesParser.StepsContext steps) {
+    private void parseSteps(final StepSequence stepSequence, final FeaturesParser.StepsContext steps) {
         steps.step().forEach(stepContext ->
-                stepSequenceBuilder.step(this.normalizeStep(stepContext, stepContext.getText().trim()))
+                stepSequence.getSteps().add(this.normalizeStep(stepContext, stepContext.getText().trim()))
         );
     }
 
@@ -92,14 +93,15 @@ public class FeatureVisitor extends FeaturesBaseVisitor<Feature> {
     }
 
     private void parseAnnotations(final List<FeaturesParser.AnnotationLineContext> annotations,
-                                  final Consumer<String> tagConsumer, final Consumer<String> commentConsumer) {
+                                  final Annotatable target) {
         annotations.forEach(a -> {
             if (!a.tag().isEmpty()) {
+                target.getTags().clear();
                 a.tag().stream().
                         map(tagContext -> "@" + tagContext.tagName().getText().trim()).
-                        forEach(tagConsumer);
+                        forEach(t -> target.getTags().add(t));
             } else if (a.commentLine() != null) {
-                commentConsumer.accept(a.commentLine().comment().getText().trim().trim());
+                target.getComments().add(a.commentLine().comment().getText().trim().trim());
             }
         });
     }

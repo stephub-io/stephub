@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.cli.exception.CommandException;
 import io.stephub.cli.model.ImportWorkspace;
 import io.stephub.server.api.model.Identifiable;
+import io.stephub.server.api.model.ProviderSpec;
 import io.stephub.server.api.model.Variable;
+import io.stephub.server.api.model.Workspace;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -97,7 +99,9 @@ public class WorkspaceYamlReader {
             }
         }
         if (increment.getProviders() != null) {
-            this.mergeList(target.getProviders(), increment.getProviders(), p -> {
+            final List<ProviderSpec> effectiveIncrementProviders = new ArrayList<>(increment.getProviders());
+            effectiveIncrementProviders.removeAll(new Workspace().getProviders());
+            this.mergeList(target.getProviders(), effectiveIncrementProviders, p -> {
                 throw new MergeException("File '" + file + "' contains a duplicate provider '" + p + "'");
             });
         }
@@ -114,14 +118,9 @@ public class WorkspaceYamlReader {
         if (increment.getVariables() != null) {
             this.mergeList(target.getVariables(), increment.getVariables());
         }
-        if (increment.getBeforeFixtures() != null) {
-            this.mergeList(target.getBeforeFixtures(), increment.getBeforeFixtures(), f -> {
-                throw new MergeException("File '" + file + "' contains a duplicate before fixture '" + f.getName() + "'");
-            });
-        }
-        if (increment.getAfterFixtures() != null) {
-            this.mergeList(increment.getAfterFixtures(), increment.getAfterFixtures(), f -> {
-                throw new MergeException("File '" + file + "' contains a duplicate after fixture '" + f.getName() + "'");
+        if (increment.getFixtures() != null) {
+            this.mergeList(target.getFixtures(), increment.getFixtures(), f -> {
+                throw new MergeException("File '" + file + "' contains a duplicate fixture '" + f.getName() + "'");
             });
         }
     }

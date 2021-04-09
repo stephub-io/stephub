@@ -1,7 +1,6 @@
 package io.stephub.server.service.support;
 
 import io.stephub.providers.base.BaseProvider;
-import io.stephub.server.api.model.ProviderSpec;
 import io.stephub.server.api.model.Workspace;
 import io.stephub.server.api.rest.WorkspaceFinder;
 import io.stephub.server.model.Context;
@@ -27,10 +26,6 @@ public class MemoryWorkspaceService implements WorkspaceService {
     @Override
     public Workspace createWorkspace(final Context ctx, final Workspace draft) {
         draft.setId(UUID.randomUUID().toString());
-        if (draft.getProviders() == null || draft.getProviders().isEmpty()) {
-            draft.getProviders().add(ProviderSpec.builder().name(BaseProvider.PROVIDER_NAME)
-                    .build());
-        }
         this.workspaces.put(draft.getId(), draft);
         return draft;
     }

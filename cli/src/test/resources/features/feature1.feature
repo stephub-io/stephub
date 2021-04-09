@@ -12,8 +12,9 @@ Feature: This is the long feature name in this section
     When wait for 10 seconds
     | Abc | Def |
     | 134 | ..  |
-    Then assert that 2 equals 1
+    Then assert that 0 equals ${preset1}
     """
       Hello from doc-string
       Next line
     """
+    And assert that 3 equals ${preset2}

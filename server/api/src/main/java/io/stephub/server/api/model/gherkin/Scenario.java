@@ -2,10 +2,10 @@ package io.stephub.server.api.model.gherkin;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.stephub.server.api.model.Identifiable;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotNull;
@@ -16,16 +16,17 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class Scenario extends StepSequence implements Tagable, Identifiable {
+public class Scenario extends StepSequence implements Annotatable, Identifiable {
     @NotNull
     private String name;
 
-    @Singular
+    @NotNull
+    @Builder.Default
     private List<String> tags = new ArrayList<>();
 
-    @Singular
+    @NotNull
+    @Builder.Default
     private List<String> comments = new ArrayList<>();
-
 
     @Override
     @JsonIgnore

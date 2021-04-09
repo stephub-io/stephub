@@ -19,7 +19,7 @@ import java.util.Optional;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 public class BasicStepDefinition extends StepDefinition {
-    @Singular
+    @Builder.Default
     private List<String> steps = new ArrayList<>();
 
     @Override

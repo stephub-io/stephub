@@ -130,8 +130,8 @@ public abstract class SessionService {
         void execute(RuntimeSession session, SessionExecutionContext sessionExecutionContext, AttributesContext attributesContext);
     }
 
-    protected void executeWithinSession(final String wid, final String sid, final WithinSessionExecutor executor) {
-        this.executeWithinSessionInternal(wid, sid, (workspace, sessionExecutionContext, attributesContext) ->
+    protected void executeWithinSession(final String wid, final String sid, final Map<String, Json> presetAttributes, final WithinSessionExecutor executor) {
+        this.executeWithinSessionInternal(wid, sid, presetAttributes, (workspace, sessionExecutionContext, attributesContext) ->
                 executor.execute(workspace, sessionExecutionContext, new EvaluationContext() {
                     @Override
                     public Json get(final String key) {
@@ -150,13 +150,15 @@ public abstract class SessionService {
                 }));
     }
 
-    protected abstract void executeWithinSessionInternal(String wid, String sid, WithinSessionExecutorInternal executor);
+    protected abstract void executeWithinSessionInternal(String wid, String sid, Map<String, Json> presetAttributes, WithinSessionExecutorInternal executor);
 
 
-    public final void doWithinIsolatedSession(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings, final WithinSessionExecutor withinSessionExecutor) {
+    public final void doWithinIsolatedSession(final Workspace workspace, final RuntimeSession.SessionSettings sessionSettings,
+                                              final Map<String, Json> presetAttributes,
+                                              final WithinSessionExecutor withinSessionExecutor) {
         final RuntimeSession session = this.startSession(workspace, sessionSettings);
         try {
-            this.executeWithinSession(workspace.getId(), session.getId(), withinSessionExecutor);
+            this.executeWithinSession(workspace.getId(), session.getId(), presetAttributes, withinSessionExecutor);
         } finally {
             this.stopSession(session);
         }

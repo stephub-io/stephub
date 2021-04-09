@@ -51,8 +51,8 @@ public abstract class StepDefinition implements CustomStepContainer, Identifiabl
     private final StepSpec<JsonSchema> spec = StepSpec.<JsonSchema>builder().
             patternType(PatternType.SIMPLE).build();
 
-    @Singular
     @Valid
+    @Builder.Default
     private final List<StepDefinition> stepDefinitions = new ArrayList<>();
 
     public void validate(final String fieldPrefix, final Errors errors, final StepExecutionResolverWrapper stepExecutionResolver) {

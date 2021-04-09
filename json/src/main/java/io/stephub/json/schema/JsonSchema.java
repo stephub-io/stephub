@@ -10,6 +10,7 @@ import io.stephub.json.jackson.JsonSchemaSerializer;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -33,14 +34,18 @@ public class JsonSchema extends JsonObject {
                 addKeywords(Arrays.asList(new NonValidationKeyword("$vocabulary"), new NonValidationKeyword("$recursiveAnchor"), new NonValidationKeyword("$comment"), new NonValidationKeyword("propertyNames"), new NonValidationKeyword("$recursiveRef"))).build();
         final Map<String, String> metaSchemaUriMappings = new HashMap<>();
         metaSchemaUriMappings.put(V201909_URI,
-                "classpath:org/json-schema/draft/2019-09/schema");
+                "classpath:/org/json-schema/draft/2019-09/schema");
+        for (final String part : new String[]{"core", "applicator", "content", "format", "meta-data", "validation"}) {
+            metaSchemaUriMappings.put("https://json-schema.org/draft/2019-09/meta/" + part,
+                    "classpath:/org/json-schema/draft/2019-09/meta/" + part);
+        }
         final JsonSchemaFactory metaSchemaFactory = new JsonSchemaFactory.Builder().defaultMetaSchemaURI(metaSchema.getUri())
                 .addMetaSchema(metaSchema).addUriMappings(metaSchemaUriMappings)
                 .build();
         try {
             schemaForSchema = metaSchemaFactory.getSchema(new URI(V201909_URI));
         } catch (final URISyntaxException e) {
-            log.error("Init error", e);
+            LoggerFactory.getLogger(JsonSchema.class).error("Init error", e);
         }
     }
 

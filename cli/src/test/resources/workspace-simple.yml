@@ -24,3 +24,20 @@ variables:
     schema:
       type: string
     default: My default
+
+fixtures:
+  - name: Preset vars2
+    type: before
+    priority: 1
+    steps:
+      - Given a value 3 - assigned to ${preset2}
+  - name: Preset vars1
+    type: before
+    priority: 0
+    steps:
+      - Given a value 0 - assigned to ${preset1}
+  - name: Tear down
+    type: after
+    steps:
+      - Then assert that 0 equals ${preset1}
+      - Then assert that 3 equals ${preset2}

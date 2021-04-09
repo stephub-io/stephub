@@ -92,8 +92,11 @@ public class MemorySessionService extends SessionService {
     }
 
     @Override
-    public void executeWithinSessionInternal(final String wid, final String sid, final WithinSessionExecutorInternal executor) {
+    public void executeWithinSessionInternal(final String wid, final String sid, final Map<String, Json> presetAttributes, final WithinSessionExecutorInternal executor) {
         final MemoryRuntimeSession session = this.getSessionSafe(wid, sid);
+        if (presetAttributes != null) {
+            session.getAttributes().putAll(presetAttributes);
+        }
         executor.execute(session,
                 new SessionExecutionContext() {
                     @Override

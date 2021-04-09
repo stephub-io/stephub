@@ -1,14 +1,13 @@
 package io.stephub.server.api.model.gherkin;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import io.stephub.server.api.model.Identifiable;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Singular;
 import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.NotNull;
+import java.util.ArrayList;
 import java.util.List;
 
 @SuperBuilder
@@ -18,7 +17,7 @@ import java.util.List;
 public class StepSequence {
 
     @NotNull
-    @Singular
-    private List<String> steps;
+    @Builder.Default
+    private List<String> steps = new ArrayList<>();
 
 }

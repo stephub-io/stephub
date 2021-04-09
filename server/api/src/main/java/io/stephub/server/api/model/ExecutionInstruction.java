@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 })
 public abstract class ExecutionInstruction {
 
-    public abstract List<ExecutionItem> buildItems(Workspace workspace);
+    public abstract List<ExecutionItem> buildItems(Workspace workspace, RelatedFixtureSupplier fixtureSupplier);
 
     @EqualsAndHashCode(callSuper = true)
     @Data
@@ -39,17 +39,20 @@ public abstract class ExecutionInstruction {
     @Builder
     public static class StepsExecutionInstruction extends ExecutionInstruction {
         @Size(min = 1)
-        @Singular
         private List<String> steps;
 
         @Override
-        public List<ExecutionItem> buildItems(final Workspace workspace) {
+        public List<ExecutionItem> buildItems(final Workspace workspace, final RelatedFixtureSupplier fixtureSupplier) {
             return this.steps.stream().map(s -> Execution.StepExecutionItem.builder().step(s).build()).collect(Collectors.toList());
         }
     }
 
-    public interface ScenarioExecutionSupplier<K> {
-        K supply(String featureName, String scenarioName, List<String> steps);
+    public interface ScenarioExecutionSupplier {
+        void supply(Feature feature, Scenario scenario, List<String> steps);
+    }
+
+    public interface RelatedFixtureSupplier {
+        void supply(Fixture fixture);
     }
 
     @EqualsAndHashCode(callSuper = true)
@@ -64,30 +67,34 @@ public abstract class ExecutionInstruction {
         private ScenarioFilter filter = new AllScenarioFilter();
 
         @Override
-        public List<ExecutionItem> buildItems(final Workspace workspace) {
-            return this.getFiltered(workspace);
+        public List<ExecutionItem> buildItems(final Workspace workspace, final RelatedFixtureSupplier fixtureSupplier) {
+            return this.getFiltered(workspace, fixtureSupplier);
         }
 
 
-        public <K> List<K> filter(final Workspace workspace, final ScenarioExecutionSupplier<K> supplier) {
-            final List<K> list = new ArrayList<>();
+        public void filter(final Workspace workspace, final ScenarioExecutionSupplier supplier) {
             workspace.getFeatures().forEach(
                     feature ->
                     {
                         feature.getScenarios().stream().filter(s -> this.filter.accept(feature, s)).
-                                forEach(scenario -> list.add(supplier.supply(feature.getName(), scenario.getName(), this.buildSteps(feature, scenario))));
+                                forEach(scenario -> supplier.supply(feature, scenario, this.buildSteps(feature, scenario)));
                     }
             );
-            return list;
         }
 
 
-        private List<ExecutionItem> getFiltered(final Workspace workspace) {
+        private List<ExecutionItem> getFiltered(final Workspace workspace, final RelatedFixtureSupplier fixtureSupplier) {
             final List<ExecutionItem> featureItems = new ArrayList<>();
             workspace.getFeatures().forEach(
                     feature ->
                     {
-                        final List<Scenario> scenarios = feature.getScenarios().stream().filter(s -> this.filter.accept(feature, s)).collect(Collectors.toList());
+                        final List<Scenario> scenarios = feature.getScenarios().stream().filter(s -> {
+                            final boolean accept = this.filter.accept(feature, s);
+                            if (accept) {
+                                workspace.getFixtures().stream().filter(f -> f.appliesTo(feature, s)).forEach(f -> fixtureSupplier.supply(f));
+                            }
+                            return accept;
+                        }).collect(Collectors.toList());
                         if (!scenarios.isEmpty()) {
                             final FeatureExecutionItem featureItem = Execution.FeatureExecutionItem.builder().name(feature.getName()).
                                     scenarios(this.buildScenarioItems(feature, scenarios)).build();

@@ -20,7 +20,9 @@ public abstract class FunctionalExecution extends Execution {
     @NotNull
     private ExecutionInstruction instruction;
 
-    private GherkinPreferences gherkinPreferences;
+    @NotNull
+    @Builder.Default
+    private List<FixtureExecutionItem> fixtures = new ArrayList<>();
 
     @NotNull
     @Builder.Default

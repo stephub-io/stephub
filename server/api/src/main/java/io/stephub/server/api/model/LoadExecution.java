@@ -30,7 +30,7 @@ import static com.fasterxml.jackson.annotation.JsonFormat.Shape.STRING;
 public abstract class LoadExecution extends Execution {
     private LoadExecutionStart start;
 
-    @Singular
+    @Builder.Default
     private List<LoadSimulation> simulations = new ArrayList<>();
 
 
@@ -48,6 +48,38 @@ public abstract class LoadExecution extends Execution {
 
         public abstract int getCurrentActualLoad();
 
+        public abstract List<LoadRunner> getRunners();
+
+    }
+
+    public enum RunnerStatus {
+        INITIATED, RUNNING, STOPPING, STOPPED;
+
+        public boolean alive() {
+            return this == INITIATED || this == RUNNING;
+        }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    @Data
+    @ToString(of = "id")
+    public static class LoadRunner {
+        private String id;
+        @JsonFormat(shape = STRING)
+        private OffsetDateTime initiatedAt;
+        @JsonFormat(shape = STRING)
+        private OffsetDateTime startedAt;
+        @JsonFormat(shape = STRING)
+        private OffsetDateTime stoppedAt;
+        private long iterationNumber;
+        @Builder.Default
+        private RunnerStatus status = RunnerStatus.INITIATED;
+        @Builder.Default
+        private List<FixtureExecutionItem> fixtures = new ArrayList<>();
+
+        private String stopMessage;
     }
 
     @NoArgsConstructor
