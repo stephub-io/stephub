@@ -19,7 +19,8 @@ public class FeatureParserTest {
         final Feature feature = this.parser.parseFeature(null, "Feature: Abc");
         assertThat(feature.getName(), equalTo("Abc"));
         assertThat(feature.getBackground(), nullValue());
-        assertThat(feature.getTags(), hasSize(0));
+        assertThat(feature.getTags(), hasSize(1));
+        assertThat(feature.getTags(), hasItem(Feature.DEFAULT_TAG));
         assertThat(feature.getScenarios(), hasSize(0));
     }
 

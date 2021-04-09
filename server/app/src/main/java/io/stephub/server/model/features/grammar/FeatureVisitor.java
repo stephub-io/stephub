@@ -8,6 +8,7 @@ import io.stephub.server.model.features.generated.FeaturesBaseVisitor;
 import io.stephub.server.model.features.generated.FeaturesParser;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static io.stephub.server.service.GherkinPatternMatcher.DOC_STRING_MARKER;
 import static io.stephub.server.service.GherkinPatternMatcher.extractSpaceOffset;
@@ -94,9 +95,13 @@ public class FeatureVisitor extends FeaturesBaseVisitor<Feature> {
 
     private void parseAnnotations(final List<FeaturesParser.AnnotationLineContext> annotations,
                                   final Annotatable target) {
+        final AtomicBoolean cleared = new AtomicBoolean(false);
         annotations.forEach(a -> {
             if (!a.tag().isEmpty()) {
-                target.getTags().clear();
+                if (!cleared.get()) {
+                    target.getTags().clear();
+                    cleared.set(true);
+                }
                 a.tag().stream().
                         map(tagContext -> "@" + tagContext.tagName().getText().trim()).
                         forEach(t -> target.getTags().add(t));
