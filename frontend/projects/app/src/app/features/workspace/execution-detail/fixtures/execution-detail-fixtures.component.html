@@ -1,0 +1,40 @@
+<mat-accordion
+  *ngFor="let fixture of fixtures"
+  class="items-headers-align"
+  multi
+>
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>
+        <span>{{ fixture.name }}</span>
+      </mat-panel-title>
+      <mat-panel-description>
+        <span>
+          <sh-execution-stats
+            class="indicator"
+            [stats]="fixture.stats"
+          ></sh-execution-stats>
+          <fa-icon
+            class="indicator"
+            [icon]="statusIcon(fixture.status)"
+            [spin]="statusIconSpin(fixture.status)"
+            [title]="fixture.status"
+          ></fa-icon>
+        </span>
+      </mat-panel-description>
+    </mat-expansion-panel-header>
+    <ng-template matExpansionPanelContent>
+      <p>
+        <mat-divider></mat-divider>
+      </p>
+      <p class="font-weight-bold">Steps:</p>
+      <mat-accordion class="items-headers-align" multi>
+        <sh-execution-detail-steps
+          [stepItems]="fixture.steps"
+          [wid]="wid"
+          [exec]="exec"
+        ></sh-execution-detail-steps>
+      </mat-accordion>
+    </ng-template>
+  </mat-expansion-panel>
+</mat-accordion>

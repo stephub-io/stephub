@@ -1,0 +1,82 @@
+<mat-expansion-panel
+  *ngFor="let step of stepItems"
+  [expanded]="errorStep(step)"
+  class="mat-elevation-z0"
+>
+  <mat-expansion-panel-header>
+    <mat-panel-title>
+      <fa-icon [icon]="stepIcon"></fa-icon>
+      <span>
+        <sh-step-abstract
+          [instruction]="parseStepInstruction(step, exec?.gherkinPreferences)"
+        ></sh-step-abstract>
+      </span>
+    </mat-panel-title>
+    <mat-panel-description>
+      <div>
+        <div class="info">
+          <fa-icon
+            *ngIf="aggAttachmentIcon(step)"
+            [icon]="aggAttachmentIcon(step)"
+          ></fa-icon>
+          <sh-execution-stats
+            class="indicator"
+            [stats]="step.stats"
+          ></sh-execution-stats>
+          <span *ngIf="step.status == 'cancelled'" class="badge badge-secondary"
+            >cancelled</span
+          >
+          <fa-icon
+            class="indicator"
+            [icon]="statusIcon(step.status)"
+            [spin]="statusIconSpin(step.status)"
+            [title]="step.status"
+          ></fa-icon>
+        </div>
+        <div class="info">
+          {{ step.result?.duration | humanizeDuration }}
+        </div>
+      </div>
+    </mat-panel-description>
+  </mat-expansion-panel-header>
+  <ng-template matExpansionPanelContent>
+    <mat-divider></mat-divider>
+    <div class="request">
+      <sh-step-request
+        [instruction]="parseStepInstruction(step, exec?.gherkinPreferences)"
+      >
+      </sh-step-request>
+    </div>
+    <div *ngIf="step.result && step.result?.status != 'passed'">
+      <div class="response">
+        <div class="warn-text code">
+          <fa-icon icon="exclamation-triangle"></fa-icon>
+          {{ step.result?.errorMessage }}
+        </div>
+      </div>
+    </div>
+    <div *ngIf="step.result?.logs?.length > 0" class="logs">
+      <p class="font-weight-bold">Logs:</p>
+      <div *ngFor="let log of step.result?.logs" class="log">
+        <p class="code">{{ log.message }}</p>
+        <p
+          class="image"
+          *ngFor="let image of imageAttachments(log.attachments)"
+        >
+          <img [src]="image" class="img-fluid" />
+        </p>
+        <p class="attachments">
+          <a
+            *ngFor="let a of log.attachments"
+            [href]="attachmentUrl(a)"
+            target="_blank"
+          >
+            <fa-icon [icon]="attachmentIcon(a)"></fa-icon>
+            {{ a.fileName }} ({{ a.size | filesize }})</a
+          >
+        </p>
+      </div>
+    </div>
+    <mat-divider></mat-divider>
+  </ng-template>
+</mat-expansion-panel>

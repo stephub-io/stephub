@@ -173,6 +173,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 instruction(executionStart.getInstruction()).
                 id(UUID.randomUUID().toString()).
                 sessionSettings(executionStart.getSessionSettings()).
+                gherkinPreferences(workspace.getGherkinPreferences()).
                 initiatedAt(OffsetDateTime.now()).
                 backlog(executionItems).
                 pendingBuckets(pendingItems).
@@ -191,6 +192,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 .id(UUID.randomUUID().toString())
                 .start(executionStart)
                 .sessionSettings(executionStart.getSessionSettings())
+                .gherkinPreferences(workspace.getGherkinPreferences())
                 .initiatedAt(OffsetDateTime.now())
                 .status(INITIATED)
                 .simulations(simulations);

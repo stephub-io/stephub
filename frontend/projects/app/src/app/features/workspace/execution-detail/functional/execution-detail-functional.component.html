@@ -2,7 +2,7 @@
   <div *ngIf="execution$ | async as exec" [ngClass]="routeAnimationsElements">
     <div class="row">
       <div class="col-sm-8">
-        <mat-card>
+        <mat-card class="item">
           <mat-card-content>
             <div class="row">
               <div class="col col-4">
@@ -48,7 +48,17 @@
         </mat-card>
       </div>
     </div>
-    <h3>Items</h3>
+
+    <div *ngIf="getFixtures(exec.fixtures, before).length > 0">
+      <h3>Before fixtures</h3>
+      <sh-execution-detail-fixtures
+        [fixtures]="getFixtures(exec.fixtures, before)"
+        [exec]="exec"
+        [wid]="wid"
+      ></sh-execution-detail-fixtures>
+    </div>
+
+    <h3>Backlog</h3>
     <div class="row">
       <div class="col-sm-12">
         <mat-accordion class="items-headers-align" multi>
@@ -127,12 +137,11 @@
                       </p>
                       <p class="font-weight-bold">Steps:</p>
                       <mat-accordion class="items-headers-align" multi>
-                        <ng-container
-                          *ngTemplateOutlet="
-                            step_item;
-                            context: { items: scenario.steps }
-                          "
-                        ></ng-container>
+                        <sh-execution-detail-steps
+                          [stepItems]="scenario.steps"
+                          [wid]="wid"
+                          [exec]="exec"
+                        ></sh-execution-detail-steps>
                       </mat-accordion>
                     </ng-template>
                   </mat-expansion-panel>
@@ -140,107 +149,24 @@
               </ng-template>
             </mat-expansion-panel>
             <ng-container *ngIf="getStepItem(item) as stepItem">
-              <ng-container
-                *ngTemplateOutlet="step_item; context: { items: [stepItem] }"
-              ></ng-container>
+              <sh-execution-detail-steps
+                [stepItems]="[stepItem]"
+                [wid]="wid"
+                [exec]="exec"
+              ></sh-execution-detail-steps>
             </ng-container>
           </ng-container>
         </mat-accordion>
       </div>
+    </div>
 
-      <ng-template #step_item let-items="items">
-        <mat-expansion-panel
-          *ngFor="let step of getStepItems(items)"
-          [expanded]="errorStep(step)"
-          class="mat-elevation-z0"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title>
-              <fa-icon
-                [icon]="getIcon(step)"
-                [title]="getTitle(step)"
-              ></fa-icon>
-              <span>
-                <sh-step-abstract
-                  [instruction]="
-                    parseStepInstruction(step, exec?.gherkinPreferences)
-                  "
-                ></sh-step-abstract>
-              </span>
-            </mat-panel-title>
-            <mat-panel-description>
-              <div>
-                <div class="info">
-                  <fa-icon
-                    *ngIf="aggAttachmentIcon(step)"
-                    [icon]="aggAttachmentIcon(step)"
-                  ></fa-icon>
-                  <sh-execution-stats
-                    class="indicator"
-                    [stats]="step.stats"
-                  ></sh-execution-stats>
-                  <span
-                    *ngIf="step.status == 'cancelled'"
-                    class="badge badge-secondary"
-                    >cancelled</span
-                  >
-                  <fa-icon
-                    class="indicator"
-                    [icon]="statusIcon(step.status)"
-                    [spin]="statusIconSpin(step.status)"
-                    [title]="step.status"
-                  ></fa-icon>
-                </div>
-                <div class="info">
-                  {{ step.response?.duration | humanizeDuration }}
-                </div>
-              </div>
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-          <ng-template matExpansionPanelContent>
-            <mat-divider></mat-divider>
-            <div class="request">
-              <sh-step-request
-                [instruction]="
-                  parseStepInstruction(step, exec?.gherkinPreferences)
-                "
-              >
-              </sh-step-request>
-            </div>
-            <div *ngIf="step.response && step.response?.status != 'passed'">
-              <div class="response">
-                <div class="error-message code">
-                  <fa-icon icon="exclamation-triangle"></fa-icon>
-                  {{ step.response?.errorMessage }}
-                </div>
-              </div>
-            </div>
-            <div *ngIf="step.response?.logs?.length > 0" class="logs">
-              <p class="font-weight-bold">Logs:</p>
-              <div *ngFor="let log of step.response?.logs" class="log">
-                <p class="code">{{ log.message }}</p>
-                <p
-                  class="image"
-                  *ngFor="let image of imageAttachments(log.attachments)"
-                >
-                  <img [src]="image" class="img-fluid" />
-                </p>
-                <p class="attachments">
-                  <a
-                    *ngFor="let a of log.attachments"
-                    [href]="attachmentUrl(a)"
-                    target="_blank"
-                  >
-                    <fa-icon [icon]="attachmentIcon(a)"></fa-icon>
-                    {{ a.fileName }} ({{ a.size | filesize }})</a
-                  >
-                </p>
-              </div>
-            </div>
-            <mat-divider></mat-divider>
-          </ng-template>
-        </mat-expansion-panel>
-      </ng-template>
+    <div *ngIf="getFixtures(exec.fixtures, after).length > 0">
+      <h3>After fixtures</h3>
+      <sh-execution-detail-fixtures
+        [fixtures]="getFixtures(exec.fixtures, after)"
+        [exec]="exec"
+        [wid]="wid"
+      ></sh-execution-detail-fixtures>
     </div>
   </div>
 </div>

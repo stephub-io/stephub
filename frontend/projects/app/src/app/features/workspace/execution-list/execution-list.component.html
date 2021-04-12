@@ -4,7 +4,7 @@
       mat-mini-fab
       color="primary"
       routerLink="new"
-      title="Start new execution"
+      title="Start new {{ typeLabel }}"
     >
       <fa-icon icon="play"></fa-icon>
     </a>
@@ -15,7 +15,7 @@
   >
     <div class="row align-items-end" *ngIf="executions.length > 0; else empty">
       <div *ngFor="let exec of executions" class="col-md-8 col-lg-8">
-        <mat-card>
+        <mat-card class="item">
           <mat-card-title>
             <code *ngIf="exec.erroneous" class="error">
               Erroneous
@@ -34,6 +34,7 @@
               {{ exec.status }}
             </span>
             <sh-execution-stats
+              *ngIf="exec.stats"
               class="stats"
               [stats]="exec.stats"
             ></sh-execution-stats>
@@ -44,7 +45,7 @@
     <ng-template #empty>
       <sh-empty-state
         title="No executions so far"
-        subTitle="Start a test execution and it will show up here."
+        subTitle="Start a {{ typeLabel }} and it will show up here."
       >
       </sh-empty-state>
     </ng-template>

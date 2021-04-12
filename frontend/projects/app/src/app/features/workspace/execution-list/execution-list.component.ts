@@ -4,17 +4,17 @@ import { ROUTE_ANIMATIONS_ELEMENTS } from "../../../core/core.module";
 import { WorkspaceService } from "../workspace/workspace.service";
 import { ExecutionService } from "../execution.service";
 import {
+  Execution,
   ExecutionsResult,
   ExecutionStatus,
   ExecutionType,
-  FunctionalExecution,
 } from "../execution.model";
 import { Observable } from "rxjs";
 import { ActivatedRoute } from "@angular/router";
 import {
   statusIcon,
   statusIconSpin,
-} from "../execution-detail/execution-detail.component";
+} from "../execution-detail/execution-detail-base.component";
 
 @Component({
   selector: "sh-execution-list",
@@ -25,24 +25,32 @@ import {
 export class ExecutionListComponent implements OnInit {
   routeAnimationsElements = ROUTE_ANIMATIONS_ELEMENTS;
 
+  type: ExecutionType;
   wid: string;
-  executions$: Observable<ExecutionsResult<FunctionalExecution>>;
+  executions$: Observable<ExecutionsResult<Execution>>;
+  typeLabel: string;
 
   constructor(
     private workspaceService: WorkspaceService,
     private executionService: ExecutionService,
     private route: ActivatedRoute
   ) {
+    this.route.data.subscribe((data) => (this.type = data.type));
     this.route.parent.parent.params.subscribe((params) => {
       this.wid = params.wid;
     });
   }
 
   ngOnInit() {
-    this.executions$ = this.executionService.fetch(
-      this.wid,
-      ExecutionType.FUNCTIONAL
-    );
+    this.executions$ = this.executionService.fetch(this.wid, this.type);
+    switch (this.type) {
+      case ExecutionType.FUNCTIONAL:
+        this.typeLabel = "test execution";
+        break;
+      case ExecutionType.LOAD:
+        this.typeLabel = "load test";
+        break;
+    }
   }
 
   statusIcon(status: ExecutionStatus) {

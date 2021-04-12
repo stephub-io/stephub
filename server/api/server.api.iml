@@ -16,7 +16,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.1.4" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.1.5" level="project" />
     <orderEntry type="library" name="Maven: org.slf4j:slf4j-api:1.7.30" level="project" />
     <orderEntry type="module" module-name="expression" />
     <orderEntry type="module" module-name="json" />

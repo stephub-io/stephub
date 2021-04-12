@@ -1,0 +1,15 @@
+@import "../../../../../styles-variables";
+
+.indicator {
+  margin: 0 0 0 5px;
+}
+
+.request,
+.response {
+  margin: 1rem 0;
+  overflow-x: auto;
+}
+
+.attachments a {
+  margin-right: 2em;
+}

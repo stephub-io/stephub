@@ -14,13 +14,32 @@ export interface Execution {
   initiatedAt: string;
   completedAt: string;
   erroneous: boolean;
+  errorMessage: string;
   status: ExecutionStatus;
+  gherkinPreferences: GherkinPreferences;
 }
 
 export interface FunctionalExecution extends Execution {
   stats: Stats;
   backlog: ExecutionItem[];
-  gherkinPreferences: GherkinPreferences;
+  fixtures: FixtureExecutionItem[];
+}
+
+export interface LoadExecution extends Execution {}
+
+export enum FixtureType {
+  before = "before",
+  after = "after",
+}
+
+export interface FixtureExecutionItem {
+  type: FixtureType;
+  priority: number;
+  name: string;
+  abortOnError: boolean;
+  steps: StepExecutionItem[];
+  status: ExecutionStatus;
+  stats: Stats;
 }
 
 export interface ExecutionItem {
@@ -44,15 +63,28 @@ export interface StepExecutionItem extends ExecutionItem {
   id: string;
   step: string;
   stepSpec: StepSpec;
-  response: RoughStepResponse;
+  result: StepItemResult;
 }
 
-export interface RoughStepResponse {
+export interface StepItemResult {
+  type: string;
   status: StepStatus;
   duration: string;
   errorMessage: string;
-  output?: any;
   logs?: ExecutionLogEntry[];
+}
+
+export interface StepItemResultLeaf extends StepItemResult {
+  output?: any;
+}
+
+export interface StepItemResultNested extends StepItemResult {
+  groups: StepItemResultGroup[];
+}
+
+export interface StepItemResultGroup {
+  name?: string;
+  steps: StepExecutionItem[];
 }
 
 export interface ExecutionLogEntry {
@@ -72,6 +104,7 @@ export enum ExecutionStatus {
   executing = "executing",
   completed = "completed",
   cancelled = "cancelled",
+  stopping = "stopping",
 }
 
 export interface Stats {

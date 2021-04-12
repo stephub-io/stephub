@@ -5,9 +5,11 @@ import { WorkspaceListComponent } from "./workspace-list/workspace-list.componen
 import { WorkspaceComponent } from "./workspace/workspace.component";
 import { ExecutionListComponent } from "./execution-list/execution-list.component";
 import { WorkspaceDetailComponent } from "./workspace-detail/workspace-detail.component";
-import { ExecutionDetailComponent } from "./execution-detail/execution-detail.component";
+import { ExecutionDetailFunctionalComponent } from "./execution-detail/functional/execution-detail-functional.component";
 import { ExecutionNewComponent } from "./execution-new/execution-new.component";
 import { WorkspaceNewComponent } from "./workspace-new/workspace-new.component";
+import { ExecutionType } from "./execution.model";
+import { ExecutionDetailLoadComponent } from "./execution-detail/load/execution-detail-load.component";
 
 const routes: Routes = [
   {
@@ -42,6 +44,9 @@ const routes: Routes = [
           {
             path: "",
             component: ExecutionListComponent,
+            data: {
+              type: ExecutionType.FUNCTIONAL,
+            },
           },
           {
             path: "new",
@@ -52,7 +57,7 @@ const routes: Routes = [
           },
           {
             path: ":id",
-            component: ExecutionDetailComponent,
+            component: ExecutionDetailFunctionalComponent,
             data: {
               breadcrumb: {
                 alias: "execution",
@@ -70,6 +75,9 @@ const routes: Routes = [
           {
             path: "",
             component: ExecutionListComponent,
+            data: {
+              type: ExecutionType.LOAD,
+            },
           },
           {
             path: "new",
@@ -80,7 +88,7 @@ const routes: Routes = [
           },
           {
             path: ":id",
-            component: ExecutionDetailComponent,
+            component: ExecutionDetailLoadComponent,
             data: {
               breadcrumb: {
                 alias: "execution",

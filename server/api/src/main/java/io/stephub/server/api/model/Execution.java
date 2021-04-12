@@ -80,6 +80,7 @@ public abstract class Execution {
     private OffsetDateTime startedAt;
     @JsonFormat(shape = STRING)
     private OffsetDateTime completedAt;
+    private GherkinPreferences gherkinPreferences;
 
     @NotNull
     private RuntimeSession.SessionSettings sessionSettings;

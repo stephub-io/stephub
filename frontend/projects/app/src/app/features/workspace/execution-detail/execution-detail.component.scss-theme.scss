@@ -1,9 +1,0 @@
-@import "~@angular/material/theming";
-
-@mixin sh-execution-detail-component($theme) {
-  $warn: map-get($theme, warn);
-
-  .response .error-message {
-    color: mat-color($warn);
-  }
-}

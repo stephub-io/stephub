@@ -47,4 +47,14 @@ public class UtilitySteps {
                     description = "Passing an array of JSON objects")})) final Json value) {
         return value;
     }
+
+    @StepMethod(
+            pattern = "log {value}", provider = BaseProvider.class,
+            description = "Outputs the passed value as log message")
+    public void log(@StepArgument(
+            name = "value",
+            doc = @StepDoc(description = "value to log")) final Json value,
+                    final StepExecutionContext executionContext) {
+        executionContext.addLog(LogEntry.builder().message("Passed value: " + value.toString()).build());
+    }
 }

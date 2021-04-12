@@ -1,0 +1,46 @@
+<div class="container">
+  <div *ngIf="execution$ | async as exec" [ngClass]="routeAnimationsElements">
+    <div class="row">
+      <div class="col-sm-8">
+        <mat-card>
+          <mat-card-content>
+            <div class="row">
+              <div class="col col-4">
+                Status:
+              </div>
+              <div class="col col-8">
+                <fa-icon
+                  [icon]="statusIcon(exec.status)"
+                  [spin]="statusIconSpin(exec.status)"
+                ></fa-icon>
+                {{ exec.status }}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-4">
+                Started:
+              </div>
+              <div class="col col-8">
+                <span *ngIf="exec.startedAt">{{
+                  exec.startedAt | date: "medium"
+                }}</span>
+                <span *ngIf="!exec.startedAt">Starting soon</span>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col col-4">
+                Stopped:
+              </div>
+              <div class="col col-8">
+                <span *ngIf="exec.completedAt">{{
+                  exec.completedAt | date: "medium"
+                }}</span>
+                <span *ngIf="!exec.completedAt">-</span>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+  </div>
+</div>

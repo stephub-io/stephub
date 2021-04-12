@@ -8,7 +8,7 @@ import { WorkspacesRoutingModule } from "./workspace-routing.module";
 import { WorkspaceSubnavComponent } from "./workspace-subnav/workspace-subnav.component";
 import { ExecutionListComponent } from "./execution-list/execution-list.component";
 import { WorkspaceComponent } from "./workspace/workspace.component";
-import { ExecutionDetailComponent } from "./execution-detail/execution-detail.component";
+import { ExecutionDetailFunctionalComponent } from "./execution-detail/functional/execution-detail-functional.component";
 import { MatExpansionModule } from "@angular/material/expansion";
 import { ExecutionStatsComponent } from "./execution-stats/execution-stats.component";
 import { StepAbstractComponent } from "./step/step-abstract/step-abstract.component";
@@ -37,6 +37,9 @@ import { StepBrowserDialogComponent } from "./step/step-browser-dialog/step-brow
 import { MarkdownModule } from "ngx-markdown";
 import { WorkspaceNewComponent } from "./workspace-new/workspace-new.component";
 import { NgxFilesizeModule } from "ngx-filesize";
+import { ExecutionDetailStepsComponent } from "./execution-detail/steps/execution-detail-steps.component";
+import { ExecutionDetailFixturesComponent } from "./execution-detail/fixtures/execution-detail-fixtures.component";
+import { ExecutionDetailLoadComponent } from "./execution-detail/load/execution-detail-load.component";
 
 @NgModule({
   declarations: [
@@ -45,7 +48,7 @@ import { NgxFilesizeModule } from "ngx-filesize";
     WorkspaceDetailComponent,
     WorkspaceSubnavComponent,
     ExecutionListComponent,
-    ExecutionDetailComponent,
+    ExecutionDetailFunctionalComponent,
     ExecutionStatsComponent,
     StepAbstractComponent,
     StepRequestComponent,
@@ -57,6 +60,9 @@ import { NgxFilesizeModule } from "ngx-filesize";
     JsonEditDialogComponent,
     StepBrowserDialogComponent,
     WorkspaceNewComponent,
+    ExecutionDetailStepsComponent,
+    ExecutionDetailFixturesComponent,
+    ExecutionDetailLoadComponent,
   ],
   imports: [
     CommonModule,

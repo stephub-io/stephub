@@ -33,7 +33,6 @@ public abstract class LoadExecution extends Execution {
     @Builder.Default
     private List<LoadSimulation> simulations = new ArrayList<>();
 
-
     @NoArgsConstructor
     @Data
     @EqualsAndHashCode
