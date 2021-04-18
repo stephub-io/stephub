@@ -1,7 +1,12 @@
-import { ChangeDetectionStrategy, Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ROUTE_ANIMATIONS_ELEMENTS } from "../../../core/animations/route.animations";
-import { Observable } from "rxjs";
-import { Execution, ExecutionStatus, FixtureType } from "../execution.model";
+import { BehaviorSubject } from "rxjs";
+import {
+  Execution,
+  ExecutionStatus,
+  FixtureType,
+  LoadExecution,
+} from "../execution.model";
 import { ExecutionService } from "../execution.service";
 import { ActivatedRoute } from "@angular/router";
 import { BreadcrumbService } from "xng-breadcrumb";
@@ -9,6 +14,7 @@ import { DatePipe } from "@angular/common";
 import { map } from "rxjs/operators";
 import {
   faCheckCircle,
+  faHandPaper,
   faPauseCircle,
   faTimesCircle,
 } from "@fortawesome/free-regular-svg-icons";
@@ -18,14 +24,16 @@ import { faSpinner } from "@fortawesome/free-solid-svg-icons";
   template: "",
 })
 export abstract class ExecutionDetailBaseComponent<T extends Execution>
-  implements OnInit {
+  implements OnInit, OnDestroy {
   routeAnimationsElements = ROUTE_ANIMATIONS_ELEMENTS;
 
   wid: string;
   id: string;
-  execution$: Observable<T>;
+  execution$ = new BehaviorSubject<LoadExecution>(null);
   after = FixtureType.after;
   before = FixtureType.before;
+  executionLoadedAt: Date;
+  private stopRefreshing = false;
 
   protected constructor(
     protected executionService: ExecutionService,
@@ -42,17 +50,28 @@ export abstract class ExecutionDetailBaseComponent<T extends Execution>
   }
 
   ngOnInit() {
-    this.execution$ = this.executionService.get<T>(this.wid, this.id).pipe(
-      map((execution) => {
-        this.breadcrumbService.set(
-          "@execution",
-          execution.startedAt
-            ? this.datePipe.transform(execution.startedAt, "medium")
-            : "Starting soon"
-        );
-        return execution;
-      })
-    );
+    this.executionService
+      .get<LoadExecution>(this.wid, this.id)
+      .pipe(
+        map((execution) => {
+          this.breadcrumbService.set(
+            "@execution",
+            execution.startedAt
+              ? this.datePipe.transform(execution.startedAt, "medium")
+              : "Starting soon"
+          );
+          this.executionLoadedAt = new Date();
+          if (
+            execution.status != ExecutionStatus.completed &&
+            !this.stopRefreshing
+          ) {
+            setTimeout(() => this.ngOnInit(), 2000);
+          }
+          this.execution$.next(execution);
+          return execution;
+        })
+      )
+      .subscribe();
   }
 
   statusIcon(status: ExecutionStatus) {
@@ -61,6 +80,10 @@ export abstract class ExecutionDetailBaseComponent<T extends Execution>
 
   statusIconSpin(status: ExecutionStatus) {
     return statusIconSpin(status);
+  }
+
+  ngOnDestroy(): void {
+    this.stopRefreshing = true;
   }
 }
 
@@ -74,6 +97,8 @@ export function statusIcon(status: ExecutionStatus) {
       return faPauseCircle;
     case ExecutionStatus.executing:
       return faSpinner;
+    case ExecutionStatus.stopping:
+      return faHandPaper;
   }
 }
 

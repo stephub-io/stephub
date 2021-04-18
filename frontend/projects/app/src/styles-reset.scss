@@ -97,6 +97,8 @@ mat-card.item {
 
   mat-card-title {
     position: relative;
+    font-size: 16px !important;
+    font-weight: bold !important;
 
     code {
       position: absolute;
@@ -106,6 +108,7 @@ mat-card.item {
       font-size: 10px;
     }
   }
+
   mat-card-subtitle {
     min-height: 60px;
   }
@@ -203,5 +206,13 @@ mat-toolbar.sub {
     fa-icon {
       margin-right: 0.5em;
     }
+  }
+}
+
+.tab-body {
+  padding: 1em;
+
+  table {
+    width: 100%;
   }
 }

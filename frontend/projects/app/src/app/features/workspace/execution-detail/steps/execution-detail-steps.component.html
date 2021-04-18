@@ -1,5 +1,5 @@
 <mat-expansion-panel
-  *ngFor="let step of stepItems"
+  *ngFor="let step of stepItems; trackBy: trackByStep"
   [expanded]="errorStep(step)"
   class="mat-elevation-z0"
 >

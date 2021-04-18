@@ -1,0 +1,30 @@
+<div class="row" *ngIf="initiatedAt">
+  <div class="col">Initiated:</div>
+  <div class="col-8">
+    <span *ngIf="initiatedAt">{{ initiatedAt | date: "medium" }}</span>
+    <span *ngIf="!initiatedAt">-</span>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">Started:</div>
+  <div class="col-8">
+    <span *ngIf="startedAt">{{ startedAt | date: "medium" }}</span>
+    <span *ngIf="!startedAt">Starting soon</span>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">Completed:</div>
+  <div class="col-8">
+    <span *ngIf="completedAt">{{ completedAt | date: "medium" }}</span>
+    <span *ngIf="!completedAt">-</span>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col">Execution time:</div>
+  <div class="col-8">
+    {{ duration() }}
+  </div>
+</div>

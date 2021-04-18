@@ -3,3 +3,13 @@
 .indicator {
   margin: 0 0 0 5px;
 }
+
+.steps-stats {
+  overflow-x: auto;
+}
+
+.steps-stats table {
+  .mat-column-status {
+    min-width: 120px;
+  }
+}

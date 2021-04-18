@@ -93,4 +93,8 @@ export class ExecutionDetailStepsComponent implements OnInit {
     }
     return faFileAlt;
   }
+
+  trackByStep(index: number): number {
+    return index;
+  }
 }

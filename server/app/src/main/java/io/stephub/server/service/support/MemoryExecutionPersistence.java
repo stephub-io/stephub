@@ -12,6 +12,9 @@ import io.stephub.server.api.model.LoadExecution.LoadRunner;
 import io.stephub.server.api.model.LoadExecution.LoadSimulation;
 import io.stephub.server.api.model.LoadExecution.RunnerStatus;
 import io.stephub.server.api.model.RuntimeSession.SessionSettings.ParallelizationMode;
+import io.stephub.server.api.rest.PageCriteria;
+import io.stephub.server.api.rest.PageResult;
+import io.stephub.server.model.Context;
 import io.stephub.server.service.ExecutionPersistence;
 import io.stephub.server.service.SessionService;
 import io.stephub.server.service.StepExecutionResolver;
@@ -67,7 +70,6 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     private static class ExecutionWrapper<E extends Execution> {
         private final E execution;
         private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
-        private final List<LoadExecution.LoadScenarioRun> loadRuns = Collections.synchronizedList(new ArrayList<>());
 
         public ExecutionWrapper(final E execution) {
             this.execution = execution;
@@ -467,6 +469,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     private static class MemoryLoadSimulation extends LoadSimulation {
         @JsonIgnore
         @Builder.Default
+        private final List<LoadExecution.LoadScenarioRun> loadRuns = Collections.synchronizedList(new ArrayList<>());
+
+        @Builder.Default
         private final List<LoadRunner> runners = new ArrayList<>();
 
         @JsonIgnore
@@ -486,6 +491,11 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         @Override
         public List<LoadRunner> getRunners() {
             return Collections.unmodifiableList(this.runners);
+        }
+
+        @Override
+        public int getFailedScenarioRunsCount() {
+            return this.loadRuns.size();
         }
     }
 
@@ -547,7 +557,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                     ).collect(Collectors.toList());
                     final LoadExecution.LoadScenarioRun.LoadScenarioRunBuilder runBuilder = LoadExecution.LoadScenarioRun.builder().
                             scenarioId(loadScenario.getId()).
+                            simulationId(simulation.getId()).
                             startedAt(OffsetDateTime.now()).
+                            runnerId(runnerId).
                             steps(stepItems);
                     try {
                         final boolean passed = this.executeStepSequenceIsolated(workspace, command, wrapper, stepItems, fixturePresets, null);
@@ -569,7 +581,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                     }
                     final LoadExecution.LoadScenarioRun run = runBuilder.build();
                     if (run.getStatus() != PASSED) {
-                        wrapper.getLoadRuns().add(run);
+                        simulation.loadRuns.add(run);
                     }
                 }
                 log.debug("Runner={} doing something for execution={}", runnerId, execution);
@@ -752,20 +764,36 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         this.tryCompleting(execution);
     }
 
+    @Override
+    public PageResult<LoadExecution.LoadScenarioRun> getLoadRuns(final Context ctx, final String wid, final String execId, final String simId, final List<StepResponse.StepStatus> status, final PageCriteria pageCriteria) {
+        final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(wid, execId, MemoryLoadExecution.class);
+        final List<LoadExecution.LoadScenarioRun> scenarioRuns = ((MemoryLoadSimulation) wrapper.getExecution().getSimulations()
+                .stream().findFirst().orElse(MemoryLoadSimulation.builder().build())).
+                loadRuns
+                .stream().filter(scenario -> scenario.getSimulationId().equals(simId)).
+                        filter(scenario -> status.contains(scenario.getStatus())).
+                        sorted(Comparator.comparing(LoadExecution.LoadScenarioRun::getStartedAt)).
+                        collect(Collectors.toList());
+        return PageResult.<LoadExecution.LoadScenarioRun>builder().total(scenarioRuns.size()).items(
+                scenarioRuns.stream().skip(pageCriteria.getOffset()).
+                        limit(pageCriteria.getSize()).collect(Collectors.toList())
+        ).build();
+    }
+
     private void tryCompleting(final MemoryLoadExecution execution) {
         synchronized (execution) {
             if (execution.getStatus() == COMPLETED || execution.getStatus() == CANCELLED) {
                 return;
             }
-            final int running = execution.getSimulations().stream().map(loadSimulation ->
-                    ((MemoryLoadSimulation) loadSimulation).runners.stream().filter(memoryRunner -> memoryRunner.getStatus() == RunnerStatus.RUNNING).count()
+            final int notStopped = execution.getSimulations().stream().map(loadSimulation ->
+                    ((MemoryLoadSimulation) loadSimulation).runners.stream().filter(memoryRunner -> memoryRunner.getStatus() != RunnerStatus.STOPPED).count()
             ).mapToInt(Long::intValue).sum();
-            if (running == 0) {
+            if (notStopped == 0) {
                 log.info("Completed load execution={}", execution);
                 execution.setStatus(COMPLETED);
                 execution.setCompletedAt(OffsetDateTime.now());
             } else {
-                log.debug("Waiting completion of execution={} due to uncompleted runners={}", execution, running);
+                log.debug("Waiting completion of execution={} due to uncompleted runners={}", execution, notStopped);
             }
         }
     }

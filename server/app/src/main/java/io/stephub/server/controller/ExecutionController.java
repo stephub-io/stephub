@@ -2,9 +2,12 @@ package io.stephub.server.controller;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.model.Execution;
 import io.stephub.server.api.model.Execution.ExecutionType;
 import io.stephub.server.api.model.FunctionalExecution;
+import io.stephub.server.api.model.LoadExecution;
+import io.stephub.server.api.rest.PageCriteria;
 import io.stephub.server.api.rest.PageResult;
 import io.stephub.server.model.Context;
 import io.stephub.server.service.ExecutionPersistence;
@@ -123,6 +126,17 @@ public class ExecutionController {
         headers.setContentType(MediaType.parseMediaType(attachment.getLeft().getContentType()));
         headers.setContentLength(attachment.getLeft().getSize());
         return new ResponseEntity<>(new InputStreamResource(attachment.getValue()), headers, HttpStatus.OK);
+    }
+
+    @GetMapping("/workspaces/{wid}/executions/{execId}/loadRuns")
+    @ResponseBody
+    public PageResult<LoadExecution.LoadScenarioRun> getLoadRuns(@ModelAttribute final Context ctx,
+                                                                 @PathVariable("wid") final String wid,
+                                                                 @PathVariable("execId") final String execId,
+                                                                 @RequestParam(value = "simId", required = true) final String simId,
+                                                                 @RequestParam(value = "status", defaultValue = "FAILED,ERRONEOUS") final List<StepResponse.StepStatus> status,
+                                                                 final PageCriteria pageCriteria) {
+        return this.executionPersistence.getLoadRuns(ctx, wid, execId, simId, status, pageCriteria);
     }
 
     @NoArgsConstructor

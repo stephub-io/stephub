@@ -4,44 +4,30 @@
       <div class="col-sm-8">
         <mat-card class="item">
           <mat-card-content>
-            <div class="row">
-              <div class="col col-4">
-                Status:
+            <div class="inline-meta">
+              <div class="row">
+                <div class="col">
+                  Status:
+                </div>
+                <div class="col col-8">
+                  <fa-icon
+                    [icon]="statusIcon(exec.status)"
+                    [spin]="statusIconSpin(exec.status)"
+                  ></fa-icon>
+                  {{ exec.status }}
+                </div>
               </div>
-              <div class="col col-8">
-                <fa-icon
-                  [icon]="statusIcon(exec.status)"
-                  [spin]="statusIconSpin(exec.status)"
-                ></fa-icon>
-                {{ exec.status }}
-              </div>
-            </div>
-            <div class="row">
-              <div class="col col-4">
-                Started:
-              </div>
-              <div class="col col-8">
-                <span *ngIf="exec.startedAt">{{
-                  exec.startedAt | date: "medium"
-                }}</span>
-                <span *ngIf="!exec.startedAt">Starting soon</span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col col-4">
-                Stopped:
-              </div>
-              <div class="col col-8">
-                <span *ngIf="exec.completedAt">{{
-                  exec.completedAt | date: "medium"
-                }}</span>
-                <span *ngIf="!exec.completedAt">-</span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col col-4">Result:</div>
-              <div class="col col-8">
-                <sh-execution-stats [stats]="exec.stats"></sh-execution-stats>
+              <sh-execution-date-rows
+                [initiatedAt]="exec.initiatedAt"
+                [startedAt]="exec.startedAt"
+                [completedAt]="exec.completedAt"
+                [now]="executionLoadedAt"
+              ></sh-execution-date-rows>
+              <div class="row">
+                <div class="col col">Result:</div>
+                <div class="col col-8">
+                  <sh-execution-stats [stats]="exec.stats"></sh-execution-stats>
+                </div>
               </div>
             </div>
           </mat-card-content>
@@ -62,7 +48,9 @@
     <div class="row">
       <div class="col-sm-12">
         <mat-accordion class="items-headers-align" multi>
-          <ng-container *ngFor="let item of exec.backlog">
+          <ng-container
+            *ngFor="let item of exec.backlog; trackBy: trackByIndex"
+          >
             <mat-expansion-panel *ngIf="getFeature(item)">
               <mat-expansion-panel-header>
                 <mat-panel-title>
@@ -97,7 +85,10 @@
                 </p>
                 <p class="font-weight-bold">Scenarios:</p>
                 <mat-accordion
-                  *ngFor="let scenario of getFeature(item).scenarios"
+                  *ngFor="
+                    let scenario of getFeature(item).scenarios;
+                    trackBy: trackByIndex
+                  "
                   class="items-headers-align"
                   multi
                 >

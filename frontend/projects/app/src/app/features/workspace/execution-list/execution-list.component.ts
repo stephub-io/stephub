@@ -5,9 +5,9 @@ import { WorkspaceService } from "../workspace/workspace.service";
 import { ExecutionService } from "../execution.service";
 import {
   Execution,
-  ExecutionsResult,
   ExecutionStatus,
   ExecutionType,
+  PageResult,
 } from "../execution.model";
 import { Observable } from "rxjs";
 import { ActivatedRoute } from "@angular/router";
@@ -27,7 +27,7 @@ export class ExecutionListComponent implements OnInit {
 
   type: ExecutionType;
   wid: string;
-  executions$: Observable<ExecutionsResult<Execution>>;
+  executions$: Observable<PageResult<Execution>>;
   typeLabel: string;
 
   constructor(

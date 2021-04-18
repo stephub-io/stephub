@@ -40,6 +40,9 @@ import { NgxFilesizeModule } from "ngx-filesize";
 import { ExecutionDetailStepsComponent } from "./execution-detail/steps/execution-detail-steps.component";
 import { ExecutionDetailFixturesComponent } from "./execution-detail/fixtures/execution-detail-fixtures.component";
 import { ExecutionDetailLoadComponent } from "./execution-detail/load/execution-detail-load.component";
+import { ExecutionDateRowsComponent } from "./execution-detail/date-rows/execution-date-rows.component";
+import { LoadStatsBarComponent } from "./execution-detail/load/stats-bar/load-stats-bar.component";
+import { LoadScenarioRunsComponent } from "./execution-detail/load/scenario-runs/load-scenario-runs.component";
 
 @NgModule({
   declarations: [
@@ -63,6 +66,9 @@ import { ExecutionDetailLoadComponent } from "./execution-detail/load/execution-
     ExecutionDetailStepsComponent,
     ExecutionDetailFixturesComponent,
     ExecutionDetailLoadComponent,
+    ExecutionDateRowsComponent,
+    LoadStatsBarComponent,
+    LoadScenarioRunsComponent,
   ],
   imports: [
     CommonModule,

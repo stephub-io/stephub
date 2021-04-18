@@ -1,46 +1,310 @@
 <div class="container">
   <div *ngIf="execution$ | async as exec" [ngClass]="routeAnimationsElements">
-    <div class="row">
-      <div class="col-sm-8">
-        <mat-card>
-          <mat-card-content>
-            <div class="row">
-              <div class="col col-4">
-                Status:
-              </div>
-              <div class="col col-8">
-                <fa-icon
-                  [icon]="statusIcon(exec.status)"
-                  [spin]="statusIconSpin(exec.status)"
-                ></fa-icon>
-                {{ exec.status }}
-              </div>
+    <mat-tab-group>
+      <mat-tab label="Overview">
+        <div class="tab-body">
+          <div class="row">
+            <div class="col-sm-8">
+              <mat-card class="item">
+                <mat-card-content>
+                  <div class="inline-meta">
+                    <div class="row">
+                      <div class="col">
+                        Status:
+                      </div>
+                      <div class="col col-8">
+                        <fa-icon
+                          [icon]="statusIcon(exec.status)"
+                          [spin]="statusIconSpin(exec.status)"
+                        ></fa-icon>
+                        {{ exec.status }}
+                      </div>
+                    </div>
+                    <sh-execution-date-rows
+                      [initiatedAt]="exec.initiatedAt"
+                      [startedAt]="exec.startedAt"
+                      [completedAt]="exec.completedAt"
+                      [now]="executionLoadedAt"
+                    ></sh-execution-date-rows>
+                  </div>
+                </mat-card-content>
+              </mat-card>
             </div>
-            <div class="row">
-              <div class="col col-4">
-                Started:
-              </div>
-              <div class="col col-8">
-                <span *ngIf="exec.startedAt">{{
-                  exec.startedAt | date: "medium"
-                }}</span>
-                <span *ngIf="!exec.startedAt">Starting soon</span>
-              </div>
-            </div>
-            <div class="row">
-              <div class="col col-4">
-                Stopped:
-              </div>
-              <div class="col col-8">
-                <span *ngIf="exec.completedAt">{{
-                  exec.completedAt | date: "medium"
-                }}</span>
-                <span *ngIf="!exec.completedAt">-</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </div>
+          </div>
+        </div>
+      </mat-tab>
+      <mat-tab
+        *ngFor="let simulation of exec.simulations; trackBy: trackByIndex"
+        label="{{ simulation.name }}"
+      >
+        <div class="tab-body">
+          <mat-accordion class="items-headers-align" multi>
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  Status
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <ng-template matExpansionPanelContent>
+                <mat-divider></mat-divider>
+                <div class="row">
+                  <div class="col-sm-8">
+                    <div class="inline-meta">
+                      <div class="row">
+                        <div class="col col-4">
+                          Current user load:
+                        </div>
+                        <div class="col col-8">
+                          {{ simulation.currentActualLoad }}
+                          <span
+                            *ngIf="
+                              simulation.currentActualLoad !=
+                              simulation.currentTargetLoad
+                            "
+                          >
+                            -> {{ simulation.currentTargetLoad }}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </ng-template>
+            </mat-expansion-panel>
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <span>Statistics</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span> {{ simulation.scenarios.length }} scenarios </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <ng-template matExpansionPanelContent>
+                <mat-divider></mat-divider>
+                <div class="row align-items-baseline">
+                  <div
+                    *ngFor="
+                      let scenario of simulation.scenarios;
+                      trackBy: trackByIndex
+                    "
+                    class="col-md-12 col-lg-12"
+                  >
+                    <mat-card class="item">
+                      <mat-card-title>
+                        {{ scenario.name }}
+                      </mat-card-title>
+                      <mat-card-content>
+                        <div class="inline-meta">
+                          <div class="row">
+                            <div class="col">
+                              Min / Avg / Max:
+                            </div>
+                            <div class="col col-8">
+                              <span *ngIf="scenario.stats.min; else empty">{{
+                                scenario.stats.min | humanizeDuration
+                              }}</span>
+                              /
+                              <span *ngIf="scenario.stats.avg; else empty">{{
+                                scenario.stats.avg | humanizeDuration
+                              }}</span>
+                              /
+                              <span *ngIf="scenario.stats.max; else empty">{{
+                                scenario.stats.max | humanizeDuration
+                              }}</span>
+                              <ng-template #empty>-</ng-template>
+                            </div>
+                          </div>
+                          <div class="row">
+                            <div class="col">
+                              Status:
+                            </div>
+                            <div class="col col-8">
+                              <sh-load-stats-bar
+                                [stats]="scenario.stats"
+                              ></sh-load-stats-bar>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="steps-stats">
+                          <table
+                            mat-table
+                            [dataSource]="scenario.steps"
+                            class="mat-elevation-z8 variables"
+                          >
+                            <tr
+                              mat-header-row
+                              *matHeaderRowDef="stepsStatsColumns"
+                            ></tr>
+                            <tr
+                              mat-row
+                              *matRowDef="let row; columns: stepsStatsColumns"
+                            ></tr>
+
+                            <ng-container matColumnDef="name" sticky>
+                              <th mat-header-cell *matHeaderCellDef>Step</th>
+                              <td mat-cell *matCellDef="let step">
+                                <sh-step-abstract
+                                  [instruction]="
+                                    parseStepInstruction(
+                                      step,
+                                      exec?.gherkinPreferences
+                                    )
+                                  "
+                                ></sh-step-abstract>
+                              </td>
+                            </ng-container>
+                            <ng-container matColumnDef="min">
+                              <th mat-header-cell *matHeaderCellDef>Min</th>
+                              <td mat-cell *matCellDef="let step">
+                                <span *ngIf="step.stats.min; else empty">{{
+                                  step.stats.min | humanizeDuration
+                                }}</span>
+                                <ng-template #empty>-</ng-template>
+                              </td>
+                            </ng-container>
+                            <ng-container matColumnDef="avg">
+                              <th mat-header-cell *matHeaderCellDef>Avg</th>
+                              <td mat-cell *matCellDef="let step">
+                                <span *ngIf="step.stats.avg; else empty">{{
+                                  step.stats.avg | humanizeDuration
+                                }}</span>
+                                <ng-template #empty>-</ng-template>
+                              </td>
+                            </ng-container>
+                            <ng-container matColumnDef="max">
+                              <th mat-header-cell *matHeaderCellDef>Max</th>
+                              <td mat-cell *matCellDef="let step">
+                                <span *ngIf="step.stats.max; else empty">{{
+                                  step.stats.max | humanizeDuration
+                                }}</span>
+                                <ng-template #empty>-</ng-template>
+                              </td>
+                            </ng-container>
+                            <ng-container matColumnDef="status" stickyEnd>
+                              <th mat-header-cell *matHeaderCellDef>Status</th>
+                              <td mat-cell *matCellDef="let step">
+                                <sh-load-stats-bar
+                                  [stats]="step.stats"
+                                ></sh-load-stats-bar>
+                              </td>
+                            </ng-container>
+                          </table>
+                        </div>
+                      </mat-card-content>
+                    </mat-card>
+                  </div>
+                </div>
+              </ng-template>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <span>Runners</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span> {{ simulation.runners.length }} runners </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <ng-template matExpansionPanelContent>
+                <mat-divider></mat-divider>
+                <mat-accordion class="items-headers-align" multi>
+                  <mat-expansion-panel
+                    *ngFor="
+                      let runner of simulation.runners;
+                      trackBy: trackByIndex
+                    "
+                  >
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <span>{{ runner.id }}</span>
+                      </mat-panel-title>
+                      <mat-panel-description>
+                        <span> {{ runner.iterationNumber }} iterations </span>
+                        <span>
+                          <fa-icon
+                            class="indicator"
+                            [icon]="statusIcon(mapRunnerStatus(runner.status))"
+                            [spin]="
+                              statusIconSpin(mapRunnerStatus(runner.status))
+                            "
+                          ></fa-icon>
+                          {{ runner.status }}
+                        </span>
+                      </mat-panel-description>
+                    </mat-expansion-panel-header>
+                    <ng-template matExpansionPanelContent>
+                      <mat-divider></mat-divider>
+                      <div class="inline-meta">
+                        <sh-execution-date-rows
+                          [initiatedAt]="runner.initiatedAt"
+                          [startedAt]="runner.startedAt"
+                          [completedAt]="runner.stoppedAt"
+                          [now]="executionLoadedAt"
+                        ></sh-execution-date-rows>
+                        <div class="row" *ngIf="runner.stopMessage">
+                          <div class="col">
+                            Stop message:
+                          </div>
+                          <div class="col col-8 warn-text">
+                            {{ runner.stopMessage }}
+                          </div>
+                        </div>
+                        <p
+                          class="font-weight-bold"
+                          *ngIf="runner.fixtures.length > 0"
+                        >
+                          Fixtures:
+                        </p>
+                        <sh-execution-detail-fixtures
+                          [wid]="wid"
+                          [exec]="exec"
+                          [fixtures]="runner.fixtures"
+                          [showType]="true"
+                        ></sh-execution-detail-fixtures>
+                      </div>
+                    </ng-template>
+                  </mat-expansion-panel>
+                </mat-accordion>
+              </ng-template>
+            </mat-expansion-panel>
+            <mat-expansion-panel
+              [disabled]="simulation.failedScenarioRunsCount == 0"
+            >
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <span>Failed scenarios</span>
+                </mat-panel-title>
+                <mat-panel-description>
+                  <span
+                    *ngIf="simulation.failedScenarioRunsCount == 0"
+                    class="badge"
+                  >
+                    none
+                  </span>
+                  <span *ngIf="simulation.failedScenarioRunsCount > 0">
+                    <span class="badge badge-danger"
+                      ><span>{{ simulation.failedScenarioRunsCount }} </span
+                      >failed</span
+                    >
+                  </span>
+                </mat-panel-description>
+              </mat-expansion-panel-header>
+              <ng-template matExpansionPanelContent>
+                <mat-divider></mat-divider>
+                <sh-load-scenario-runs
+                  [wid]="wid"
+                  [execution]="exec"
+                  [simulation]="simulation"
+                  [now]="executionLoadedAt"
+                >
+                </sh-load-scenario-runs>
+              </ng-template>
+            </mat-expansion-panel>
+          </mat-accordion>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
   </div>
 </div>

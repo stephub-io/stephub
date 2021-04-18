@@ -25,7 +25,72 @@ export interface FunctionalExecution extends Execution {
   fixtures: FixtureExecutionItem[];
 }
 
-export interface LoadExecution extends Execution {}
+export interface LoadExecution extends Execution {
+  simulations: LoadSimulation[];
+}
+
+export interface LoadSimulation {
+  id: string;
+  name: string;
+  scenarios: LoadScenario[];
+  userLoadSpec: UserLoadSpec;
+  currentTargetLoad: number;
+  currentActualLoad: number;
+  runners: LoadRunner[];
+  failedScenarioRunsCount: number;
+}
+
+export interface LoadScenario {
+  id: string;
+  name: string;
+  featureName: string;
+  stats: LoadStats;
+  steps: LoadStep[];
+}
+
+export interface LoadStats extends Stats {
+  cancelled: number;
+  max: string;
+  min: string;
+  avg: string;
+}
+
+export interface LoadStep {
+  step: string;
+  spec: StepSpec;
+  stats: LoadStats;
+}
+
+export interface LoadScenarioRun {
+  simulationId: string;
+  scenarioId: string;
+  runnerId: string;
+  startedAt: string;
+  completedAt: string;
+  status: StepStatus;
+  errorMessage?: string;
+  steps: StepExecutionItem[];
+}
+
+export interface UserLoadSpec {}
+
+export interface LoadRunner {
+  id: string;
+  initiatedAt: string;
+  startedAt: string;
+  stoppedAt: string;
+  iterationNumber: number;
+  status: RunnerStatus;
+  fixtures: FixtureExecutionItem[];
+  stopMessage: string;
+}
+
+export enum RunnerStatus {
+  initiated = "initiated",
+  running = "running",
+  stopping = "stopping",
+  stopped = "stopped",
+}
 
 export enum FixtureType {
   before = "before",
@@ -113,7 +178,7 @@ export interface Stats {
   erroneous: number;
 }
 
-export interface ExecutionsResult<E extends Execution> {
+export interface PageResult<E> {
   total: number;
   items: E[];
 }

@@ -1,11 +1,16 @@
 package io.stephub.server.service;
 
 import io.stephub.expression.EvaluationContext;
+import io.stephub.provider.api.model.StepResponse;
 import io.stephub.server.api.SessionExecutionContext;
 import io.stephub.server.api.StepExecution;
 import io.stephub.server.api.model.Execution;
+import io.stephub.server.api.model.LoadExecution;
 import io.stephub.server.api.model.StepResponseContext;
 import io.stephub.server.api.model.Workspace;
+import io.stephub.server.api.rest.PageCriteria;
+import io.stephub.server.api.rest.PageResult;
+import io.stephub.server.model.Context;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.scheduling.annotation.Async;
 
@@ -33,6 +38,8 @@ public interface ExecutionPersistence {
     Duration adaptLoadRunners(String wid, String execId, LoadRunnerSpawner loadRunnerSpawner);
 
     void stopExecution(String wid, String execId);
+
+    PageResult<LoadExecution.LoadScenarioRun> getLoadRuns(Context ctx, String wid, String execId, String simId, List<StepResponse.StepStatus> status, PageCriteria pageCriteria);
 
     interface WithinExecutionStepCommand {
         void execute(Execution.StepExecutionItem stepItem,

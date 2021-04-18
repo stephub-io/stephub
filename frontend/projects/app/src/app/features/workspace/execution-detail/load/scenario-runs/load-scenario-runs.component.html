@@ -1,0 +1,77 @@
+<div *ngIf="failedScenarios$ | async as result">
+  <mat-accordion class="items-headers-align" multi>
+    <mat-expansion-panel
+      *ngFor="let fs of result.items; trackBy: trackByIndex; let i = index"
+    >
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <span>{{ scenario(fs, simulation)?.name }}</span>
+        </mat-panel-title>
+        <mat-panel-description>
+          <div>
+            <div class="info">
+              <span>#{{ i + 1 }} </span>
+              <sh-execution-stats
+                class="indicator"
+                [stats]="scenarioStats(fs)"
+              ></sh-execution-stats>
+            </div>
+            <div class="info">
+              {{ fs.startedAt | date: "medium" }}
+            </div>
+          </div>
+        </mat-panel-description>
+      </mat-expansion-panel-header>
+      <ng-template matExpansionPanelContent>
+        <mat-divider></mat-divider>
+        <div class="inline-meta">
+          <div class="row">
+            <div class="col">
+              Feature:
+            </div>
+            <div class="col col-8">
+              {{ scenario(fs, simulation)?.featureName }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col">
+              Runner:
+            </div>
+            <div class="col col-8">
+              {{ fs.runnerId }}
+            </div>
+          </div>
+          <sh-execution-date-rows
+            [startedAt]="fs.startedAt"
+            [completedAt]="fs.completedAt"
+            [now]="now"
+          ></sh-execution-date-rows>
+          <div class="row" *ngIf="fs.errorMessage">
+            <div class="col">
+              Error message:
+            </div>
+            <div class="col col-8 warn-text">
+              {{ fs.errorMessage }}
+            </div>
+          </div>
+          <p class="font-weight-bold">Steps:</p>
+          <sh-execution-detail-steps
+            [wid]="wid"
+            [exec]="execution"
+            [stepItems]="fs.steps"
+          >
+          </sh-execution-detail-steps>
+        </div>
+      </ng-template>
+    </mat-expansion-panel>
+  </mat-accordion>
+  <button
+    mat-stroked-button
+    class="load-more add"
+    *ngIf="simulation.failedScenarioRunsCount > result.items.length"
+    (click)="loadMore()"
+    [disabled]="loading"
+  >
+    load more
+  </button>
+</div>

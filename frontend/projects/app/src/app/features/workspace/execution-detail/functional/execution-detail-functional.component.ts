@@ -90,4 +90,8 @@ export class ExecutionDetailFunctionalComponent extends ExecutionDetailBaseCompo
       .filter((f) => f.type == type)
       .sort((a, b) => a.priority - b.priority);
   }
+
+  trackByIndex(index: number): number {
+    return index;
+  }
 }

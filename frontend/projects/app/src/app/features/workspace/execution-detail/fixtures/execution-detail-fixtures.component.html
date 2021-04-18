@@ -1,12 +1,15 @@
 <mat-accordion
-  *ngFor="let fixture of fixtures"
+  *ngFor="let fixture of orderedFixtures; trackBy: trackByFixture"
   class="items-headers-align"
   multi
 >
   <mat-expansion-panel>
     <mat-expansion-panel-header>
       <mat-panel-title>
-        <span>{{ fixture.name }}</span>
+        <span
+          ><span class="badge" *ngIf="showType">{{ fixture.type }}</span>
+          {{ fixture.name }}</span
+        >
       </mat-panel-title>
       <mat-panel-description>
         <span>

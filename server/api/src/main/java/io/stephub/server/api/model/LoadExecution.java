@@ -3,6 +3,7 @@ package io.stephub.server.api.model;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.json.schema.JsonSchema;
 import io.stephub.provider.api.model.StepResponse;
 import io.stephub.provider.api.model.spec.StepSpec;
@@ -39,6 +40,8 @@ public abstract class LoadExecution extends Execution {
     @SuperBuilder
     @AllArgsConstructor
     public abstract static class LoadSimulation {
+        @Builder.Default
+        private String id = UUID.randomUUID().toString();
         private String name;
         private List<LoadScenario> scenarios;
         private UserLoadSpec userLoadSpec;
@@ -49,6 +52,7 @@ public abstract class LoadExecution extends Execution {
 
         public abstract List<LoadRunner> getRunners();
 
+        public abstract int getFailedScenarioRunsCount();
     }
 
     public enum RunnerStatus {
@@ -56,6 +60,12 @@ public abstract class LoadExecution extends Execution {
 
         public boolean alive() {
             return this == INITIATED || this == RUNNING;
+        }
+
+        @Override
+        @JsonValue
+        public String toString() {
+            return this.name().toLowerCase();
         }
     }
 
@@ -112,7 +122,9 @@ public abstract class LoadExecution extends Execution {
     @Builder
     @AllArgsConstructor
     public static class LoadScenarioRun {
+        private String simulationId;
         private String scenarioId;
+        private String runnerId;
         @JsonFormat(shape = STRING)
         private OffsetDateTime startedAt;
         @JsonFormat(shape = STRING)

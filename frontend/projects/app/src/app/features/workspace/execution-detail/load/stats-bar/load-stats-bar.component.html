@@ -1,0 +1,19 @@
+<div class="progress">
+  <div
+    *ngFor="let statsRow of rows"
+    class="progress-bar {{ statsRow.cssClass }}"
+    role="progressbar"
+    [style.width.%]="statsRow.ratio"
+    [matTooltip]="
+      statsRow.name +
+      ': ' +
+      statsRow.ratio +
+      '% - ' +
+      statsRow.amount +
+      ' / ' +
+      statsRow.total
+    "
+    [matTooltipClass]="statsRow.cssClass"
+    matTooltipPosition="left"
+  ></div>
+</div>
