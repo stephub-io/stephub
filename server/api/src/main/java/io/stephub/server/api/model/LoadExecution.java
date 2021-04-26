@@ -39,6 +39,7 @@ public abstract class LoadExecution extends Execution {
     @EqualsAndHashCode
     @SuperBuilder
     @AllArgsConstructor
+    @ToString(of = "id")
     public abstract static class LoadSimulation {
         @Builder.Default
         private String id = UUID.randomUUID().toString();
@@ -211,7 +212,8 @@ public abstract class LoadExecution extends Execution {
             use = JsonTypeInfo.Id.NAME,
             property = "type")
     @JsonSubTypes({
-            @JsonSubTypes.Type(value = StaticUserLoadSpec.class, name = "static")
+            @JsonSubTypes.Type(value = StaticUserLoadSpec.class, name = "static"),
+            @JsonSubTypes.Type(value = RampUpUserLoadSpec.class, name = "ramp-up")
     })
     @SuperBuilder
     @Data
@@ -238,6 +240,36 @@ public abstract class LoadExecution extends Execution {
 
         @Override
         public int getAmountAt(final Duration simulationTime) {
+            return this.amount;
+        }
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @SuperBuilder
+    @Data
+    public static class RampUpUserLoadSpec extends UserLoadSpec {
+        @Min(1)
+        private int amount;
+
+        @NotNull
+        private Duration duration;
+
+        @Override
+        public Duration nextChangeAfter(final Duration simulationTime) {
+            if (simulationTime.compareTo(this.duration) > 0) {
+                return null;
+            }
+            return this.duration.dividedBy(this.amount);
+        }
+
+        @Override
+        public int getAmountAt(final Duration simulationTime) {
+            if (simulationTime.compareTo(this.duration) < 0) {
+                return (int) Math.max(1, Math.min(
+                        Math.ceil(simulationTime.toMillis() * (double) this.amount / (this.duration.toMillis() + 1)),
+                        this.amount));
+            }
             return this.amount;
         }
     }

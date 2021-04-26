@@ -814,7 +814,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                     }
                     final int current = simulation.getCurrentTargetLoad();
                     if (amountNow > current) {
-                        log.debug("Adding {} more runners to execution={}", amountNow - current, execId);
+                        log.debug("Adding {} more runners to execution={} and simulation={}", amountNow - current, execId, simulation);
                         for (int i = 0; i < (amountNow - current); i++) {
                             final LoadRunner runner =
                                     LoadRunner.builder().id(UUID.randomUUID().toString()).

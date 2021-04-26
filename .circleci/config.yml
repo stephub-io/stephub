@@ -1,9 +1,11 @@
 version: 2
 jobs:
   build:
-    machine: true
+    docker:
+      - image: circleci/buildpack-deps:stretch
     steps:
       - checkout
+      - setup_remote_docker
       # build the application image
       - run:
           name: Build and test
@@ -11,3 +13,25 @@ jobs:
       - run:
           name: Dockerize CLI app
           command: docker build --build-arg "BUILD_IMAGE=stephub/build:$CIRCLE_BRANCH" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/cli:$CIRCLE_BRANCH ./cli
+  publish-latest:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      - setup_remote_docker
+      - run:
+          name: Publish docker images
+          command: |
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+            docker tag stephub/cli:$CIRCLE_BRANCH stephub/cli:latest
+            docker push stephub/cli:latest
+workflows:
+  version: 2
+  build-master:
+    jobs:
+      - build
+      - publish-latest:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
