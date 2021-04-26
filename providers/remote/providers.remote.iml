@@ -21,7 +21,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="server.api" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.1.5" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-api:0.1.10" level="project" />
     <orderEntry type="module" module-name="expression" />
     <orderEntry type="library" name="Maven: org.antlr:antlr4-runtime:4.8-1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.2.8.RELEASE" level="project" />
@@ -105,7 +105,7 @@
     <orderEntry type="library" scope="TEST" name="Maven: org.yaml:snakeyaml:1.26" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.glassfish:jakarta.el:3.0.3" level="project" />
     <orderEntry type="module" module-name="json" />
-    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.1.5" level="project" />
+    <orderEntry type="library" name="Maven: io.stephub:spring-provider-util:0.1.10" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.3.2.RELEASE" level="project" />
     <orderEntry type="library" name="Maven: net.jodah:expiringmap:0.5.9" level="project" />
     <orderEntry type="library" name="Maven: com.fasterxml.jackson.module:jackson-module-jsonSchema:2.11.1" level="project" />

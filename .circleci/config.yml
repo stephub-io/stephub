@@ -1,8 +1,11 @@
-version: 2
-jobs:
-  build:
+version: 2.1
+executors:
+  docker-publisher:
     docker:
       - image: circleci/buildpack-deps:stretch
+jobs:
+  build:
+    executor: docker-publisher
     steps:
       - checkout
       - setup_remote_docker
@@ -12,15 +15,23 @@ jobs:
           command: docker build -t stephub/build:$CIRCLE_BRANCH .
       - run:
           name: Dockerize CLI app
-          command: docker build --build-arg "BUILD_IMAGE=stephub/build:$CIRCLE_BRANCH" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/cli:$CIRCLE_BRANCH ./cli
+          command: |
+            docker build --build-arg "BUILD_IMAGE=stephub/build:$CIRCLE_BRANCH" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/cli:$CIRCLE_BRANCH ./cli
+            docker save -o cli.tar stephub/cli:$CIRCLE_BRANCH
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./cli.tar
   publish-latest:
-    docker:
-      - image: circleci/buildpack-deps:stretch
+    executor: docker-publisher
     steps:
+      - attach_workspace:
+          at: /tmp/workspace
       - setup_remote_docker
       - run:
           name: Publish docker images
           command: |
+            docker load -i /tmp/workspace/cli.tar
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
             docker tag stephub/cli:$CIRCLE_BRANCH stephub/cli:latest
             docker push stephub/cli:latest

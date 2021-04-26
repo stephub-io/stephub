@@ -7,6 +7,11 @@
       <option name="url" value="https://repo.maven.apache.org/maven2" />
     </remote-repository>
     <remote-repository>
+      <option name="id" value="stephub-io-stephub" />
+      <option name="name" value="stephub-io-stephub" />
+      <option name="url" value="https://dl.cloudsmith.io/public/stephub-io/stephub/maven/" />
+    </remote-repository>
+    <remote-repository>
       <option name="id" value="bintray-mbok-stephub.io" />
       <option name="name" value="bintray" />
       <option name="url" value="https://dl.bintray.com/mbok/stephub.io" />
