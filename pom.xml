@@ -15,7 +15,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
         <!-- Dependency versions -->
-        <spring-provider.version>0.1.5</spring-provider.version>
+        <spring-provider.version>0.1.10</spring-provider.version>
         <spring-boot.version>2.3.2.RELEASE</spring-boot.version>
         <expiringmap.version>0.5.9</expiringmap.version>
         <junit-jupiter.version>5.2.0</junit-jupiter.version>
@@ -33,12 +33,16 @@
 
     <repositories>
         <repository>
+            <id>stephub-io-stephub</id>
+            <url>https://dl.cloudsmith.io/public/stephub-io/stephub/maven/</url>
+            <releases>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </releases>
             <snapshots>
-                <enabled>false</enabled>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
             </snapshots>
-            <id>bintray-mbok-stephub.io</id>
-            <name>bintray</name>
-            <url>https://dl.bintray.com/mbok/stephub.io</url>
         </repository>
     </repositories>
 

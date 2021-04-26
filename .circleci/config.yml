@@ -30,6 +30,8 @@ workflows:
     jobs:
       - build
       - publish-latest:
+          context:
+            - docker-hub
           requires:
             - build
           filters:
