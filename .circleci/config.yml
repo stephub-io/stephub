@@ -4,47 +4,98 @@ executors:
     docker:
       - image: circleci/buildpack-deps:stretch
 jobs:
-  build:
+  build-frontend:
     executor: docker-publisher
     steps:
       - checkout
       - setup_remote_docker
-      # build the application image
+      # build & test frontend
       - run:
-          name: Build and test
-          command: docker build -t stephub/build:$CIRCLE_BRANCH .
+          name: Frontend build and test
+          command: |
+            docker build -t stephub/frontend ./frontend
+            docker save -o frontend.tar stephub/frontend
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./frontend.tar
+  build-backend-root-and-cli:
+    executor: docker-publisher
+    steps:
+      - checkout
+      - setup_remote_docker
+      # build backend build & cli
+      - run:
+          name: Backend build and test
+          command: |
+            docker build -t stephub/bbuild .
+            docker save -o bbuild.tar stephub/bbuild
       - run:
           name: Dockerize CLI app
           command: |
-            docker build --build-arg "BUILD_IMAGE=stephub/build:$CIRCLE_BRANCH" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/cli:$CIRCLE_BRANCH ./cli
-            docker save -o cli.tar stephub/cli:$CIRCLE_BRANCH
+            docker build --build-arg "BACKEND_BUILD_IMAGE=stephub/bbuild" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/cli ./cli
+            docker save -o cli.tar stephub/cli
       - persist_to_workspace:
           root: .
           paths:
             - ./cli.tar
-  publish-latest:
+            - ./bbuild.tar
+  build-server:
     executor: docker-publisher
     steps:
       - attach_workspace:
           at: /tmp/workspace
       - setup_remote_docker
       - run:
-          name: Publish docker images
+          name: Build app
+          command: |
+            docker load -i /tmp/workspace/bbuild.tar
+            docker load -i /tmp/workspace/frontend.tar
+            docker build --build-arg "BACKEND_BUILD_IMAGE=stephub/bbuild" --build-arg "FRONTEND_BUILD_IMAGE=stephub/frontend" --build-arg "BUILD_VERSION=$CIRCLE_BRANCH" -t stephub/server ./server
+            docker save -o server.tar stephub/server
+      - persist_to_workspace:
+          root: .
+          paths:
+            - ./server.tar
+  publish-all:
+    executor: docker-publisher
+    steps:
+      - attach_workspace:
+          at: /tmp/workspace
+      - setup_remote_docker
+      - run:
+          name: Publish docker cli
           command: |
             docker load -i /tmp/workspace/cli.tar
             echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
-            docker tag stephub/cli:$CIRCLE_BRANCH stephub/cli:latest
+            docker tag stephub/cli stephub/cli:latest
             docker push stephub/cli:latest
+      - run:
+          name: Publish docker server
+          command: |
+            docker load -i /tmp/workspace/server.tar
+            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USER" --password-stdin
+            docker tag stephub/server stephub/server:latest
+            docker push stephub/server:latest
 workflows:
   version: 2
   build-master:
     jobs:
-      - build
-      - publish-latest:
+      - build-backend-root-and-cli
+      - build-frontend
+      - build-server:
           context:
             - docker-hub
           requires:
-            - build
+            - build-frontend
+            - build-backend-root-and-cli
+      - publish-all:
+          context:
+            - docker-hub
+          requires:
+            - build-server
+            - build-frontend
+            - build-backend-root-and-cli
           filters:
             branches:
               only: master

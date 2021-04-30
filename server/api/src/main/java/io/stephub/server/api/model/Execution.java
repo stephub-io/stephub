@@ -338,7 +338,7 @@ public abstract class Execution {
         }
     }
 
-    @SuperBuilder(toBuilder = true)
+    @SuperBuilder
     @Data
     @NoArgsConstructor
     public static abstract class StepSequenceExecutionItem extends ExecutionItem {
@@ -381,7 +381,7 @@ public abstract class Execution {
 
     @NoArgsConstructor
     @AllArgsConstructor
-    @SuperBuilder(toBuilder = true)
+    @SuperBuilder
     @Data
     @ToString(of = "name")
     public static class FixtureExecutionItem extends StepSequenceExecutionItem implements Comparable<FixtureExecutionItem> {
@@ -399,6 +399,18 @@ public abstract class Execution {
                     step -> StepExecutionItem.builder().step(step).build()
             ).collect(Collectors.toList()));
         }
+
+        public FixtureExecutionItem(final FixtureExecutionItem from) {
+            this.type = from.getType();
+            this.name = from.getName();
+            this.priority = from.getPriority();
+            this.abortOnError = from.isAbortOnError();
+            this.setSteps(from.getSteps().stream().map(
+                    step -> StepExecutionItem.builder().step(step.getStep()).build()
+            ).collect(Collectors.toList()));
+        }
+
+
 
         @Override
         public int compareTo(final FixtureExecutionItem other) {

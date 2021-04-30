@@ -16,26 +16,26 @@ public class SessionController {
     @Autowired
     private SessionService sessionService;
 
-    @GetMapping("/workspaces/{wid}/sessions")
+    @GetMapping("/api/v1/workspaces/{wid}/sessions")
     @ResponseBody
     public List<RuntimeSession> getSessions(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
         return this.sessionService.getSessions(ctx, wid);
     }
 
-    @PostMapping("/workspaces/{wid}/sessions")
+    @PostMapping("/api/v1/workspaces/{wid}/sessions")
     @ResponseBody
     public RuntimeSession startSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid, @RequestBody final RuntimeSession.SessionSettings sessionSettings) throws BindException {
         return this.sessionService.startSession(ctx, wid, sessionSettings);
     }
 
-    @GetMapping("/workspaces/{wid}/sessions/{sid}")
+    @GetMapping("/api/v1/workspaces/{wid}/sessions/{sid}")
     @ResponseBody
     public RuntimeSession getSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                                      @PathVariable("sid") final String sid) {
         return this.sessionService.getSession(ctx, wid, sid);
     }
 
-    @DeleteMapping("/workspaces/{wid}/sessions/{sid}")
+    @DeleteMapping("/api/v1/workspaces/{wid}/sessions/{sid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void stopSession(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                             @PathVariable("sid") final String sid) {

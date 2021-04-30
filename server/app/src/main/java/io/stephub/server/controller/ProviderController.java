@@ -20,13 +20,13 @@ public class ProviderController {
     @Autowired
     private ProvidersFacade providersFacade;
 
-    @GetMapping("/providers/registered")
+    @GetMapping("/api/v1/providers/registered")
     @ResponseBody
     public List<ProviderInfo<JsonSchema>> getKnowProviders(@ModelAttribute final Context ctx) {
         return this.providersFacade.getRegisteredProviders();
     }
 
-    @PostMapping("/providers/lookup")
+    @PostMapping("/api/v1/providers/lookup")
     @ResponseBody
     public ProviderInfo<JsonSchema> getKnowProviders(@ModelAttribute final Context ctx, @RequestBody @Valid @ValidProviderSpec final ProviderSpec spec) {
         return this.providersFacade.getProvider(spec).getInfo();

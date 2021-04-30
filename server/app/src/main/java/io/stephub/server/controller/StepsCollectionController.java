@@ -19,7 +19,7 @@ public class StepsCollectionController {
     @Autowired
     private WorkspaceService workspaceService;
 
-    @GetMapping("/workspaces/{wid}/stepsCollection")
+    @GetMapping("/api/v1/workspaces/{wid}/stepsCollection")
     @ResponseBody
     public Map<String, List<StepSpec<JsonSchema>>> getStepSpecs(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
         return this.providersFacade.getStepsCollection(this.workspaceService.getWorkspace(ctx, wid));

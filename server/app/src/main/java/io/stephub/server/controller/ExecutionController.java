@@ -58,7 +58,7 @@ public class ExecutionController {
         }
     }
 
-    @PostMapping("/workspaces/{wid}/executions")
+    @PostMapping("/api/v1/workspaces/{wid}/executions")
     public Execution startExecution(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                                     @RequestBody @Valid final Execution.ExecutionStart<? extends Execution> executionStart,
                                     final HttpServletResponse response) throws IOException, BindException {
@@ -73,7 +73,7 @@ public class ExecutionController {
         }
     }
 
-    @GetMapping("/workspaces/{wid}/executions")
+    @GetMapping("/api/v1/workspaces/{wid}/executions")
     @ResponseBody
     public PageResult<Execution> getExecutions(@ModelAttribute final Context ctx,
                                                @PathVariable("wid") final String wid,
@@ -83,7 +83,7 @@ public class ExecutionController {
                 .map(execution -> execution instanceof FunctionalExecution ? this.executionMapper.mapWithoutBacklog((FunctionalExecution) execution) : execution).collect(Collectors.toList())).total(executions.size()).build();
     }
 
-    @GetMapping("/workspaces/{wid}/executions/{execId}")
+    @GetMapping("/api/v1/workspaces/{wid}/executions/{execId}")
     @ResponseBody
     public DeferredResult<ResponseEntity<Execution>> getExecution(@ModelAttribute final Context ctx,
                                                                   @PathVariable("wid") final String wid,
@@ -116,7 +116,7 @@ public class ExecutionController {
         return deferredResult;
     }
 
-    @GetMapping("/workspaces/{wid}/executions/{execId}/attachments/{attachmentId}")
+    @GetMapping("/api/v1/workspaces/{wid}/executions/{execId}/attachments/{attachmentId}")
     public ResponseEntity<InputStreamResource> getAttachment(@ModelAttribute final Context ctx,
                                                              @PathVariable("wid") final String wid,
                                                              @PathVariable("execId") final String execId,
@@ -128,7 +128,7 @@ public class ExecutionController {
         return new ResponseEntity<>(new InputStreamResource(attachment.getValue()), headers, HttpStatus.OK);
     }
 
-    @GetMapping("/workspaces/{wid}/executions/{execId}/loadRuns")
+    @GetMapping("/api/v1/workspaces/{wid}/executions/{execId}/loadRuns")
     @ResponseBody
     public PageResult<LoadExecution.LoadScenarioRun> getLoadRuns(@ModelAttribute final Context ctx,
                                                                  @PathVariable("wid") final String wid,

@@ -822,7 +822,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                                             status(RunnerStatus.INITIATED).
                                             fixtures(
                                                     ((MemoryLoadSimulation) simulation).fixtureTemplates.stream().map(
-                                                            t -> t.toBuilder().build()
+                                                           FixtureExecutionItem::new
                                                     ).collect(Collectors.toList())
                                             ).
                                             build();

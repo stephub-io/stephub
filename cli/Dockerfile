@@ -1,5 +1,5 @@
-ARG BUILD_IMAGE
-FROM $BUILD_IMAGE as build
+ARG BACKEND_BUILD_IMAGE
+FROM $BACKEND_BUILD_IMAGE as build
 WORKDIR /workspace/cli
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 

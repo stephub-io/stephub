@@ -43,20 +43,20 @@ public class WorkspaceController {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @GetMapping("/workspaces")
+    @GetMapping("/api/v1/workspaces")
     @ResponseBody
     public PageResult<Workspace> findWorkspaces(@ModelAttribute final Context ctx, final WorkspaceFinder finder) {
         final List<Workspace> workspaces = this.workspaceService.findWorkspaces(ctx, finder);
         return PageResult.<Workspace>builder().items(workspaces).total(workspaces.size()).build();
     }
 
-    @GetMapping("/workspaces/template")
+    @GetMapping("/api/v1/workspaces/template")
     @ResponseBody
     public Workspace findWorkspaces(@ModelAttribute final Context ctx) {
         return this.workspaceService.getTemplate(ctx);
     }
 
-    @GetMapping("/workspaces/{wid}")
+    @GetMapping("/api/v1/workspaces/{wid}")
     @ResponseBody
     public Workspace getWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
         final Workspace workspace = this.workspaceService.getWorkspace(ctx, wid);
@@ -64,13 +64,13 @@ public class WorkspaceController {
         return workspace;
     }
 
-    @DeleteMapping("/workspaces/{wid}")
+    @DeleteMapping("/api/v1/workspaces/{wid}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid) {
         this.workspaceService.deleteWorkspace(ctx, wid);
     }
 
-    @PatchMapping("/workspaces/{wid}")
+    @PatchMapping("/api/v1/workspaces/{wid}")
     @ResponseBody
     public Workspace patchWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                                     @RequestBody final Map<String, Object> patch) throws BindException, IOException {
@@ -93,7 +93,7 @@ public class WorkspaceController {
         return workspace;
     }
 
-    @PostMapping("/workspaces")
+    @PostMapping("/api/v1/workspaces")
     @ResponseBody
     public Workspace createWorkspace(@ModelAttribute final Context ctx, @Valid @RequestBody final Workspace draft) {
         final Workspace workspace = this.workspaceService.createWorkspace(ctx, draft);
@@ -101,7 +101,7 @@ public class WorkspaceController {
         return workspace;
     }
 
-    @PutMapping(value = "/workspaces/{wid}")
+    @PutMapping(value = "/api/v1/workspaces/{wid}")
     @ResponseBody
     public Workspace updateWorkspace(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                                      @RequestBody @Valid final Workspace workspace) {
@@ -113,7 +113,7 @@ public class WorkspaceController {
         return updated;
     }
 
-    @PostMapping(value = "/workspaces/{wid}/features", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
+    @PostMapping(value = "/api/v1/workspaces/{wid}/features", consumes = TEXT_PLAIN_VALUE, produces = APPLICATION_JSON_VALUE)
     @ResponseBody
     public Feature addFeature(@ModelAttribute final Context ctx, @PathVariable("wid") final String wid,
                               @RequestBody final String featureFile) {
