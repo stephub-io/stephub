@@ -1,6 +1,7 @@
 package io.stephub.server.api.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import io.stephub.server.api.model.gherkin.Feature;
 import io.stephub.server.api.model.gherkin.Scenario;
@@ -52,7 +53,7 @@ public class Fixture extends StepSequence implements Identifiable {
 
     private int priority;
 
-    private boolean abortOnError;
+    private boolean ignoreErrors;
 
     @Override
     @JsonIgnore

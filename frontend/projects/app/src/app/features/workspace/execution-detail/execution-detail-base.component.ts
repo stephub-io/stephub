@@ -61,12 +61,14 @@ export abstract class ExecutionDetailBaseComponent<T extends Execution>
               : "Starting soon"
           );
           this.executionLoadedAt = new Date();
+          /*
           if (
             execution.status != ExecutionStatus.completed &&
             !this.stopRefreshing
           ) {
             setTimeout(() => this.ngOnInit(), 2000);
           }
+          */
           this.execution$.next(execution);
           return execution;
         })

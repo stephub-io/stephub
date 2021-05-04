@@ -618,7 +618,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                             presets.putAll(attributes);
                         });
                 if (!passed) {
-                    if (fixture.isAbortOnError()) {
+                    if (!fixture.isIgnoreErrors()) {
                         log.debug("Abort subsequent fixtures due to the failed one: {}", fixture);
                         cancelled = true;
                     }
@@ -757,7 +757,9 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
             execution.setStatus(STOPPING);
             execution.getSimulations().forEach(loadSimulation ->
                     ((MemoryLoadSimulation) loadSimulation).runners.forEach(runner -> {
-                        runner.setStatus(RunnerStatus.STOPPING);
+                        if (runner.getStatus() != RunnerStatus.STOPPED) {
+                            runner.setStatus(RunnerStatus.STOPPING);
+                        }
                     })
             );
         }
@@ -822,7 +824,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                                             status(RunnerStatus.INITIATED).
                                             fixtures(
                                                     ((MemoryLoadSimulation) simulation).fixtureTemplates.stream().map(
-                                                           FixtureExecutionItem::new
+                                                            FixtureExecutionItem::new
                                                     ).collect(Collectors.toList())
                                             ).
                                             build();

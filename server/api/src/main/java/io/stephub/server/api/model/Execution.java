@@ -388,13 +388,13 @@ public abstract class Execution {
         private Fixture.FixtureType type;
         private int priority;
         private String name;
-        private boolean abortOnError;
+        private boolean ignoreErrors;
 
         public FixtureExecutionItem(final Fixture from) {
             this.type = from.getType();
             this.name = from.getName();
             this.priority = from.getPriority();
-            this.abortOnError = from.isAbortOnError();
+            this.ignoreErrors = from.isIgnoreErrors();
             this.setSteps(from.getSteps().stream().map(
                     step -> StepExecutionItem.builder().step(step).build()
             ).collect(Collectors.toList()));
@@ -404,12 +404,11 @@ public abstract class Execution {
             this.type = from.getType();
             this.name = from.getName();
             this.priority = from.getPriority();
-            this.abortOnError = from.isAbortOnError();
+            this.ignoreErrors = from.isIgnoreErrors();
             this.setSteps(from.getSteps().stream().map(
                     step -> StepExecutionItem.builder().step(step.getStep()).build()
             ).collect(Collectors.toList()));
         }
-
 
 
         @Override
