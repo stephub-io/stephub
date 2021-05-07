@@ -184,6 +184,41 @@ public class ExecutionService {
         return execution;
     }
 
+    public Execution stopExecution(final String wid, final String execId) {
+        log.debug("Stopping execution={}", execId);
+        final Execution execution = this.executionPersistence.stopExecution(wid, execId);
+        if (execution instanceof LoadExecution) {
+            final LoadExecution lExec = (LoadExecution) execution;
+            try {
+                this.mgmtScheduler.cancel(this.loadRunnerAdapterTask.getTask().instance(execution.getId()));
+                this.mgmtScheduler.cancel(this.loadExecutionTerminationTask.getTask().instance(execution.getId()));
+            } catch (final Exception e) {
+                log.debug("Failed to cancel task for execution={} with message={}", execution, e.getMessage());
+            }
+            lExec.getSimulations().forEach(loadSimulation -> {
+                loadSimulation.getRunners().forEach(loadRunner -> {
+                    try {
+                        this.runnerScheduler.cancel(
+                                this.loadTask.getTask().instance(
+                                        execution.getId() + "-" + loadRunner.getId()));
+                    } catch (final Exception e) {
+                        log.debug("Failed to cancel task={} for execution={} with message={}", execution.getId() + "-" + loadRunner.getId(), execution, e.getMessage());
+                    }
+                });
+            });
+        } else if (execution instanceof FunctionalExecution) {
+            final FunctionalExecution fExec = (FunctionalExecution) execution;
+            for (int i = 0; i < fExec.getRunnersCount(); i++) {
+                try {
+                    this.runnerScheduler.cancel(this.functionalTask.getTask().instance(execution.getId() + "-" + i));
+                } catch (final Exception e) {
+                    log.debug("Failed to cancel task={} for execution={} with message={}", i, execution, e.getMessage());
+                }
+            }
+        }
+        return execution;
+    }
+
     private void initLoadExecution(final LoadExecutionStart executionStart, final Workspace workspace, final LoadExecution execution) {
         try {
             log.debug("Initializing load runner adapter for executing {}", execution);
@@ -196,9 +231,8 @@ public class ExecutionService {
     }
 
     private void initFunctionalExecution(final FunctionalExecutionStart executionStart, final Workspace workspace, final FunctionalExecution execution) {
-        final int parallelizationCount = Math.min(execution.getMaxParallelizationCount(), executionStart.getParallelSessionCount());
-        log.debug("Initializing {} parallel jobs for executing {}", parallelizationCount, execution);
-        for (int i = 0; i < parallelizationCount; i++) {
+        log.debug("Initializing {} parallel jobs for executing {}", execution.getRunnersCount(), execution);
+        for (int i = 0; i < execution.getRunnersCount(); i++) {
             try {
                 this.runnerScheduler.schedule(this.functionalTask.getTask().instance(execution.getId() + "-" + i, new RunnerExecutionTaskData(workspace.getId(), execution.getId(), i + "")), Instant.now());
             } catch (final Exception e) {

@@ -97,16 +97,13 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         private final Queue<SerialBucket> pendingBuckets;
 
         @JsonIgnore
+        private final int runnersCount;
+
+        @JsonIgnore
         private int uncompletedBuckets;
 
         @JsonIgnore
         private final Map<String, Json> fixturePresets = new HashMap<>();
-
-        @Override
-        @JsonIgnore
-        public int getMaxParallelizationCount() {
-            return this.pendingBuckets.size();
-        }
     }
 
     @PostConstruct
@@ -172,6 +169,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
             throw new ExecutionException("Empty selection, expected at least one item to execute");
         }
         final MemoryFunctionalExecution execution = MemoryFunctionalExecution.builder().
+                runnersCount(Math.min(pendingItems.size(), executionStart.getParallelSessionCount())).
                 instruction(executionStart.getInstruction()).
                 id(UUID.randomUUID().toString()).
                 sessionSettings(executionStart.getSessionSettings()).
@@ -258,7 +256,12 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 log.debug("Execution={} started", execution);
                 execution.setStatus(EXECUTING);
                 execution.setStartedAt(OffsetDateTime.now());
-                startFixturesExecutor.run();
+                try {
+                    startFixturesExecutor.run();
+                } catch (final Exception e) {
+                    log.debug("Stopping execution={} due to fixture errors", execution);
+                    execution.setStatus(STOPPING);
+                }
             }
             final SerialBucket next = execution.pendingBuckets.poll();
             if (next != null) {
@@ -268,11 +271,16 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
             if (execution.uncompletedBuckets > 0) {
                 return null;
             }
-            stopFixturesExecutor.run();
-            execution.setStatus(COMPLETED);
-            execution.setCompletedAt(OffsetDateTime.now());
-            log.debug("Execution={} completed", execution);
-            execution.notifyAll();
+            try {
+                stopFixturesExecutor.run();
+            } catch (final Exception e) {
+                log.debug("After fixtures failed for execution={}", execution, e);
+            } finally {
+                execution.setStatus(COMPLETED);
+                execution.setCompletedAt(OffsetDateTime.now());
+                log.debug("Execution={} completed", execution);
+                execution.notifyAll();
+            }
             return null;
         }
     }
@@ -485,7 +493,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
 
         @Override
         public int getCurrentActualLoad() {
-            return (int) this.runners.stream().filter(r -> r.getStatus() == RunnerStatus.RUNNING).count();
+            return (int) this.runners.stream().filter(r -> r.getStatus() == RunnerStatus.RUNNING || r.getStatus() == RunnerStatus.STOPPING).count();
         }
 
         @Override
@@ -703,6 +711,10 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                             log.debug("Cancel execution of step item={} in execution={} due to previous errors", stepExecutionItem, execId);
                             stepExecutionItem.setStatus(CANCELLED);
                             continue;
+                        } else if (execution.getStatus() != EXECUTING) {
+                            log.debug("Cancel execution of step item={} in execution={}, because it's no longer executing", stepExecutionItem, execId);
+                            stepExecutionItem.setStatus(CANCELLED);
+                            continue;
                         }
                         stepExecutionItem.setStatus(EXECUTING);
                         log.debug("Starting execution of step item={} of execution={}", stepExecutionItem, execId);
@@ -749,10 +761,28 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @Override
-    public void stopExecution(final String wid, final String execId) {
-        // TODO: Generalize for both types
-        final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(wid, execId, MemoryLoadExecution.class);
-        final MemoryLoadExecution execution = wrapper.getExecution();
+    public Execution stopExecution(final String wid, final String execId) {
+        final ExecutionWrapper<Execution> wrapper = this.getSafeExecution(wid, execId, Execution.class);
+        log.info("Stopping execution={}", wrapper.getExecution());
+        if (wrapper.getExecution().getStatus() == COMPLETED) {
+            log.info("Execution={} already stopped", wrapper.getExecution());
+            return wrapper.getExecution();
+        }
+        if (wrapper.getExecution() instanceof MemoryLoadExecution) {
+            this.stopExecution((MemoryLoadExecution) wrapper.getExecution());
+        } else if (wrapper.getExecution() instanceof MemoryFunctionalExecution) {
+            this.stopExecution((MemoryFunctionalExecution) wrapper.getExecution());
+        }
+        return wrapper.getExecution();
+    }
+
+    private void stopExecution(final MemoryFunctionalExecution execution) {
+        synchronized (execution) {
+            execution.setStatus(STOPPING);
+        }
+    }
+
+    private void stopExecution(final MemoryLoadExecution execution) {
         synchronized (execution) {
             execution.setStatus(STOPPING);
             execution.getSimulations().forEach(loadSimulation ->

@@ -28,14 +28,14 @@ public abstract class FunctionalExecution extends Execution {
     @Builder.Default
     private List<ExecutionItem> backlog = new ArrayList<>();
 
-    @JsonIgnore
-    public abstract int getMaxParallelizationCount();
-
     public Stats getStats() {
         final Stats stats = new Stats();
         this.backlog.stream().forEach(i -> stats.add(i.getStats()));
         return stats;
     }
+
+    @JsonIgnore
+    public abstract int getRunnersCount();
 
 
     @NoArgsConstructor

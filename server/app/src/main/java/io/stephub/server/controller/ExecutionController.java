@@ -139,13 +139,20 @@ public class ExecutionController {
         return this.executionPersistence.getLoadRuns(ctx, wid, execId, simId, status, pageCriteria);
     }
 
+    @PostMapping("/api/v1/workspaces/{wid}/executions/{execId}:stop")
+    @ResponseBody
+    public Execution stopExecution(@ModelAttribute final Context ctx,
+                                   @PathVariable("wid") final String wid,
+                                   @PathVariable("execId") final String execId) {
+        return this.executionService.stopExecution(wid, execId);
+    }
+
     @NoArgsConstructor
     @JsonTypeName(Execution.FUNCTIONAL_STR)
     public static class ListFunctionalExecution extends FunctionalExecution {
 
         @Override
-        @JsonIgnore
-        public int getMaxParallelizationCount() {
+        public int getRunnersCount() {
             return 0;
         }
 

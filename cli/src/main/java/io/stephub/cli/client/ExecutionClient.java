@@ -101,9 +101,8 @@ public class ExecutionClient extends BaseClient {
 
     @JsonTypeInfo(use = JsonTypeInfo.Id.NONE)
     private static class DefaultFunctionalExecution extends FunctionalExecution {
-
         @Override
-        public int getMaxParallelizationCount() {
+        public int getRunnersCount() {
             return 0;
         }
     }

@@ -37,7 +37,7 @@ public interface ExecutionPersistence {
 
     Duration adaptLoadRunners(String wid, String execId, LoadRunnerSpawner loadRunnerSpawner);
 
-    void stopExecution(String wid, String execId);
+    Execution stopExecution(String wid, String execId);
 
     PageResult<LoadExecution.LoadScenarioRun> getLoadRuns(Context ctx, String wid, String execId, String simId, List<StepResponse.StepStatus> status, PageCriteria pageCriteria);
 

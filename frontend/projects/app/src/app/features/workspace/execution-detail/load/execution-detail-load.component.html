@@ -8,6 +8,17 @@
               <mat-card class="item">
                 <mat-card-content>
                   <div class="inline-meta">
+                    <div class="section-actions">
+                      <button
+                        *ngIf="exec.status != 'completed'"
+                        mat-icon-button
+                        (click)="stop()"
+                        title="Stop"
+                        [disabled]="serverAction"
+                      >
+                        <fa-icon class="text-muted" icon="stop"></fa-icon>
+                      </button>
+                    </div>
                     <div class="row">
                       <div class="col">
                         Status:
@@ -209,64 +220,75 @@
               </mat-expansion-panel-header>
               <ng-template matExpansionPanelContent>
                 <mat-divider></mat-divider>
-                <mat-accordion class="items-headers-align" multi>
-                  <mat-expansion-panel
-                    *ngFor="
-                      let runner of simulation.runners;
-                      trackBy: trackByIndex
-                    "
-                  >
-                    <mat-expansion-panel-header>
-                      <mat-panel-title>
-                        <span>{{ runner.id }}</span>
-                      </mat-panel-title>
-                      <mat-panel-description>
-                        <span> {{ runner.iterationNumber }} iterations </span>
-                        <span>
-                          <fa-icon
-                            class="indicator"
-                            [icon]="statusIcon(mapRunnerStatus(runner.status))"
-                            [spin]="
-                              statusIconSpin(mapRunnerStatus(runner.status))
-                            "
-                          ></fa-icon>
-                          {{ runner.status }}
-                        </span>
-                      </mat-panel-description>
-                    </mat-expansion-panel-header>
-                    <ng-template matExpansionPanelContent>
-                      <mat-divider></mat-divider>
-                      <div class="inline-meta">
-                        <sh-execution-date-rows
-                          [initiatedAt]="runner.initiatedAt"
-                          [startedAt]="runner.startedAt"
-                          [completedAt]="runner.stoppedAt"
-                          [now]="executionLoadedAt"
-                        ></sh-execution-date-rows>
-                        <div class="row" *ngIf="runner.stopMessage">
-                          <div class="col">
-                            Stop message:
+                <cdk-virtual-scroll-viewport
+                  itemSize="50"
+                  class="runners-viewport"
+                >
+                  <mat-accordion class="items-headers-align" multi>
+                    <ng-container
+                      *cdkVirtualFor="
+                        let runner of simulation.runners;
+                        trackBy: trackByIndex
+                      "
+                    >
+                      <mat-expansion-panel>
+                        <mat-expansion-panel-header>
+                          <mat-panel-title>
+                            <span>{{ runner.id }}</span>
+                          </mat-panel-title>
+                          <mat-panel-description>
+                            <span>
+                              {{ runner.iterationNumber }} iterations
+                            </span>
+                            <span>
+                              <fa-icon
+                                class="indicator"
+                                [icon]="
+                                  statusIcon(mapRunnerStatus(runner.status))
+                                "
+                                [spin]="
+                                  statusIconSpin(mapRunnerStatus(runner.status))
+                                "
+                              ></fa-icon>
+                              {{ runner.status }}
+                            </span>
+                          </mat-panel-description>
+                        </mat-expansion-panel-header>
+                        <ng-template matExpansionPanelContent>
+                          <mat-divider></mat-divider>
+                          <div class="inline-meta">
+                            <sh-execution-date-rows
+                              [initiatedAt]="runner.initiatedAt"
+                              [startedAt]="runner.startedAt"
+                              [completedAt]="runner.stoppedAt"
+                              [now]="executionLoadedAt"
+                            ></sh-execution-date-rows>
+                            <div class="row" *ngIf="runner.stopMessage">
+                              <div class="col">
+                                Stop message:
+                              </div>
+                              <div class="col col-8 warn-text">
+                                {{ runner.stopMessage }}
+                              </div>
+                            </div>
+                            <p
+                              class="font-weight-bold"
+                              *ngIf="runner.fixtures.length > 0"
+                            >
+                              Fixtures:
+                            </p>
+                            <sh-execution-detail-fixtures
+                              [wid]="wid"
+                              [exec]="exec"
+                              [fixtures]="runner.fixtures"
+                              [showType]="true"
+                            ></sh-execution-detail-fixtures>
                           </div>
-                          <div class="col col-8 warn-text">
-                            {{ runner.stopMessage }}
-                          </div>
-                        </div>
-                        <p
-                          class="font-weight-bold"
-                          *ngIf="runner.fixtures.length > 0"
-                        >
-                          Fixtures:
-                        </p>
-                        <sh-execution-detail-fixtures
-                          [wid]="wid"
-                          [exec]="exec"
-                          [fixtures]="runner.fixtures"
-                          [showType]="true"
-                        ></sh-execution-detail-fixtures>
-                      </div>
-                    </ng-template>
-                  </mat-expansion-panel>
-                </mat-accordion>
+                        </ng-template>
+                      </mat-expansion-panel>
+                    </ng-container>
+                  </mat-accordion>
+                </cdk-virtual-scroll-viewport>
               </ng-template>
             </mat-expansion-panel>
             <mat-expansion-panel

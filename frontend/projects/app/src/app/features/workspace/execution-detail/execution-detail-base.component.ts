@@ -1,12 +1,7 @@
 import { Component, OnDestroy, OnInit } from "@angular/core";
 import { ROUTE_ANIMATIONS_ELEMENTS } from "../../../core/animations/route.animations";
 import { BehaviorSubject } from "rxjs";
-import {
-  Execution,
-  ExecutionStatus,
-  FixtureType,
-  LoadExecution,
-} from "../execution.model";
+import { Execution, ExecutionStatus, FixtureType } from "../execution.model";
 import { ExecutionService } from "../execution.service";
 import { ActivatedRoute } from "@angular/router";
 import { BreadcrumbService } from "xng-breadcrumb";
@@ -19,6 +14,7 @@ import {
   faTimesCircle,
 } from "@fortawesome/free-regular-svg-icons";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { NotificationService } from "../../../core/notifications/notification.service";
 
 @Component({
   template: "",
@@ -29,17 +25,19 @@ export abstract class ExecutionDetailBaseComponent<T extends Execution>
 
   wid: string;
   id: string;
-  execution$ = new BehaviorSubject<LoadExecution>(null);
+  execution$ = new BehaviorSubject<T>(null);
   after = FixtureType.after;
   before = FixtureType.before;
   executionLoadedAt: Date;
   private stopRefreshing = false;
+  serverAction: boolean;
 
   protected constructor(
     protected executionService: ExecutionService,
     protected route: ActivatedRoute,
     protected breadcrumbService: BreadcrumbService,
-    protected datePipe: DatePipe
+    protected datePipe: DatePipe,
+    protected notificationService: NotificationService
   ) {
     this.route.parent.parent.params.subscribe((params) => {
       this.wid = params.wid;
@@ -51,29 +49,34 @@ export abstract class ExecutionDetailBaseComponent<T extends Execution>
 
   ngOnInit() {
     this.executionService
-      .get<LoadExecution>(this.wid, this.id)
+      .get<T>(this.wid, this.id)
       .pipe(
         map((execution) => {
-          this.breadcrumbService.set(
-            "@execution",
-            execution.startedAt
-              ? this.datePipe.transform(execution.startedAt, "medium")
-              : "Starting soon"
-          );
-          this.executionLoadedAt = new Date();
-          /*
-          if (
-            execution.status != ExecutionStatus.completed &&
-            !this.stopRefreshing
-          ) {
-            setTimeout(() => this.ngOnInit(), 2000);
-          }
-          */
-          this.execution$.next(execution);
+          this.injectExecution(execution);
           return execution;
         })
       )
       .subscribe();
+  }
+
+  stop() {
+    this.serverAction = true;
+    return this.executionService
+      .stop<T>(this.wid, this.id)
+      .pipe(
+        map((execution) => {
+          this.injectExecution(execution);
+          this.notificationService.success("Execution is getting stopped");
+          return execution;
+        })
+      )
+      .subscribe(
+        () => (this.serverAction = false),
+        (e) => {
+          this.serverAction = false;
+          throw e;
+        }
+      );
   }
 
   statusIcon(status: ExecutionStatus) {
@@ -86,6 +89,19 @@ export abstract class ExecutionDetailBaseComponent<T extends Execution>
 
   ngOnDestroy(): void {
     this.stopRefreshing = true;
+  }
+
+  private injectExecution(execution: T) {
+    this.breadcrumbService.set(
+      "@execution",
+      execution.startedAt
+        ? this.datePipe.transform(execution.startedAt, "medium")
+        : execution.status == ExecutionStatus.initiated
+        ? "Starting soon"
+        : execution.id
+    );
+    this.executionLoadedAt = new Date();
+    this.execution$.next(execution);
   }
 }
 

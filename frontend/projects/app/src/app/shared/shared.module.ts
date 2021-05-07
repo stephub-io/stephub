@@ -55,6 +55,7 @@ import {
   faRocket,
   faSearchPlus,
   faSlidersH,
+  faStop,
   faStream,
   faTable,
   faTasks,
@@ -269,7 +270,8 @@ export class SharedModule {
       faSearchPlus,
       faQuestionCircle,
       faFileAlt,
-      faFileImage
+      faFileImage,
+      faStop
     );
   }
 }

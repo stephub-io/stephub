@@ -18,6 +18,7 @@ import { parse } from "../../step/parser/instruction-parser";
 import { faMagic } from "@fortawesome/free-solid-svg-icons";
 import { BehaviorSubject } from "rxjs";
 import { StepStatus } from "../../step.model";
+import { NotificationService } from "../../../../core/notifications/notification.service";
 
 @Component({
   selector: "sh-execution-detail-load",
@@ -36,9 +37,16 @@ export class ExecutionDetailLoadComponent extends ExecutionDetailBaseComponent<
     protected executionService: ExecutionService,
     protected route: ActivatedRoute,
     protected breadcrumbService: BreadcrumbService,
-    protected datePipe: DatePipe
+    protected datePipe: DatePipe,
+    protected notificationService: NotificationService
   ) {
-    super(executionService, route, breadcrumbService, datePipe);
+    super(
+      executionService,
+      route,
+      breadcrumbService,
+      datePipe,
+      notificationService
+    );
   }
 
   ngOnInit() {

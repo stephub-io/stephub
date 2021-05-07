@@ -18,6 +18,7 @@ import { ExecutionDetailBaseComponent } from "../execution-detail-base.component
 import { ExecutionService } from "../../execution.service";
 import { ActivatedRoute } from "@angular/router";
 import { BreadcrumbService } from "xng-breadcrumb";
+import { NotificationService } from "../../../../core/notifications/notification.service";
 
 @Component({
   selector: "sh-execution-detail-functional",
@@ -33,9 +34,16 @@ export class ExecutionDetailFunctionalComponent extends ExecutionDetailBaseCompo
     protected executionService: ExecutionService,
     protected route: ActivatedRoute,
     protected breadcrumbService: BreadcrumbService,
-    protected datePipe: DatePipe
+    protected datePipe: DatePipe,
+    protected notificationService: NotificationService
   ) {
-    super(executionService, route, breadcrumbService, datePipe);
+    super(
+      executionService,
+      route,
+      breadcrumbService,
+      datePipe,
+      notificationService
+    );
   }
 
   getFeature(item: ExecutionItem): FeatureExecutionItem {

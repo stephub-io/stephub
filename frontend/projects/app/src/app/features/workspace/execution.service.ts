@@ -29,6 +29,13 @@ export class ExecutionService {
     return this.http.get<E>(`/api/v1/workspaces/${wid}/executions/${id}`);
   }
 
+  public stop<E extends Execution>(wid: string, id: string): Observable<E> {
+    return this.http.post<E>(
+      `/api/v1/workspaces/${wid}/executions/${id}:stop`,
+      null
+    );
+  }
+
   public fetchLoadRuns(
     wid: string,
     execId: string,

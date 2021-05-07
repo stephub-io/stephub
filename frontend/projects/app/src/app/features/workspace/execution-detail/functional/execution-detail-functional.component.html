@@ -5,6 +5,17 @@
         <mat-card class="item">
           <mat-card-content>
             <div class="inline-meta">
+              <div class="section-actions">
+                <button
+                  *ngIf="exec.status != 'completed'"
+                  mat-icon-button
+                  (click)="stop()"
+                  title="Stop"
+                  [disabled]="serverAction"
+                >
+                  <fa-icon class="text-muted" icon="stop"></fa-icon>
+                </button>
+              </div>
               <div class="row">
                 <div class="col">
                   Status:

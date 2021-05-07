@@ -43,6 +43,7 @@ import { ExecutionDetailLoadComponent } from "./execution-detail/load/execution-
 import { ExecutionDateRowsComponent } from "./execution-detail/date-rows/execution-date-rows.component";
 import { LoadStatsBarComponent } from "./execution-detail/load/stats-bar/load-stats-bar.component";
 import { LoadScenarioRunsComponent } from "./execution-detail/load/scenario-runs/load-scenario-runs.component";
+import { ScrollingModule } from "@angular/cdk/scrolling";
 
 @NgModule({
   declarations: [
@@ -86,6 +87,7 @@ import { LoadScenarioRunsComponent } from "./execution-detail/load/scenario-runs
     SchemaFormModule.forRoot(),
     MarkdownModule.forChild(),
     NgxFilesizeModule,
+    ScrollingModule,
   ],
   providers: [
     {
