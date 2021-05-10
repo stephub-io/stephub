@@ -120,7 +120,7 @@ public class ExecutionController {
     public ResponseEntity<InputStreamResource> getAttachment(@ModelAttribute final Context ctx,
                                                              @PathVariable("wid") final String wid,
                                                              @PathVariable("execId") final String execId,
-                                                             @PathVariable("attachmentId") final String attachmentId) {
+                                                             @PathVariable("attachmentId") final String attachmentId) throws IOException {
         final Pair<Execution.ExecutionLogAttachment, InputStream> attachment = this.executionPersistence.getLogAttachment(wid, execId, attachmentId);
         final HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.parseMediaType(attachment.getLeft().getContentType()));

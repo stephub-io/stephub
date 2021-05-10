@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Service;
@@ -95,6 +96,9 @@ public class ExecutionService {
         @Autowired
         private ExecutionService executionService;
 
+        @Value("${io.stephub.execution.load.runnerAdapterCheckCycle:60000}")
+        private int runnerAdapterCheckCycle;
+
         @Bean("functionalTask")
         public RunnerTaskWrapper<RunnerExecutionTaskData> functionalTask() {
             return new RunnerTaskWrapper<>(Tasks.oneTime("functional-runner", RunnerExecutionTaskData.class).execute((taskInstance, ctx) -> {
@@ -124,16 +128,16 @@ public class ExecutionService {
             return new MgmtTaskWrapper<>(Tasks.custom("load-runner-adapter", ExecutionTaskData.class).
                     onDeadExecutionRevive().
                     execute((taskInstance, ctx) -> {
-                        final Duration nextAdaptationIn = this.executionPersistence.adaptLoadRunners(taskInstance.getData().getWid(), taskInstance.getData().getExecId(),
+                        Duration nextAdaptationIn = this.executionPersistence.adaptLoadRunners(taskInstance.getData().getWid(), taskInstance.getData().getExecId(),
                                 (runnerId) -> {
                                     this.executionService.scheduleLoadRunner(
                                             taskInstance.getData(), runnerId
                                     );
                                 });
-                        if (nextAdaptationIn != null) {
-                            return new CompletionHandler.OnCompleteReschedule<>(FixedDelay.of(nextAdaptationIn));
+                        if (nextAdaptationIn == null || this.runnerAdapterCheckCycle < nextAdaptationIn.toMillis()) {
+                            nextAdaptationIn = Duration.ofMillis(this.runnerAdapterCheckCycle);
                         }
-                        return new CompletionHandler.OnCompleteRemove<>();
+                        return new CompletionHandler.OnCompleteReschedule<>(FixedDelay.of(nextAdaptationIn));
                     }));
         }
     }
@@ -244,11 +248,17 @@ public class ExecutionService {
 
     private void doLoadRunner(final RunnerExecutionTaskData taskData) {
         final Workspace workspace = this.workspaceService.getWorkspaceInternal(taskData.getWid());
-        this.executionPersistence.processLoadRunner(workspace, taskData.getExecId(), taskData.getRunnerId(), (executionItem, execution, sessionExecutionContext, evaluationContext, responseContext) ->
-        {
-            log.debug("Execute step={} of execution={} and workspace={} on runner={}", executionItem, taskData.getExecId(), taskData.getWid(), taskData.getRunnerId());
-            execution.execute(sessionExecutionContext, evaluationContext, responseContext);
-        });
+        this.executionPersistence.processLoadRunner(workspace, taskData.getExecId(), taskData.getRunnerId(),
+                (newRunnerId) -> {
+                    this.scheduleLoadRunner(
+                            new ExecutionTaskData(workspace.getId(), taskData.getExecId()), newRunnerId
+                    );
+                },
+                (executionItem, execution, sessionExecutionContext, evaluationContext, responseContext) ->
+                {
+                    log.debug("Execute step={} of execution={} and workspace={} on runner={}", executionItem, taskData.getExecId(), taskData.getWid(), taskData.getRunnerId());
+                    execution.execute(sessionExecutionContext, evaluationContext, responseContext);
+                });
     }
 
     private void doFunctionalExecution(final RunnerExecutionTaskData taskData) {

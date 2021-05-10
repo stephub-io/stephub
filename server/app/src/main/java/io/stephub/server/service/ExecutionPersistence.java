@@ -14,6 +14,7 @@ import io.stephub.server.model.Context;
 import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.scheduling.annotation.Async;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.util.List;
@@ -24,7 +25,7 @@ public interface ExecutionPersistence {
 
     void processPendingExecutionSteps(Workspace workspace, String execId, WithinExecutionStepCommand command);
 
-    void processLoadRunner(Workspace workspace, String execId, String runnerId, WithinExecutionStepCommand command);
+    void processLoadRunner(Workspace workspace, String execId, String runnerId, LoadRunnerSpawner loadRunnerSpawner, WithinExecutionStepCommand command);
 
     Execution getExecution(String wid, String execId);
 
@@ -33,7 +34,7 @@ public interface ExecutionPersistence {
 
     <E extends Execution> List<E> getExecutions(String wid, Class<? extends E> clazz);
 
-    Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(String wid, String execId, String attachmentId);
+    Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(String wid, String execId, String attachmentId) throws IOException;
 
     Duration adaptLoadRunners(String wid, String execId, LoadRunnerSpawner loadRunnerSpawner);
 

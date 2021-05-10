@@ -2,6 +2,7 @@ package io.stephub.server.service.support;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.stephub.json.Json;
 import io.stephub.provider.api.model.LogEntry;
 import io.stephub.provider.api.model.StepResponse;
@@ -34,6 +35,8 @@ import org.springframework.util.CollectionUtils;
 
 import javax.annotation.PostConstruct;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.time.Duration;
 import java.time.OffsetDateTime;
@@ -58,6 +61,11 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Value("${io.stephub.execution.memory.store.expirationDays}")
     private int expirationDays;
 
+    @Value("${io.stephub.home}/attachments")
+    private String attachmentDirName;
+
+    private File attachmentDir;
+
     private ExpiringMap<String, ExecutionWrapper> store;
 
     @Autowired
@@ -66,10 +74,12 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     @Autowired
     private StepExecutionResolver stepExecutionResolver;
 
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @Getter
     private static class ExecutionWrapper<E extends Execution> {
         private final E execution;
-        private final Map<String, LogEntry.LogAttachment> attachmentStore = new HashMap<>();
 
         public ExecutionWrapper(final E execution) {
             this.execution = execution;
@@ -113,6 +123,10 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                 .expirationPolicy(ExpirationPolicy.CREATED)
                 .maxSize(this.storeSize)
                 .build();
+        this.attachmentDir = new File(this.attachmentDirName);
+        if (!this.attachmentDir.exists() && !this.attachmentDir.mkdirs()) {
+            throw new RuntimeException("Failed to create attachments directory: " + this.attachmentDirName);
+        }
     }
 
     private FunctionalExecution initExecution(final Workspace workspace, final FunctionalExecution.FunctionalExecutionStart executionStart) {
@@ -403,7 +417,11 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                             logEntry.getAttachments().stream().map(logAttachment -> {
                                 final Execution.ExecutionLogAttachment target =
                                         new Execution.ExecutionLogAttachment(UUID.randomUUID().toString(), logAttachment);
-                                execution.attachmentStore.put(target.getId(), logAttachment);
+                                try {
+                                    this.objectMapper.writeValue(this.getLogAttachmentFile(execution.getExecution().getId(), target.getId()), logAttachment);
+                                } catch (final IOException e) {
+                                    log.error("Failed to store attachment", e);
+                                }
                                 return target;
                             }).collect(Collectors.toList())
                     ).build()).collect(Collectors.toList());
@@ -415,7 +433,16 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
         if (item.getResult() != null && item.getResult().getLogs() != null) {
             item.getResult().getLogs().forEach(log -> {
                 if (log.getAttachments() != null) {
-                    log.getAttachments().forEach(attachment -> execution.attachmentStore.remove(attachment.getId()));
+                    log.getAttachments().forEach(attachment -> {
+                        final File logAttachmentFile = this.getLogAttachmentFile(execution.getExecution().getId(), attachment.getId());
+                        try {
+                            if (logAttachmentFile.exists()) {
+                                logAttachmentFile.delete();
+                            }
+                        } catch (final Exception e) {
+                            MemoryExecutionPersistence.log.error("Failed to delete attachment", e);
+                        }
+                    });
                 }
             });
         }
@@ -458,12 +485,17 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @Override
-    public Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(final String wid, final String execId, final String attachmentId) {
-        final LogEntry.LogAttachment logAttachment = this.getSafeExecution(wid, execId, Execution.class).attachmentStore.get(attachmentId);
-        if (logAttachment == null) {
-            throw new ExecutionException("No attachment with id=" + attachmentId + " found");
+    public Pair<Execution.ExecutionLogAttachment, InputStream> getLogAttachment(final String wid, final String execId, final String attachmentId) throws IOException {
+        final File logFile = this.getLogAttachmentFile(execId, attachmentId);
+        if (logFile.exists()) {
+            final LogEntry.LogAttachment logAttachment = this.objectMapper.readValue(logFile, LogEntry.LogAttachment.class);
+            return Pair.of(new Execution.ExecutionLogAttachment(attachmentId, logAttachment), new ByteArrayInputStream(logAttachment.getContent()));
         }
-        return Pair.of(new Execution.ExecutionLogAttachment(attachmentId, logAttachment), new ByteArrayInputStream(logAttachment.getContent()));
+        throw new ExecutionException("No attachment with id=" + attachmentId + " found");
+    }
+
+    private File getLogAttachmentFile(final String execId, final String attachmentId) {
+        return new File(this.attachmentDir, execId + attachmentId + ".log");
     }
 
     @SuperBuilder
@@ -515,7 +547,7 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     }
 
     @Override
-    public void processLoadRunner(final Workspace workspace, final String execId, final String runnerId, final WithinExecutionStepCommand command) {
+    public void processLoadRunner(final Workspace workspace, final String execId, final String runnerId, final LoadRunnerSpawner loadRunnerSpawner, final WithinExecutionStepCommand command) {
         final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(workspace.getId(), execId, MemoryLoadExecution.class);
         final MemoryLoadExecution execution = wrapper.getExecution();
         final Pair<MemoryLoadSimulation, LoadRunner> simRunner = this.findRunner(execution, runnerId);
@@ -603,6 +635,8 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
                     fixturePresets, null);
             runner.setStatus(RunnerStatus.STOPPED);
             runner.setStoppedAt(OffsetDateTime.now());
+            // Try to adapt runners
+            this.adaptLoadRunners(execution, loadRunnerSpawner);
             this.tryCompleting(execution);
         }
     }
@@ -788,7 +822,16 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
             execution.getSimulations().forEach(loadSimulation ->
                     ((MemoryLoadSimulation) loadSimulation).runners.forEach(runner -> {
                         if (runner.getStatus() != RunnerStatus.STOPPED) {
-                            runner.setStatus(RunnerStatus.STOPPING);
+                            if (runner.getStatus() == RunnerStatus.RUNNING) {
+                                runner.setStatus(RunnerStatus.STOPPING);
+                            } else if (runner.getStatus() == RunnerStatus.INITIATED) {
+                                runner.setStatus(RunnerStatus.STOPPED);
+                                runner.getFixtures().forEach(
+                                        fixture -> {
+                                            fixture.getSteps().forEach(stepExecutionItem -> stepExecutionItem.setStatus(CANCELLED));
+                                        }
+                                );
+                            }
                         }
                     })
             );
@@ -834,59 +877,70 @@ public class MemoryExecutionPersistence implements ExecutionPersistence {
     public Duration adaptLoadRunners(final String wid, final String execId, final LoadRunnerSpawner loadRunnerSpawner) {
         final ExecutionWrapper<MemoryLoadExecution> wrapper = this.getSafeExecution(wid, execId, MemoryLoadExecution.class);
         final MemoryLoadExecution execution = wrapper.getExecution();
-        final Duration simulationTime = execution.getStartedAt() != null ? Duration.between(execution.getStartedAt(), OffsetDateTime.now())
-                : Duration.ZERO;
-        final List<Duration> nextChanges = new ArrayList<>();
-        execution.getSimulations().forEach(
-                simulation -> {
-                    final int amountNow = simulation.getUserLoadSpec().getAmountAt(simulationTime);
-                    final Duration nextChangeAfter = simulation.getUserLoadSpec().nextChangeAfter(simulationTime);
-                    if (nextChangeAfter != null) {
-                        nextChanges.add(nextChangeAfter);
-                    }
-                    final int current = simulation.getCurrentTargetLoad();
-                    if (amountNow > current) {
-                        log.debug("Adding {} more runners to execution={} and simulation={}", amountNow - current, execId, simulation);
-                        for (int i = 0; i < (amountNow - current); i++) {
-                            final LoadRunner runner =
-                                    LoadRunner.builder().id(UUID.randomUUID().toString()).
-                                            initiatedAt(OffsetDateTime.now()).
-                                            status(RunnerStatus.INITIATED).
-                                            fixtures(
-                                                    ((MemoryLoadSimulation) simulation).fixtureTemplates.stream().map(
-                                                            FixtureExecutionItem::new
-                                                    ).collect(Collectors.toList())
-                                            ).
-                                            build();
-                            ((MemoryLoadSimulation) simulation).runners.add(runner);
-                            loadRunnerSpawner.spawn(runner.getId());
-                        }
-                    } else if (amountNow < current) {
-                        log.debug("Removing {} runners from execution={}", current - amountNow, execId);
-                        for (int i = 0; i < (current - amountNow); i++) {
-                            ((MemoryLoadSimulation) simulation).runners.stream().filter(
-                                    r -> r.getStatus().alive()
-                            ).findFirst().ifPresentOrElse(
-                                    runner -> {
-                                        log.debug("Stopping runner={} of execution={}", runner.getId(), execId);
-                                        runner.setStatus(RunnerStatus.STOPPING);
-                                    },
-                                    () -> log.warn("Wanted to deactivate runner, but none active found for execution={}", execId)
-                            );
-                        }
-                    }
-                }
-        );
-        Duration closestChange = null;
-        for (final Duration nextChange : nextChanges) {
-            if (closestChange == null || nextChange.compareTo(closestChange) < 0) {
-                closestChange = nextChange;
-            }
-        }
-        if (closestChange != null) {
-            log.debug("Going to adapt runners for execution={} in {}", execId, closestChange);
-        }
+        final Duration closestChange = this.adaptLoadRunners(execution, loadRunnerSpawner);
         return closestChange;
+    }
+
+    private Duration adaptLoadRunners(final MemoryLoadExecution execution, final LoadRunnerSpawner loadRunnerSpawner) {
+        synchronized (execution) {
+            if (execution.getStatus() == COMPLETED || execution.getStatus() == CANCELLED
+                    || execution.getStatus() == STOPPING) {
+                return null;
+            }
+            final Duration simulationTime = execution.getStartedAt() != null ? Duration.between(execution.getStartedAt(), OffsetDateTime.now())
+                    : Duration.ZERO;
+            final List<Duration> nextChanges = new ArrayList<>();
+            execution.getSimulations().forEach(
+                    simulation -> {
+                        final int amountNow = simulation.getUserLoadSpec().getAmountAt(simulationTime);
+                        final Duration nextChangeAfter = simulation.getUserLoadSpec().nextChangeAfter(simulationTime);
+                        if (nextChangeAfter != null) {
+                            nextChanges.add(nextChangeAfter);
+                        }
+                        final int current = simulation.getCurrentTargetLoad();
+                        if (amountNow > current) {
+                            log.debug("Adding {} more runners to execution={} and simulation={}", amountNow - current, execution, simulation);
+                            for (int i = 0; i < (amountNow - current); i++) {
+                                final LoadRunner runner =
+                                        LoadRunner.builder().id(UUID.randomUUID().toString()).
+                                                initiatedAt(OffsetDateTime.now()).
+                                                status(RunnerStatus.INITIATED).
+                                                fixtures(
+                                                        ((MemoryLoadSimulation) simulation).fixtureTemplates.stream().map(
+                                                                FixtureExecutionItem::new
+                                                        ).collect(Collectors.toList())
+                                                ).
+                                                build();
+                                ((MemoryLoadSimulation) simulation).runners.add(runner);
+                                loadRunnerSpawner.spawn(runner.getId());
+                            }
+                        } else if (amountNow < current) {
+                            log.debug("Removing {} runners from execution={}", current - amountNow, execution);
+                            for (int i = 0; i < (current - amountNow); i++) {
+                                ((MemoryLoadSimulation) simulation).runners.stream().filter(
+                                        r -> r.getStatus().alive()
+                                ).findFirst().ifPresentOrElse(
+                                        runner -> {
+                                            log.debug("Stopping runner={} of execution={}", runner.getId(), execution);
+                                            runner.setStatus(RunnerStatus.STOPPING);
+                                        },
+                                        () -> log.warn("Wanted to deactivate runner, but none active found for execution={}", execution)
+                                );
+                            }
+                        }
+                    }
+            );
+            Duration closestChange = null;
+            for (final Duration nextChange : nextChanges) {
+                if (closestChange == null || nextChange.compareTo(closestChange) < 0) {
+                    closestChange = nextChange;
+                }
+            }
+            if (closestChange != null) {
+                log.debug("Going to adapt runners for execution={} in {}", execution, closestChange);
+            }
+            return closestChange;
+        }
     }
 
     private String getStoreId(final String wid, final String execId) {
